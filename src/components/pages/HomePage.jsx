@@ -155,7 +155,7 @@ export default function HomePage() {
     <div ref={rootRef} className="space-y-8 sm:space-y-10">
       {/* 1. Key Stats Bar — Single Merged Card Connected to Hero */}
       <section className="-mt-10 sm:-mt-12 relative z-20">
-        <div className="stat-card overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-950/10">
+        <div className="stat-card isolate overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-950/10 [transform:translateZ(0)]">
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 lg:grid-cols-4 lg:divide-y-0 lg:divide-x lg:divide-slate-200/80">
             {STATS.map((item) => (
               <div

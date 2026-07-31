@@ -80,7 +80,7 @@ export default function App() {
   const isHome = location.pathname === '/beranda' || location.pathname === '/'
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50 text-slate-800 antialiased">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-slate-50 text-slate-800 antialiased">
       <SiteHeader />
 
       <main className="mb-auto pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0">

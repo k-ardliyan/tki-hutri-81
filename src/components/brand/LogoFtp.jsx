@@ -35,7 +35,8 @@ export default function LogoFtp({
           duration: 0.5,
           stagger: 0.008,
           ease: 'power2.out',
-          clearProps: 'opacity,scale',
+          transformOrigin: '50% 50%',
+          clearProps: 'all',
         },
       )
 
