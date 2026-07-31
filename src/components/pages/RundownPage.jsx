@@ -88,7 +88,7 @@ const calendarEvents = [
     title: 'Sosialisasi aturan',
     start: '2026-08-03',
     end: '2026-08-03',
-    note: 'Senin · jam kerja',
+    note: 'Senin',
   },
   {
     id: 'dekor',
@@ -96,7 +96,7 @@ const calendarEvents = [
     title: 'Lomba dekorasi ruangan',
     start: '2026-08-04',
     end: '2026-08-07',
-    note: 'Selasa–Jumat · jam kerja',
+    note: 'Selasa–Jumat',
   },
   {
     id: 'nilai',

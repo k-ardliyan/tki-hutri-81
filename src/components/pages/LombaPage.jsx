@@ -546,7 +546,7 @@ export default function LombaPage() {
               Dari start sampai akhir
             </h4>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 sm:text-sm">
-              Ikuti urutan kiri ke kanan. Di layar besar semua kartu sama tinggi.
+              Tahapan alur pelaksanaan lomba dari awal hingga penentuan pemenang.
             </p>
 
             <div className="mt-4">
