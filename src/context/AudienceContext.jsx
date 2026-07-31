@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useCallback, useContext, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 
 /**
@@ -44,21 +44,30 @@ export function useAudience() {
  *   navigate('/lomba/5r')       → /lomba/5r?u=panitia
  *
  * Catatan: path sudah ada `?` akan digabung dengan `&u=panitia`.
+ * Fix: gunakan ref untuk hindari stale closure — nilai `u` selalu fresh
+ * saat navigate dipanggil, bukan saat hook di-render.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAudienceNavigate() {
   const rawNavigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const u = searchParams.get('u')
+  const uRef = useRef(searchParams.get('u'))
 
-  return (path, options) => {
-    if (!u) {
-      rawNavigate(path, options)
-      return
-    }
-    // Gabungkan u= ke path — handle jika path sudah punya query string
-    const separator = path.includes('?') ? '&' : '?'
-    rawNavigate(`${path}${separator}u=${u}`, options)
-  }
+  // Selalu update ref ke nilai terbaru tanpa trigger re-render
+  uRef.current = searchParams.get('u')
+
+  return useCallback(
+    (path, options) => {
+      const u = uRef.current
+      if (!u) {
+        rawNavigate(path, options)
+        return
+      }
+      // Gabungkan u= ke path — handle jika path sudah punya query string
+      const separator = path.includes('?') ? '&' : '?'
+      rawNavigate(`${path}${separator}u=${u}`, options)
+    },
+    [rawNavigate],
+  )
 }
 
