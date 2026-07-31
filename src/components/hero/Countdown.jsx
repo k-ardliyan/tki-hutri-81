@@ -20,8 +20,9 @@ function Cell({ label, value }) {
     )
 
     // Cleanup: kill on unmount / before next run
+    const el = numRef.current
     return () => {
-      gsap.killTweensOf(numRef.current)
+      gsap.killTweensOf(el)
     }
   }, [value])
 

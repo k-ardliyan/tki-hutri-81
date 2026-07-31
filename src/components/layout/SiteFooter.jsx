@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import LogoTki from '../brand/LogoTki'
+import LogoFtp from '../brand/LogoFtp'
 import LogoHutRi81 from '../brand/LogoHutRi81'
 import { assets } from '../../assets'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
@@ -43,17 +44,24 @@ export default function SiteFooter() {
 
       <div className="shell relative z-10 pt-8 pb-24 sm:pt-10 lg:pb-10">
         <div className="flex flex-col items-center text-center space-y-4">
-          {/* Dual White Logos Header */}
-          <div className="ft-item flex items-center justify-center gap-4 sm:gap-6">
-            <LogoHutRi81 variant="white" className="h-12 w-12 sm:h-14 sm:w-14 drop-shadow-md" animate />
-            <div className="h-8 w-px bg-white/25" />
-            <LogoTki variant="white" className="h-10 w-10 sm:h-12 sm:w-12 drop-shadow-md" animate />
+          {/* Dual White Logos Header — HUT RI 81 + TKI x FTP */}
+          <div className="ft-item flex items-center justify-center gap-3 sm:gap-4">
+            <LogoHutRi81 variant="white" className="h-12 sm:h-14 w-auto drop-shadow-md" animate />
+            <div className="h-7 sm:h-9 w-px bg-white/25 shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <LogoTki variant="white" className="h-4.5 sm:h-5.5 w-auto drop-shadow-md" animate />
+              <svg viewBox="0 0 16 16" className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-white/45 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
+                <line x1="4" y1="4" x2="12" y2="12" />
+                <line x1="12" y1="4" x2="4" y2="12" />
+              </svg>
+              <LogoFtp variant="white" className="h-4.5 sm:h-5.5 w-auto drop-shadow-md" animate />
+            </div>
           </div>
 
           {/* Slogan & Subhead */}
           <div className="ft-item max-w-xl space-y-1.5">
             <h3 className="font-heading text-xl font-black tracking-tight sm:text-2xl text-white">
-              Semangat merdeka, kerja rapi, juara bersama.
+              Semarak Kemerdekaan, Eratkan Kebersamaan.
             </h3>
             <p className="text-xs font-semibold text-white/80">
               Dirgahayu Republik Indonesia ke-81

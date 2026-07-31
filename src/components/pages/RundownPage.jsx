@@ -475,13 +475,12 @@ function PeakDayModal({ open, onClose, items }) {
 export default function RundownPage() {
   const [hoverEventId, setHoverEventId] = useState(null)
   const [hoverPhase, setHoverPhase] = useState(null)
-  const [monthIdx, setMonthIdx] = useState(0)
   const [selectedDayKey, setSelectedDayKey] = useState(null)
   const [popoverPos, setPopoverPos] = useState(null)
   const [peakModalOpen, setPeakModalOpen] = useState(false)
   const calRef = useRef(null)
 
-  const monthMeta = MONTH_VIEWS[monthIdx]
+  const monthMeta = MONTH_VIEWS[0]
   const grid = useMemo(
     () => buildMonthGrid(monthMeta.year, monthMeta.month),
     [monthMeta.year, monthMeta.month],
@@ -560,25 +559,18 @@ export default function RundownPage() {
     }
   }, [selectedDayKey, popoverPos])
 
-  useEffect(() => {
-    closePopover()
-    clearHover()
-  }, [monthIdx])
 
   return (
     <div className="space-y-5 sm:space-y-6">
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
-              <p className="section-kicker">Jadwal acara</p>
-              <h2 className="mt-2 font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-                Rundown & kalender
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-                Ikuti rangkaian HUT RI ke-81 dari sosialisasi hingga pengumuman juara. Tanggal bertanda
-                di kalender bisa diketuk untuk ringkasan acara. Rincian jam hari puncak (13 Agustus)
-                tersedia di agenda — buka lewat tombol{' '}
-                <span className="font-semibold text-slate-800">Lihat jadwal jam</span>.
-              </p>
-            </section>
+        <p className="section-kicker">Jadwal acara</p>
+        <h2 className="mt-2 font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+          Kalender HUT RI ke-81
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+          Rangkaian kegiatan 3–28 Agustus 2026. Ketuk tanggal berwarna untuk melihat detail acara.
+        </p>
+      </section>
 
       <div className="flex flex-wrap gap-2">
         {Object.entries(phaseColors).map(([key, c]) => (
@@ -601,33 +593,10 @@ export default function RundownPage() {
 
       <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <section ref={calRef} className="surface-card relative flex flex-col overflow-visible">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5">
-            <button
-              type="button"
-              disabled={monthIdx === 0}
-              onClick={() => setMonthIdx((i) => Math.max(0, i - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-30"
-              aria-label="Bulan sebelumnya"
-            >
-              <i className="fa-solid fa-chevron-left text-xs" />
-            </button>
-            <div className="text-center">
-              <p className="font-heading text-lg font-extrabold text-slate-900">
-                {MONTHS[monthMeta.month]} {monthMeta.year}
-              </p>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                Minggu → Sabtu · jam kerja
-              </p>
-            </div>
-            <button
-              type="button"
-              disabled={monthIdx === MONTH_VIEWS.length - 1}
-              onClick={() => setMonthIdx((i) => Math.min(MONTH_VIEWS.length - 1, i + 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-30"
-              aria-label="Bulan berikutnya"
-            >
-              <i className="fa-solid fa-chevron-right text-xs" />
-            </button>
+          <div className="flex items-center justify-center border-b border-slate-100 px-4 py-3 sm:px-5">
+            <p className="font-heading text-lg font-extrabold text-slate-900">
+              {MONTHS[monthMeta.month]} {monthMeta.year}
+            </p>
           </div>
 
           <div className="relative px-2 py-3 sm:px-3 sm:py-4">
@@ -756,7 +725,7 @@ export default function RundownPage() {
                       {selectedDayLabel}
                     </p>
                     <p className="text-[11px] text-slate-500">
-                      {selectedDayEvents.length} acara — ketuk untuk pilih
+                      {selectedDayEvents.length} acara
                     </p>
                   </div>
                   <button
@@ -851,12 +820,12 @@ export default function RundownPage() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                    Petunjuk
-                  </p>
-                  <p className="text-sm font-semibold text-slate-700">Ketuk tanggal bertanda</p>
-                  <p className="text-xs text-slate-500">
-                    Semua tanggal acara membuka popup. Detail jam hari puncak di agenda.
-                  </p>
+                                      Petunjuk
+                                    </p>
+                                    <p className="text-sm font-semibold text-slate-700">Ketuk tanggal yang bertanda</p>
+                                                      <p className="text-xs text-slate-500">
+                                                        Tanggal bertanda buka popup. Detail jam hari puncak di agenda.
+                                                      </p>
                 </div>
               </div>
             )}

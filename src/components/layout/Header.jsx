@@ -1,22 +1,29 @@
 import { useEffect, useRef } from 'react'
-import { eventMeta } from '../../data/content'
+import { useLocation } from 'react-router-dom'
+import { useAudienceNavigate, useAudience } from '../../context/AudienceContext'
 import LogoTki from '../brand/LogoTki'
+import LogoFtp from '../brand/LogoFtp'
 import LogoHutRi81 from '../brand/LogoHutRi81'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 
 const NAV = [
-  { id: 'beranda', label: 'Beranda' },
-  { id: 'lomba', label: 'Lomba' },
-  { id: 'rundown', label: 'Rundown' },
-  { id: 'tim', label: 'Tim' },
+  { id: 'beranda', label: 'Beranda', path: '/beranda' },
+  { id: 'lomba', label: 'Lomba', path: '/lomba' },
+  { id: 'rundown', label: 'Rundown', path: '/rundown' },
+  { id: 'tim', label: 'Tim', path: '/tim' },
 ]
 
-export default function SiteHeader({ activeTab, onTabChange }) {
+export default function SiteHeader() {
+  const navigate = useAudienceNavigate()
+  const { isPanitia } = useAudience()
+  const { pathname } = useLocation()
   const headerRef = useRef(null)
   const brandRef = useRef(null)
   const logosRef = useRef(null)
   const chipRef = useRef(null)
   const navRef = useRef(null)
+
+  const activeId = NAV.find((n) => pathname.startsWith(n.path))?.id ?? 'beranda'
 
   useEffect(() => {
     if (!headerRef.current || shouldReduceMotion()) return undefined
@@ -68,7 +75,7 @@ export default function SiteHeader({ activeTab, onTabChange }) {
       { scale: 0.94 },
       { scale: 1, duration: 0.28, ease: 'back.out(2)' },
     )
-  }, [activeTab])
+  }, [activeId])
 
   return (
     <header
@@ -81,21 +88,20 @@ export default function SiteHeader({ activeTab, onTabChange }) {
         <button
           ref={brandRef}
           type="button"
-          onClick={() => onTabChange('beranda')}
+          onClick={() => navigate('/beranda')}
           className="flex min-w-0 items-center gap-2.5 text-left sm:gap-3"
         >
-          <div ref={logosRef} className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <LogoHutRi81 className="h-10 w-10 sm:h-11 sm:w-11" animate />
-            <LogoTki className="h-9 w-9 sm:h-10 sm:w-10" animate />
-          </div>
-
-          <div className="min-w-0">
-            <p className="hdr-text font-heading text-sm font-extrabold tracking-tight text-slate-900 sm:text-base">
-              {eventMeta.title}
-            </p>
-            <p className="hdr-text truncate text-[11px] font-semibold text-slate-500">
-              {eventMeta.org}
-            </p>
+          <div ref={logosRef} className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+            <LogoHutRi81 className="h-9 sm:h-10 w-auto" animate />
+            <div className="h-6 sm:h-7 w-px bg-slate-200 shrink-0" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <LogoTki className="h-3.5 sm:h-4 w-auto" animate />
+              <svg viewBox="0 0 16 16" className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 text-slate-400 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
+                <line x1="4" y1="4" x2="12" y2="12" />
+                <line x1="12" y1="4" x2="4" y2="12" />
+              </svg>
+              <LogoFtp className="h-3.5 sm:h-4 w-auto" animate />
+            </div>
           </div>
         </button>
 
@@ -104,13 +110,13 @@ export default function SiteHeader({ activeTab, onTabChange }) {
           className="hidden items-center gap-1 rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner lg:flex"
         >
           {NAV.map((item) => {
-            const active = activeTab === item.id
+            const active = activeId === item.id
             return (
               <button
                 key={item.id}
                 type="button"
                 data-active={active ? 'true' : 'false'}
-                onClick={() => onTabChange(item.id)}
+                onClick={() => navigate(item.path)}
                 className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 ${
                   active
                     ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
@@ -123,17 +129,25 @@ export default function SiteHeader({ activeTab, onTabChange }) {
           })}
         </nav>
 
-        <div
-          ref={chipRef}
-          className="flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/90 px-3.5 py-1.5 text-xs font-bold text-brand-red shadow-sm"
-        >
-          <span className="live-dot relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-50" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-red" />
-          </span>
-          <i className="fa-regular fa-calendar text-[11px] text-brand-red" />
-          <span className="hidden sm:inline">13 Agustus 2026</span>
-          <span className="sm:hidden">13 Ags</span>
+        <div className="flex items-center gap-2">
+          {isPanitia && (
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-sky-50/90 px-3 py-1.5 text-[10px] font-bold text-sky-700 shadow-sm">
+              <i className="fa-solid fa-user-gear text-[10px]" />
+              <span>Mode Panitia</span>
+            </div>
+          )}
+          <div
+            ref={chipRef}
+            className="flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/90 px-3.5 py-1.5 text-xs font-bold text-brand-red shadow-sm"
+          >
+            <span className="live-dot relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-50" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-red" />
+            </span>
+            <i className="fa-regular fa-calendar text-[11px] text-brand-red" />
+            <span className="hidden sm:inline">13 Agustus 2026</span>
+            <span className="sm:hidden">13 Ags</span>
+          </div>
         </div>
       </div>
     </header>

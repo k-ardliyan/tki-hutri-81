@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react'
+import { useAudienceNavigate } from '../../context/AudienceContext'
 import Countdown from './Countdown'
 import { eventMeta } from '../../data/content'
 import LogoHutRi81 from '../brand/LogoHutRi81'
 import LogoTki from '../brand/LogoTki'
+import LogoFtp from '../brand/LogoFtp'
 import SalatigaRibbonSvg from '../brand/SalatigaRibbonSvg'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 
-export default function Hero({ onExplore }) {
+export default function Hero() {
+  const navigate = useAudienceNavigate()
   const rootRef = useRef(null)
   const cardRef = useRef(null)
 
@@ -70,11 +73,18 @@ export default function Hero({ onExplore }) {
       <div className="shell relative z-10 grid gap-8 pt-10 pb-14 sm:pt-14 sm:pb-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
         {/* Left Column Content */}
         <div className="space-y-5">
-          {/* Animated Dual White Logos Header — Prominent HUT RI 81 + Sleek TKI Logo */}
+          {/* Animated Dual White Logos Header — Prominent HUT RI 81 + Sleek TKI x FTP Logos */}
           <div className="hero-animate flex items-center gap-3.5 sm:gap-4">
             <LogoHutRi81 variant="white" animate className="h-14 sm:h-16 w-auto drop-shadow-md" />
             <div className="h-9 sm:h-11 w-px bg-white/35 shrink-0" />
-            <LogoTki variant="white" animate className="h-5 sm:h-6 w-auto drop-shadow-md" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <LogoTki variant="white" animate className="h-5 sm:h-6 w-auto drop-shadow-md" />
+              <svg viewBox="0 0 16 16" className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-white/45 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
+                <line x1="4" y1="4" x2="12" y2="12" />
+                <line x1="12" y1="4" x2="4" y2="12" />
+              </svg>
+              <LogoFtp variant="white" animate className="h-5 sm:h-6 w-auto drop-shadow-md" />
+            </div>
           </div>
 
           <div className="hero-animate space-y-2.5">
@@ -85,20 +95,20 @@ export default function Hero({ onExplore }) {
               </span>
             </h1>
             <p className="max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">
-              Rayakan kemerdekaan dengan kerja sama, sportivitas, dan budaya 5R di tempat kerja.
+              Lomba, dekor, dan kebersamaan. Semuanya demi satu semangat yang sama.
             </p>
           </div>
 
           {/* 3 Translucent Info Badges */}
           <div className="hero-animate flex flex-wrap gap-2.5 text-xs font-bold text-white">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3.5 py-2 backdrop-blur-md ring-1 ring-white/20">
-              <span>🏆</span> Puncak Kamis, 13 Agustus 2026
+              <span>🏆</span> Hari puncak · Kamis, 13 Agustus 2026
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3.5 py-2 backdrop-blur-md ring-1 ring-white/20">
-              <span>🕒</span> 12.45 WIB
+              <span>🕒</span> Mulai 12.45 WIB
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3.5 py-2 backdrop-blur-md ring-1 ring-white/20">
-              <span>📣</span> Pengumuman Jumat, 28 Agustus 2026
+              <span>📣</span> Pengumuman · Jumat, 28 Agustus
             </span>
           </div>
 
@@ -106,7 +116,7 @@ export default function Hero({ onExplore }) {
           <div className="hero-animate flex flex-wrap gap-3.5 pt-1">
             <button
               type="button"
-              onClick={() => onExplore?.('lomba')}
+              onClick={() => navigate('/lomba')}
               className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition hover:-translate-y-0.5 hover:bg-slate-100"
             >
               <i className="fa-solid fa-book-open text-xs text-[#990a15]" />
@@ -115,7 +125,7 @@ export default function Hero({ onExplore }) {
             </button>
             <button
               type="button"
-              onClick={() => onExplore?.('tim')}
+              onClick={() => navigate('/tim')}
               className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/20 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15"
             >
               <i className="fa-solid fa-users text-xs" />
@@ -133,7 +143,7 @@ export default function Hero({ onExplore }) {
           >
             <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
               <p className="text-[11px] font-extrabold uppercase tracking-widest text-brand-red">
-                Hitung Mundur Acara Puncak
+                Hitung mundur
               </p>
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />

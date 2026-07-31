@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useAudience, useAudienceNavigate } from "../../context/AudienceContext";
 import { createPortal } from "react-dom";
-import { competitions, roomAreas } from "../../data/content";
+import { competitions } from "../../data/content";
 import { assets } from "../../assets";
 import { gsap, shouldReduceMotion } from "../../lib/gsap";
 
@@ -380,11 +382,16 @@ function StickyBranchBar({
   return createPortal(ui, document.body);
 }
 
-export default function LombaPage({ initialId }) {
-  const [audience, setAudience] = useState("peserta");
+export default function LombaPage() {
+  const { id: paramId } = useParams();
+  const navigate = useAudienceNavigate();
+  const { isPanitia } = useAudience();
+  // Kalau bukan panitia, audience selalu dikunci ke "peserta"
+  const [audience, setAudience] = useState(isPanitia ? "peserta" : "peserta");
+  const effectiveAudience = isPanitia ? audience : "peserta";
   const [activeId, setActiveId] = useState(() => {
-    return initialId && competitions.some((c) => c.id === initialId)
-      ? initialId
+    return paramId && competitions.some((c) => c.id === paramId)
+      ? paramId
       : competitions[0].id;
   });
   const [stickyOn, setStickyOn] = useState(false);
@@ -392,18 +399,19 @@ export default function LombaPage({ initialId }) {
   const pickerRef = useRef(null);
   const detailTopRef = useRef(null);
 
+  // Sync activeId when URL param changes (e.g. browser back/forward)
   useEffect(() => {
-    if (initialId && competitions.some((c) => c.id === initialId)) {
-      setActiveId(initialId);
+    if (paramId && competitions.some((c) => c.id === paramId)) {
+      setActiveId(paramId);
     }
-  }, [initialId]);
+  }, [paramId]);
 
   const active = useMemo(
     () => competitions.find((c) => c.id === activeId) || competitions[0],
     [activeId],
   );
   const t = tone[active.tone] || tone.red;
-  const role = audience === "peserta" ? active.forPeserta : active.forPanitia;
+  const role = effectiveAudience === "peserta" ? active.forPeserta : active.forPanitia;
 
   // Sticky only when branch chips are fully out of the viewport
   useEffect(() => {
@@ -426,6 +434,8 @@ export default function LombaPage({ initialId }) {
   const selectBranch = (id) => {
     setActiveId(id);
     setMenuOpen(false);
+    // Update URL to /lomba/:id for shareability
+    navigate('/lomba/' + id, { replace: true });
     requestAnimationFrame(() => {
       detailTopRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -448,14 +458,18 @@ export default function LombaPage({ initialId }) {
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
         <p className="section-kicker">Panduan lomba</p>
         <h2 className="mt-2 font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-          Tiga cabang, satu semangat
+          Tiga lomba tahun ini
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Terdapat tiga cabang lomba dengan detail alur main, aturan, dan tips
-          masing-masing. Toggle mode <span className="font-semibold text-slate-800">Peserta</span>{" "}
-          menampilkan panduan bermain; mode{" "}
-          <span className="font-semibold text-slate-800">Panitia</span> menampilkan
-          peralatan, sesi, dan format putra/putri.
+          {isPanitia ? (
+            <>
+              Pilih cabang di bawah. Beralih antara mode <span className="font-semibold text-slate-800">Peserta</span>{' '}
+              untuk aturan bermain, atau{' '}
+              <span className="font-semibold text-slate-800">Panitia</span> untuk peralatan, sesi, dan format putra/putri.
+            </>
+          ) : (
+            <>Pilih cabang lomba di bawah untuk melihat aturan dan alur bermain.</>
+          )}
         </p>
       </section>
 
@@ -501,11 +515,10 @@ export default function LombaPage({ initialId }) {
           {active.rooms?.length > 0 && (
             <div>
               <p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-400">
-                Area ruangan yang dinilai
+                Ruangan yang dinilai
               </p>
               <p className="mb-3 text-xs text-slate-500">
-                Lomba hias & 5R dinilai per area kerja — total{" "}
-                {active.rooms.length} ruangan.
+                Dekor dan penilaian 5R untuk {active.rooms.length} ruangan.
               </p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                 {active.rooms.map((room) => (
@@ -530,11 +543,10 @@ export default function LombaPage({ initialId }) {
           <div>
             <p className="section-kicker">Alur main</p>
             <h4 className="mt-1 font-heading text-lg font-extrabold text-slate-900">
-              Dari start sampai juara
+              Dari start sampai akhir
             </h4>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 sm:text-sm">
-              Ikuti urutan langkah di bawah. Garis penghubung menandai alur
-              berurutan — di layar besar semua kartu sama tinggi agar rapi.
+              Ikuti urutan kiri ke kanan. Di layar besar semua kartu sama tinggi.
             </p>
 
             <div className="mt-4">
@@ -543,17 +555,19 @@ export default function LombaPage({ initialId }) {
             </div>
           </div>
 
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
-              Baca sebagai
-            </p>
-            <div className="rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
-              <div className="grid grid-cols-2 gap-1.5">
+          {/* Audience toggle — hanya tampil di mode panitia */}
+          {isPanitia && (
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+                Tampilkan untuk
+              </p>
+              <div className="rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                 {[
                   {
                     id: "peserta",
                     label: "Peserta",
-                    sub: "Cara main & aturan",
+                    sub: "Aturan bermain",
                     icon: "fa-user",
                     activeClass:
                       "bg-emerald-600 text-white shadow-md shadow-emerald-600/25",
@@ -561,7 +575,7 @@ export default function LombaPage({ initialId }) {
                   {
                     id: "panitia",
                     label: "Panitia",
-                    sub: "Alat & format sesi",
+                    sub: "Peralatan & sesi",
                     icon: "fa-clipboard-list",
                     activeClass:
                       "bg-sky-600 text-white shadow-md shadow-sky-600/25",
@@ -594,10 +608,11 @@ export default function LombaPage({ initialId }) {
               </div>
             </div>
           </div>
+          )}
 
           <div
             className={`rounded-3xl border p-4 sm:p-5 ${
-              audience === "peserta"
+              effectiveAudience === "peserta"
                 ? "border-emerald-200 bg-gradient-to-br from-emerald-50/90 to-white"
                 : "border-sky-200 bg-gradient-to-br from-sky-50/90 to-white"
             }`}
@@ -605,18 +620,18 @@ export default function LombaPage({ initialId }) {
             <div className="mb-4 flex items-center gap-2">
               <span
                 className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${
-                  audience === "peserta" ? "bg-emerald-600" : "bg-sky-600"
+                  effectiveAudience === "peserta" ? "bg-emerald-600" : "bg-sky-600"
                 }`}
               >
                 <i
                   className={`fa-solid ${
-                    audience === "peserta" ? "fa-user-check" : "fa-user-gear"
+                    effectiveAudience === "peserta" ? "fa-user-check" : "fa-user-gear"
                   }`}
                 />
               </span>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                  Mode {audience}
+                  Panduan {effectiveAudience}
                 </p>
                 <h4 className="text-base font-extrabold text-slate-900">
                   {role.headline}
@@ -725,16 +740,6 @@ export default function LombaPage({ initialId }) {
         </div>
       </article>
 
-      {active.rooms?.length > 0 && (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50/50 px-4 py-3.5">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-red">
-            Ringkas area 5R
-          </p>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-            {roomAreas.map((r) => r.name).join(" · ")}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

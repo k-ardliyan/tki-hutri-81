@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useAudienceNavigate } from '../../context/AudienceContext'
 import { competitions } from '../../data/content'
 import { summaryKelompok } from '../../data/kelompok'
 import { assets } from '../../assets'
@@ -41,8 +42,8 @@ const TIMELINE = [
     icon: 'fa-solid fa-bullhorn',
     title: 'Sosialisasi',
     date: '3 Ags',
-    day: 'Minggu',
-    desc: 'Sosialisasi aturan dan teknis kepada seluruh tim.',
+    day: 'Senin',
+    desc: 'Penjelasan aturan dan teknis untuk semua tim.',
   },
   {
     id: 'dekor',
@@ -50,7 +51,7 @@ const TIMELINE = [
     title: 'Dekor',
     date: '4–7 Ags',
     day: 'Selasa–Jumat',
-    desc: 'Persiapan & dekorasi lomba Hias Ruangan & Budaya 5R.',
+    desc: 'Bikin dekorasi ruangan bertema kemerdekaan. Tetap jaga 5R.',
   },
   {
     id: 'puncak',
@@ -58,7 +59,7 @@ const TIMELINE = [
     title: 'Puncak Acara',
     date: '13 Ags',
     day: 'Kamis',
-    desc: 'Lomba & kemeriahan acara mulai pukul 12.45 WIB.',
+    desc: 'Lomba utama lapangan dari jam 12.45 WIB.',
     highlight: true,
   },
   {
@@ -67,11 +68,12 @@ const TIMELINE = [
     title: 'Pengumuman',
     date: '28 Ags',
     day: 'Jumat',
-    desc: 'Pengumuman juara setelah kajian Jumat.',
+    desc: 'Pembagian hadiah setelah kajian Jumat.',
   },
 ]
 
-export default function HomePage({ onNavigate }) {
+export default function HomePage() {
+  const navigate = useAudienceNavigate()
   const rootRef = useRef(null)
   const floatingBadgeRef = useRef(null)
   const timelineLineRef = useRef(null)
@@ -183,33 +185,33 @@ export default function HomePage({ onNavigate }) {
           <div className="space-y-4 p-6 sm:p-8">
             <div className="flex items-center gap-2">
               <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-                RINGKASAN ACARA
+                RINGKASAN
               </span>
               <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
             </div>
 
             <h2 className="font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-              Merayakan kemerdekaan lewat <span className="text-brand-red">kebersamaan & 5R</span>
+              HUT RI ke-81 di TKI. <span className="text-brand-red">Lomba, dekor, dan kebersamaan</span>
             </h2>
 
             <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-[15px]">
-              PT TKI menyambut HUT RI ke-81 dengan tiga cabang lomba: hias ruangan berbasis 5R,
-              estafet balon, dan estafet air. Ada 13 tim yang berlaga. Di halaman ini Anda dapat
-              melihat ringkasan; detail aturan ada di tab <strong className="text-slate-900">Lomba</strong>, jadwal di{' '}
-              <strong className="text-slate-900">Rundown</strong>, dan daftar peserta di <strong className="text-slate-900">Tim</strong>.
+              Tiga lomba, 13 tim, satu perayaan. Ringkasan ada di sini; aturan lengkap di tab{' '}
+              <strong className="text-slate-900">Lomba</strong>, jadwal di{' '}
+              <strong className="text-slate-900">Rundown</strong>, daftar peserta di{' '}
+              <strong className="text-slate-900">Tim</strong>.
             </p>
 
             <div className="flex flex-wrap gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={() => onNavigate('lomba')}
+                onClick={() => navigate('/lomba')}
                 className="rounded-full bg-brand-red px-5 py-3 text-xs font-bold text-white shadow-lg shadow-red-600/25 transition hover:-translate-y-0.5 hover:bg-red-700"
               >
                 Panduan lomba
               </button>
               <button
                 type="button"
-                onClick={() => onNavigate('rundown')}
+                onClick={() => navigate('/rundown')}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
                 <i className="fa-solid fa-calendar text-[11px] text-slate-400" />
@@ -217,7 +219,7 @@ export default function HomePage({ onNavigate }) {
               </button>
               <button
                 type="button"
-                onClick={() => onNavigate('tim')}
+                onClick={() => navigate('/tim')}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
                 <i className="fa-solid fa-user text-[11px] text-slate-400" />
@@ -261,17 +263,17 @@ export default function HomePage({ onNavigate }) {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-                CABANG LOMBA
+                LOMBA
               </span>
               <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
             </div>
             <h3 className="mt-1 font-heading text-2xl font-black text-slate-900 sm:text-3xl">
-              Tiga cabang lomba yang diselenggarakan
+              Tiga lomba tahun ini
             </h3>
           </div>
           <button
             type="button"
-            onClick={() => onNavigate('lomba')}
+            onClick={() => navigate('/lomba')}
             className="group inline-flex items-center gap-1.5 text-xs font-extrabold text-brand-red hover:underline"
           >
             <span>Lihat semua lomba</span>
@@ -287,7 +289,7 @@ export default function HomePage({ onNavigate }) {
             return (
               <div
                 key={c.id}
-                onClick={() => onNavigate('lomba', c.id)}
+                onClick={() => navigate('/lomba/' + c.id)}
                 className="lomba-card group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-1 hover:border-red-200 hover:shadow-md flex flex-col justify-between"
               >
                 {/* Image Header with Badges */}

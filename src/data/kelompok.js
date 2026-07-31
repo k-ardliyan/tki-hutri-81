@@ -18,7 +18,7 @@ function buildGroups(headers, columns, kategori) {
       id: `${kategori}-${nomor}`,
       kategori,
       nomor,
-      nama: header.replace(/^Kelompok\s+/i, 'Kelompok '),
+      nama: header.replace(/^Kelompok\s+/i, 'Tim '),
       anggota,
     }
   })
