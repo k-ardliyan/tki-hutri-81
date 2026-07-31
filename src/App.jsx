@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import SiteHeader from './components/layout/Header'
 import BottomNav from './components/layout/BottomNav'
 import SiteFooter from './components/layout/SiteFooter'
@@ -9,6 +9,13 @@ import LombaPage from './components/pages/LombaPage'
 import RundownPage from './components/pages/RundownPage'
 import TimPage from './components/pages/TimPage'
 import { gsap, shouldReduceMotion } from './lib/gsap'
+
+/** Redirect ke /beranda sambil preserve ?u= dan query params lainnya */
+function HomeRedirect() {
+  const [searchParams] = useSearchParams()
+  const qs = searchParams.toString()
+  return <Navigate to={qs ? `/beranda?${qs}` : '/beranda'} replace />
+}
 
 export default function App() {
   const location = useLocation()
@@ -48,13 +55,13 @@ export default function App() {
         <div className="shell py-6 sm:py-8">
           <div ref={panelRef}>
             <Routes>
-              <Route index element={<Navigate to="/beranda" replace />} />
+              <Route index element={<HomeRedirect />} />
               <Route path="/beranda" element={<HomePage />} />
               <Route path="/lomba" element={<LombaPage />} />
               <Route path="/lomba/:id" element={<LombaPage />} />
               <Route path="/rundown" element={<RundownPage />} />
               <Route path="/tim" element={<TimPage />} />
-              <Route path="*" element={<Navigate to="/beranda" replace />} />
+              <Route path="*" element={<HomeRedirect />} />
             </Routes>
           </div>
         </div>
