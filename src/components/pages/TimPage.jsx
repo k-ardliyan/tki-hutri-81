@@ -183,13 +183,12 @@ export default function TimPage() {
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="section-kicker">Peserta</p>
+            <p className="section-kicker">Peserta Lomba</p>
             <h2 className="mt-1 font-heading text-2xl font-extrabold text-slate-900 sm:text-3xl">
-              Tim yang akan berlaga
+              Daftar Tim & Anggota
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Dua lomba lapangan: estafet balon dan estafet air. Masing-masing
-              kategori memperebutkan juara terpisah.
+            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+              Daftar pembagian tim peserta kategori Putra dan Putri yang akan bertanding pada lomba lapangan (Estafet Balon & Estafet Air).
             </p>
           </div>
           <div className="relative w-full max-w-md">
@@ -197,7 +196,7 @@ export default function TimPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari nama atau tim..."
+              placeholder="Cari nama peserta atau tim..."
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-9 pr-4 text-sm outline-none ring-brand-red transition focus:bg-white focus:ring-2"
             />
             {term && (
@@ -206,7 +205,7 @@ export default function TimPage() {
                 onClick={() => setQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
               >
-                Clear
+                Hapus
               </button>
             )}
           </div>
@@ -215,7 +214,7 @@ export default function TimPage() {
         {term && (
           <p className="mt-3 text-xs font-medium text-emerald-700">
             <i className="fa-solid fa-circle-info mr-1" />
-            Tim yang cocok otomatis terbuka. {filtered.length} ditemukan.
+            Ditemukan {filtered.length} tim yang sesuai dengan pencarian.
           </p>
         )}
 
@@ -245,7 +244,8 @@ export default function TimPage() {
         <div className="surface-card px-4 py-10 text-center">
           <i className="fa-solid fa-user-slash mb-2 text-2xl text-slate-300" />
           <p className="text-sm font-semibold text-slate-600">
-            Belum ada tim yang cocok. Coba kata kunci lain.
+            Tidak ditemukan nama peserta atau tim yang sesuai. Coba kata kunci
+            lain.
           </p>
         </div>
       ) : (

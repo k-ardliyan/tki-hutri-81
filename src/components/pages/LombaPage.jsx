@@ -611,127 +611,156 @@ export default function LombaPage() {
           )}
 
           <div
-            className={`rounded-3xl border p-4 sm:p-5 ${
+            className={`rounded-3xl border p-4 sm:p-6 ${
               effectiveAudience === "peserta"
-                ? "border-emerald-200 bg-gradient-to-br from-emerald-50/90 to-white"
-                : "border-sky-200 bg-gradient-to-br from-sky-50/90 to-white"
+                ? "border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30"
+                : "border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30"
             }`}
           >
-            <div className="mb-4 flex items-center gap-2">
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${
-                  effectiveAudience === "peserta" ? "bg-emerald-600" : "bg-sky-600"
-                }`}
-              >
-                <i
-                  className={`fa-solid ${
-                    effectiveAudience === "peserta" ? "fa-user-check" : "fa-user-gear"
+            <div className="mb-5 flex items-center justify-between border-b border-slate-200/60 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className={`flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-md ${
+                    effectiveAudience === "peserta" ? "bg-emerald-600" : "bg-sky-600"
                   }`}
-                />
-              </span>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                  Panduan {effectiveAudience}
-                </p>
-                <h4 className="text-base font-extrabold text-slate-900">
-                  {role.headline}
-                </h4>
+                >
+                  <i
+                    className={`fa-solid ${
+                      effectiveAudience === "peserta" ? "fa-shield-halved" : "fa-clipboard-check"
+                    } text-base`}
+                  />
+                </span>
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    {effectiveAudience === "peserta" ? "Panduan Peserta" : "Instruksi Panitia"}
+                  </p>
+                  <h4 className="font-heading text-lg font-black text-slate-900">
+                    {role.headline}
+                  </h4>
+                </div>
               </div>
             </div>
 
-            <div className="grid auto-rows-fr gap-2.5 sm:grid-cols-2">
-              {role.points.map((p) => (
-                <div
-                  key={p.title}
-                  className="flex h-full flex-col rounded-2xl border border-white/80 bg-white/90 px-3.5 py-3 shadow-sm"
-                >
-                  <p className="text-sm font-bold text-slate-900">{p.title}</p>
-                  <p className="mt-1 flex-1 text-xs leading-relaxed text-slate-600">
-                    {p.text}
+            {/* Ketentuan Utama / Points */}
+            {role.points?.length > 0 && (
+              <div>
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  {effectiveAudience === "peserta" ? "Ketentuan & Aturan Khusus" : "Tugas & Tanggung Jawab"}
+                </p>
+                <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {role.points.map((p) => (
+                    <div
+                      key={p.title}
+                      className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-slate-300"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`h-2 w-2 rounded-full ${effectiveAudience === "peserta" ? "bg-emerald-500" : "bg-sky-500"}`} />
+                        <p className="text-sm font-extrabold text-slate-900">{p.title}</p>
+                      </div>
+                      <p className="mt-1.5 flex-1 text-xs leading-relaxed text-slate-600">
+                        {p.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tips & Trik khusus Peserta */}
+            {effectiveAudience === "peserta" && role.tips?.length > 0 && (
+              <div className="mt-5 rounded-2xl border border-amber-200/80 bg-amber-50/60 p-4">
+                <div className="mb-2.5 flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500 text-white text-xs shadow-sm">
+                    💡
+                  </span>
+                  <p className="text-xs font-black uppercase tracking-wider text-amber-900">
+                    Tips & Trik Bertanding
                   </p>
                 </div>
-              ))}
-            </div>
-
-            {role.tips?.length > 0 && (
-              <div className="mt-4">
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                  Tips
-                </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {role.tips.map((tip) => (
-                    <span
+                    <div
                       key={tip}
-                      className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 ring-1 ring-amber-100"
+                      className="flex items-start gap-2 rounded-xl border border-amber-200/60 bg-white/90 p-2.5 text-xs font-semibold leading-snug text-amber-950 shadow-2xs"
                     >
-                      {tip}
-                    </span>
+                      <i className="fa-solid fa-check text-amber-600 mt-0.5 text-[11px] shrink-0" />
+                      <span>{tip}</span>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {role.tools?.length > 0 && (
-              <div className="mt-4">
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                  Perlengkapan
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {role.tools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="rounded-xl bg-sky-100 px-3 py-1.5 text-xs font-semibold text-sky-900"
-                    >
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {role.checklist?.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-sky-100 bg-white/80 p-3">
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                  Checklist panitia
-                </p>
-                <ul className="space-y-1.5">
-                  {role.checklist.map((item) => (
-                    <li
-                      key={item}
-                      className="flex gap-2 text-xs text-slate-600"
-                    >
-                      <i className="fa-solid fa-square-check mt-0.5 text-sky-600" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {(role.putra || role.putri) && (
-              <div className="mt-4 grid auto-rows-fr gap-2.5 sm:grid-cols-2">
-                {role.putra && (
-                  <div className="flex h-full flex-col rounded-2xl border border-sky-100 bg-white/90 p-3">
-                    <p className="mb-1.5 text-xs font-bold text-sky-700">
-                      <i className="fa-solid fa-mars mr-1" /> Format Putra
+            {/* Section khusus Panitia: Tools, Checklist, Format Putra & Putri */}
+            {effectiveAudience === "panitia" && (
+              <div className="mt-5 space-y-4">
+                {role.tools?.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                      Perlengkapan Wajib Panitia
                     </p>
-                    <ul className="space-y-1 text-xs text-slate-600">
-                      {role.putra.map((x) => (
-                        <li key={x}>• {x}</li>
+                    <div className="flex flex-wrap gap-2">
+                      {role.tools.map((tool) => (
+                        <span
+                          key={tool}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-sky-200 bg-sky-100/90 px-3 py-1.5 text-xs font-bold text-sky-900"
+                        >
+                          <i className="fa-solid fa-toolbox text-sky-600 text-[11px]" />
+                          <span>{tool}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {role.checklist?.length > 0 && (
+                  <div className="rounded-2xl border border-sky-100 bg-white/90 p-3.5 shadow-2xs">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                      Checklist Pengawasan Panitia
+                    </p>
+                    <ul className="grid gap-2 sm:grid-cols-3 text-xs text-slate-700">
+                      {role.checklist.map((item) => (
+                        <li key={item} className="flex items-start gap-2">
+                          <i className="fa-solid fa-square-check text-sky-600 mt-0.5" />
+                          <span>{item}</span>
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
-                {role.putri && (
-                  <div className="flex h-full flex-col rounded-2xl border border-pink-100 bg-white/90 p-3">
-                    <p className="mb-1.5 text-xs font-bold text-pink-600">
-                      <i className="fa-solid fa-venus mr-1" /> Format Putri
-                    </p>
-                    <ul className="space-y-1 text-xs text-slate-600">
-                      {role.putri.map((x) => (
-                        <li key={x}>• {x}</li>
-                      ))}
-                    </ul>
+
+                {(role.putra || role.putri) && (
+                  <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
+                    {role.putra && (
+                      <div className="flex h-full flex-col rounded-2xl border border-sky-200 bg-white p-3.5 shadow-2xs">
+                        <p className="mb-2 text-xs font-extrabold text-sky-800 flex items-center gap-1.5">
+                          <i className="fa-solid fa-mars text-sky-600" /> Format Sesi Putra
+                        </p>
+                        <ul className="space-y-1.5 text-xs text-slate-600">
+                          {role.putra.map((x) => (
+                            <li key={x} className="flex items-start gap-1.5">
+                              <span className="text-sky-500 font-bold">•</span>
+                              <span>{x}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {role.putri && (
+                      <div className="flex h-full flex-col rounded-2xl border border-rose-200 bg-white p-3.5 shadow-2xs">
+                        <p className="mb-2 text-xs font-extrabold text-rose-800 flex items-center gap-1.5">
+                          <i className="fa-solid fa-venus text-rose-600" /> Format Sesi Putri
+                        </p>
+                        <ul className="space-y-1.5 text-xs text-slate-600">
+                          {role.putri.map((x) => (
+                            <li key={x} className="flex items-start gap-1.5">
+                              <span className="text-rose-500 font-bold">•</span>
+                              <span>{x}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -563,12 +563,12 @@ export default function RundownPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
-        <p className="section-kicker">Jadwal acara</p>
+        <p className="section-kicker">Jadwal Rangkaian Acara</p>
         <h2 className="mt-2 font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
           Kalender HUT RI ke-81
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Rangkaian kegiatan 3–28 Agustus 2026. Ketuk tanggal berwarna untuk melihat detail acara.
+          Rangkaian kegiatan HUT RI ke-81 dari 3 hingga 28 Agustus 2026. Klik atau pilih tanggal pada kalender untuk melihat rincian acara.
         </p>
       </section>
 
@@ -810,7 +810,7 @@ export default function RundownPage() {
                   <p className="text-sm font-bold text-slate-900">
                     {selectedDayEvents.length} acara di tanggal ini
                   </p>
-                  <p className="text-xs text-slate-500">Pilih salah satu di popup di atas.</p>
+                  <p className="text-xs text-slate-500">Pilih salah satu agenda pada jendela pop-up untuk rincian.</p>
                 </div>
               </div>
             ) : (
@@ -820,12 +820,14 @@ export default function RundownPage() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                      Petunjuk
-                                    </p>
-                                    <p className="text-sm font-semibold text-slate-700">Ketuk tanggal yang bertanda</p>
-                                                      <p className="text-xs text-slate-500">
-                                                        Tanggal bertanda buka popup. Detail jam hari puncak di agenda.
-                                                      </p>
+                    Petunjuk Navigasi
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700">
+                    Pilih Tanggal pada Kalender
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Pilih tanggal yang berwarna pada kalender untuk melihat rincian agenda acara.
+                  </p>
                 </div>
               </div>
             )}
@@ -834,7 +836,7 @@ export default function RundownPage() {
 
         {/* Agenda bertanda — primary detail surface (no separate phase list) */}
         <section className="surface-card px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Agenda bertanda</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Daftar Agenda Kegiatan</p>
           <ul className="mt-3 space-y-2.5">
             {calendarEvents.map((ev) => {
               const c = phaseColors[ev.phase]
@@ -880,17 +882,17 @@ export default function RundownPage() {
                     </button>
 
                     {isPeak && (
-                                          <div className="mt-3 border-t border-rose-100/80 pt-3 pl-4">
-                                            <button
-                                              type="button"
-                                              onClick={() => setPeakModalOpen(true)}
-                                              className="inline-flex items-center gap-2 rounded-xl border border-brand-red/20 bg-brand-soft px-3 py-2 text-xs font-bold text-brand-red transition hover:bg-rose-100"
-                                            >
-                                              <i className="fa-solid fa-clock" />
-                                              Lihat jadwal jam
-                                            </button>
-                                          </div>
-                                        )}
+                      <div className="mt-3 border-t border-rose-100/80 pt-3 pl-4">
+                        <button
+                          type="button"
+                          onClick={() => setPeakModalOpen(true)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-brand-red/20 bg-brand-soft px-3 py-2 text-xs font-bold text-brand-red transition hover:bg-rose-100"
+                        >
+                          <i className="fa-solid fa-clock" />
+                          Lihat rundown jam acara
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </li>
               )
