@@ -1,0 +1,141 @@
+import { useEffect, useRef } from 'react'
+import { eventMeta } from '../../data/content'
+import LogoTki from '../brand/LogoTki'
+import LogoHutRi81 from '../brand/LogoHutRi81'
+import { gsap, shouldReduceMotion } from '../../lib/gsap'
+
+const NAV = [
+  { id: 'beranda', label: 'Beranda' },
+  { id: 'lomba', label: 'Lomba' },
+  { id: 'rundown', label: 'Rundown' },
+  { id: 'tim', label: 'Tim' },
+]
+
+export default function SiteHeader({ activeTab, onTabChange }) {
+  const headerRef = useRef(null)
+  const brandRef = useRef(null)
+  const logosRef = useRef(null)
+  const chipRef = useRef(null)
+  const navRef = useRef(null)
+
+  useEffect(() => {
+    if (!headerRef.current || shouldReduceMotion()) return undefined
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+      tl.fromTo(headerRef.current, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, clearProps: 'all' })
+        .fromTo(
+          logosRef.current,
+          { scale: 0.85, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.5)', clearProps: 'all' },
+          '-=0.2',
+        )
+        .fromTo(
+          brandRef.current?.querySelectorAll('.hdr-text') || [],
+          { x: -10, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.35, stagger: 0.05, clearProps: 'all' },
+          '-=0.25',
+        )
+        .fromTo(navRef.current, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.3, clearProps: 'all' }, '-=0.2')
+        .fromTo(chipRef.current, { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.3, clearProps: 'all' }, '-=0.2')
+
+
+      // ✅ FIX: Explicit null-check before creating infinite tween.
+      // Passing null to gsap.to() causes silent scheduler errors that can
+      // interfere with other running tweens and cause them to pause.
+      const liveDot = chipRef.current?.querySelector('.live-dot')
+      if (liveDot) {
+        gsap.to(liveDot, {
+          scale: 1.35,
+          opacity: 0.55,
+          duration: 1.1,
+          yoyo: true,
+          repeat: -1,
+          ease: 'sine.inOut',
+        })
+      }
+    }, headerRef)
+
+    return () => ctx.revert()
+  }, [])
+
+  useEffect(() => {
+    if (!navRef.current || shouldReduceMotion()) return
+    const active = navRef.current.querySelector('[data-active="true"]')
+    if (!active) return
+    gsap.fromTo(
+      active,
+      { scale: 0.94 },
+      { scale: 1, duration: 0.28, ease: 'back.out(2)' },
+    )
+  }, [activeTab])
+
+  return (
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-sm shadow-slate-900/5 backdrop-blur-xl"
+    >
+      <div className="h-1 w-full bg-gradient-to-r from-brand-deep via-brand-red to-brand-gold" />
+
+      <div className="shell flex h-16 items-center justify-between gap-3 sm:h-[4.25rem]">
+        <button
+          ref={brandRef}
+          type="button"
+          onClick={() => onTabChange('beranda')}
+          className="flex min-w-0 items-center gap-2.5 text-left sm:gap-3"
+        >
+          <div ref={logosRef} className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <LogoHutRi81 className="h-10 w-10 sm:h-11 sm:w-11" animate />
+            <LogoTki className="h-9 w-9 sm:h-10 sm:w-10" animate />
+          </div>
+
+          <div className="min-w-0">
+            <p className="hdr-text font-heading text-sm font-extrabold tracking-tight text-slate-900 sm:text-base">
+              {eventMeta.title}
+            </p>
+            <p className="hdr-text truncate text-[11px] font-semibold text-slate-500">
+              {eventMeta.org}
+            </p>
+          </div>
+        </button>
+
+        <nav
+          ref={navRef}
+          className="hidden items-center gap-1 rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner lg:flex"
+        >
+          {NAV.map((item) => {
+            const active = activeTab === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                data-active={active ? 'true' : 'false'}
+                onClick={() => onTabChange(item.id)}
+                className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                  active
+                    ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
+                    : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                }`}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </nav>
+
+        <div
+          ref={chipRef}
+          className="flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/90 px-3.5 py-1.5 text-xs font-bold text-brand-red shadow-sm"
+        >
+          <span className="live-dot relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-50" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-red" />
+          </span>
+          <i className="fa-regular fa-calendar text-[11px] text-brand-red" />
+          <span className="hidden sm:inline">13 Agustus 2026</span>
+          <span className="sm:hidden">13 Ags</span>
+        </div>
+      </div>
+    </header>
+  )
+}
