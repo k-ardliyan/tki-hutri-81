@@ -104,12 +104,12 @@ export default function SiteHeader() {
           ref={brandRef}
           type="button"
           onClick={() => navigate('/beranda')}
-          className="flex min-w-0 items-center gap-2.5 text-left sm:gap-3"
+          className="flex min-w-0 cursor-pointer items-center gap-2.5 text-left transition hover:opacity-90 active:scale-[0.98] sm:gap-3"
         >
           <div ref={logosRef} className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             <LogoHutRi81 className="h-9 sm:h-10 w-auto" animate />
-            <div className="h-6 sm:h-7 w-px bg-slate-200 shrink-0" />
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="hidden sm:block h-6 sm:h-7 w-px bg-slate-200 shrink-0" />
+            <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
               <LogoTki className="h-3.5 sm:h-4 w-auto" animate />
               <svg viewBox="0 0 16 16" className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 text-slate-400 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
                 <line x1="4" y1="4" x2="12" y2="12" />
@@ -136,7 +136,7 @@ export default function SiteHeader() {
                     preloadRoute(loader).catch(() => {})
                     navigate(item.path)
                   }}
-                  className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                  className={`cursor-pointer rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
                     active
                       ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
                       : 'text-slate-600 hover:bg-white hover:text-slate-900'

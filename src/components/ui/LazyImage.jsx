@@ -58,7 +58,7 @@ export const LazyImage = forwardRef(function LazyImage(
   const finalWrapperClass = wrapperClassName || 'w-full h-full block'
 
   return (
-    <span
+    <div
       ref={setRefs}
       className={`${finalWrapperClass}`}
     >
@@ -87,6 +87,6 @@ export const LazyImage = forwardRef(function LazyImage(
           />
         )
       )}
-    </span>
+    </div>
   )
 })

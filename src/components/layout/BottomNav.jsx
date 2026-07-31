@@ -51,7 +51,7 @@ export default function BottomNav() {
                   preloadRoute(loader).catch(() => {})
                   navigate(item.path)
                 }}
-                className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl py-2 px-1 text-[10px] font-semibold transition-all duration-200 ${
+                className={`flex w-full flex-col items-center justify-center gap-1 cursor-pointer rounded-xl py-2 px-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${
                   active
                     ? 'bg-brand-soft text-brand-red font-bold shadow-xs'
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'

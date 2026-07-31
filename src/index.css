@@ -30,11 +30,25 @@
       var(--color-canvas);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   #root {
+    min-height: 100vh;
     min-height: 100svh;
     width: 100%;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  button:active,
+  [role="button"]:active {
+    transform: translateY(1px) scale(0.98);
+    transition: transform 0.1s ease;
   }
 
   ::selection {

@@ -37,7 +37,7 @@ const tone = {
 function BranchChips({ activeId, onSelect, compact = false }) {
   return (
     <div
-      className={`flex gap-2 ${compact ? "" : "overflow-x-auto pb-0.5 no-scrollbar"}`}
+      className={`flex gap-2 ${compact ? "" : "overflow-x-auto overscroll-x-contain pb-0.5 no-scrollbar"}`}
     >
       {competitions.map((c) => {
         const selected = activeId === c.id;
@@ -46,7 +46,7 @@ function BranchChips({ activeId, onSelect, compact = false }) {
             key={c.id}
             type="button"
             onClick={() => onSelect(c.id)}
-            className={`flex items-center gap-2 rounded-2xl border text-left transition ${
+            className={`flex cursor-pointer items-center gap-2 rounded-2xl border text-left transition active:scale-[0.98] ${
               compact
                 ? "min-w-0 flex-1 px-2 py-1.5 sm:px-2.5"
                 : "min-w-[148px] shrink-0 px-2.5 py-2 sm:min-w-0 sm:flex-1"
@@ -302,7 +302,7 @@ function StickyBranchBar({
   const ui = (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed inset-x-0 top-6 z-[60] px-4 sm:top-6 sm:px-6"
+      className="pointer-events-none fixed inset-x-0 top-[max(0.75rem,env(safe-area-inset-top,0px))] z-[60] px-4 sm:top-6 sm:px-6"
     >
       <div
         ref={panelRef}

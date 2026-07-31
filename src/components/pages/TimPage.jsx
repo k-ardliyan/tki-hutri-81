@@ -197,7 +197,7 @@ export default function TimPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari nama peserta atau tim..."
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-9 pr-4 text-sm outline-none ring-brand-red transition focus:bg-white focus:ring-2"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-9 pr-4 text-base sm:text-sm outline-none ring-brand-red transition focus:bg-white focus:ring-2"
             />
             {term && (
               <button
@@ -218,7 +218,7 @@ export default function TimPage() {
           </p>
         )}
 
-        <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="mt-4 flex gap-2 overflow-x-auto overscroll-x-contain no-scrollbar">
           {[
             { id: "all", label: `Semua (${summaryKelompok.total})` },
             { id: "putra", label: `Putra (${summaryKelompok.putra})` },

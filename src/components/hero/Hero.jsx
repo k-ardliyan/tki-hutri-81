@@ -88,9 +88,9 @@ export default function Hero() {
           </div>
 
           <div className="hero-animate space-y-2.5">
-            <h1 className="font-heading text-3xl font-black leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="font-heading text-3xl font-black leading-[1.15] tracking-tight sm:text-5xl lg:text-[3.25rem]">
               Peringatan{' '}
-              <span className="inline-block rounded-xl bg-white px-3 py-0.5 text-brand-red shadow-lg">
+              <span className="inline-block align-baseline rounded-xl bg-white px-3 py-0.5 text-brand-red shadow-lg my-0.5">
                 HUT RI ke-81
               </span>
             </h1>
@@ -117,7 +117,7 @@ export default function Hero() {
             <button
               type="button"
               onClick={() => navigate('/lomba')}
-              className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition hover:-translate-y-0.5 hover:bg-slate-100"
+              className="group inline-flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95"
             >
               <i className="fa-solid fa-book-open text-xs text-[#990a15]" />
               <span>Lihat panduan lomba</span>
@@ -126,7 +126,7 @@ export default function Hero() {
             <button
               type="button"
               onClick={() => navigate('/tim')}
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/20 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/30 bg-black/20 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition-all duration-200 hover:bg-white/15 active:scale-95"
             >
               <i className="fa-solid fa-users text-xs" />
               <span>Daftar tim</span>

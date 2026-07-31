@@ -405,38 +405,38 @@ function PeakDayModal({ open, onClose, items }) {
         style={{ opacity: 0 }}
       />
       <div
-              ref={sheetRef}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="peak-modal-title"
-              className="relative z-10 flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl will-change-transform sm:mx-4 sm:rounded-3xl"
-              style={{ opacity: 0 }}
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="peak-modal-title"
+        className="relative z-10 flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl will-change-transform sm:mx-4 sm:rounded-3xl"
+        style={{ opacity: 0 }}
+      >
+        <div className="bg-gradient-to-r from-brand-deep to-brand-red px-5 pb-4 pt-2 text-white sm:px-6 sm:pb-5 sm:pt-5">
+          {/* Handle di atas header merah — tanpa strip putih */}
+          <div className="mb-3 flex justify-center sm:hidden" aria-hidden>
+            <span className="h-1 w-10 rounded-full bg-white/45" />
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                Kamis, 13 Agustus 2026
+              </p>
+              <h3 id="peak-modal-title" className="font-heading text-xl font-extrabold sm:text-2xl">
+                Rundown hari puncak
+              </h3>
+              <p className="mt-1 text-xs text-white/80">12.45–17.00 WIB · Halaman TKI</p>
+            </div>
+            <button
+              type="button"
+              onClick={requestClose}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white hover:bg-white/25"
+              aria-label="Tutup"
             >
-              <div className="bg-gradient-to-r from-brand-deep to-brand-red px-5 pb-4 pt-2 text-white sm:px-6 sm:pb-5 sm:pt-5">
-                {/* Handle di atas header merah — tanpa strip putih */}
-                <div className="mb-3 flex justify-center sm:hidden" aria-hidden>
-                  <span className="h-1 w-10 rounded-full bg-white/45" />
-                </div>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">
-                      Kamis, 13 Agustus 2026
-                    </p>
-                    <h3 id="peak-modal-title" className="font-heading text-xl font-extrabold sm:text-2xl">
-                      Rundown hari puncak
-                    </h3>
-                    <p className="mt-1 text-xs text-white/80">12.45–17.00 WIB · Halaman TKI</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={requestClose}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white hover:bg-white/25"
-                    aria-label="Tutup"
-                  >
-                    <i className="fa-solid fa-xmark" />
-                  </button>
-                </div>
-              </div>
+              <i className="fa-solid fa-xmark" />
+            </button>
+          </div>
+        </div>
 
         <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
           <ol className="relative space-y-0">
@@ -456,7 +456,7 @@ function PeakDayModal({ open, onClose, items }) {
           </ol>
         </div>
 
-        <div className="border-t border-slate-100 px-5 py-3 sm:px-6">
+        <div className="border-t border-slate-100 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-6">
           <button
             type="button"
             onClick={requestClose}

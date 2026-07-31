@@ -83,7 +83,7 @@ export default function App() {
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50 text-slate-800 antialiased">
       <SiteHeader />
 
-      <main className="mb-auto pb-24 lg:pb-0">
+      <main className="mb-auto pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         {isHome && <Hero />}
         <div className="shell py-6 sm:py-8">
           <div ref={panelRef}>
