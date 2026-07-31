@@ -1,391 +1,460 @@
 /**
- * Konten terstruktur dari:
- * - technical_rundown.md
- * - technical_book_peserta.md
- * - technical_book_panitia.md
+ * Konten website HUT RI ke-81
+ * Disusun dari technical_rundown.md, technical_book_peserta.md,
+ * dan technical_book_panitia.md.
  *
- * Tipografi resmi HUT RI ke-81: Saira Semi Condensed
- * Tema resmi: "Indonesia Berdaulat, Adil, dan Makmur"
+ * Tipografi: Saira Semi Condensed
+ * Tema: "Indonesia Berdaulat, Adil, dan Makmur"
  */
 
 export const eventMeta = {
-  title: 'HUT RI ke-81',
-  org: 'PT TKI x PT FTP',
+  title: "HUT RI ke-81",
+  org: "PT TKI x PT FTP",
   year: 2026,
-  theme: 'Indonesia Berdaulat, Adil, dan Makmur',
-  peakDateLabel: 'Kamis, 13 Agustus 2026',
-  peakTimeLabel: '12.45 WIB',
-  peakTarget: '2026-08-13T12:45:00',
-  awardDateLabel: 'Jumat, 28 Agustus 2026',
-  awardNote: 'Setelah kajian Jumat',
+  theme: "Indonesia Berdaulat, Adil, dan Makmur",
+  peakDateLabel: "Kamis, 13 Agustus 2026",
+  peakTimeLabel: "12.45 WIB",
+  peakTarget: "2026-08-13T12:45:00", // Mulai acara puncak
+  eventEndTarget: "2026-08-13T17:00:00", // Perkiraan acara puncak selesai
+  awardTarget: "2026-08-28T13:00:00", // Pengumuman pemenang setelah kajian Jumat
+  awardEndTarget: "2026-08-28T17:00:00", // Akhir seluruh rangkaian acara
+  awardDateLabel: "Jumat, 28 Agustus 2026",
+  awardNote: "Setelah kajian Jumat",
   tagline:
-    'Lomba, dekor, dan kebersamaan. Semuanya demi satu semangat yang sama: HUT RI ke-81.',
-}
+    "Rayakan kemerdekaan lewat lomba, kreativitas, dan kebersamaan dalam semangat HUT RI ke-81.",
+};
 
-/** Area lomba hias ruangan & 5R (per ruangan) */
+/** Ruangan peserta lomba dekorasi dan 5R */
 export const roomAreas = [
-  { id: 'implementator', name: 'Implementator', icon: 'fa-gears' },
-  { id: 'hardware-finance', name: 'Hardware & Finance', icon: 'fa-microchip' },
-  { id: 'sales', name: 'Sales', icon: 'fa-handshake' },
-  { id: 'it-dalam', name: 'IT Dalam', icon: 'fa-server' },
-  { id: 'it-luar', name: 'IT Luar', icon: 'fa-network-wired' },
-]
+  { id: "implementator", name: "Implementator", icon: "fa-gears" },
+  {
+    id: "hardware-finance",
+    name: "Hardware & Finance",
+    icon: "fa-microchip",
+  },
+  { id: "sales", name: "Sales", icon: "fa-handshake" },
+  { id: "it-dalam", name: "IT Dalam", icon: "fa-server" },
+  { id: "it-luar", name: "IT Luar", icon: "fa-network-wired" },
+];
 
 export const keyDates = [
   {
-    id: 'sosialisasi',
-    when: 'Senin, 3 Agustus 2026',
-    title: 'Sosialisasi aturan',
-    detail: 'Penjelasan teknis lomba di jam kerja.',
+    id: "sosialisasi",
+    when: "Senin, 3 Agustus 2026",
+    title: "Sosialisasi lomba",
+    detail: "Kenali aturan, jadwal, dan alur setiap lomba.",
   },
   {
-    id: 'dekor',
-    when: '4–7 Agustus 2026',
-    title: 'Lomba dekorasi ruangan',
-    detail: 'Pemasangan hiasan di jam kerja (Selasa–Jumat).',
+    id: "dekor",
+    when: "4–7 Agustus 2026",
+    title: "Dekorasi ruangan",
+    detail: "Hias ruangan di area masing-masing, dari Selasa hingga Jumat.",
   },
   {
-    id: 'nilai',
-    when: '10–27 Agustus 2026',
-    title: 'Penilaian lomba 5R',
-    detail: 'Sidak & penilaian 5R di hari kerja.',
+    id: "nilai",
+    when: "10–27 Agustus 2026",
+    title: "Penilaian 5R",
+    detail: "Penilaian dilakukan melalui sidak pada hari kerja.",
   },
   {
-    id: 'puncak',
-    when: '13 Agustus 2026',
-    title: 'Hari puncak acara',
-    detail: 'Sambutan, estafet balon, istirahat, lalu estafet air.',
+    id: "puncak",
+    when: "13 Agustus 2026",
+    title: "Hari puncak",
+    detail: "Sambutan, estafet balon, istirahat, dan estafet air.",
   },
   {
-    id: 'hadiah',
-    when: '28 Agustus 2026',
-    title: 'Pengumuman & hadiah',
-    detail: 'Pembagian juara setelah kajian Jumat.',
+    id: "hadiah",
+    when: "28 Agustus 2026",
+    title: "Pengumuman pemenang",
+    detail: "Pemenang diumumkan dan hadiah dibagikan setelah kajian Jumat.",
   },
-]
+];
 
 export const rundown = [
   {
-    id: 'phase-kickoff',
-    phase: 'Sosialisasi',
+    id: "phase-kickoff",
+    phase: "Sosialisasi",
     items: [
       {
-        time: 'Senin, 3 Agustus (jam kerja)',
-        title: 'Sosialisasi aturan lomba',
-        note: 'Penjelasan teknis, larangan fasilitas, dan alur lomba kepada peserta.',
+        time: "Senin, 3 Agustus",
+        title: "Penjelasan aturan lomba",
+        note: "Peserta akan mendapat penjelasan mengenai alur lomba, ketentuan teknis, dan aturan penggunaan fasilitas.",
       },
     ],
   },
   {
-    id: 'phase-dekor',
-    phase: 'Lomba: Dekorasi ruangan',
+    id: "phase-dekor",
+    phase: "Dekorasi Ruangan",
     items: [
       {
-        time: 'Selasa–Jumat, 4–7 Agustus',
-        title: 'Pemasangan dekorasi kemerdekaan',
-        note: 'Hanya di jam kerja. Foam tape wajib; tanpa paku dan tanpa cat dinding.',
+        time: "Selasa–Jumat, 4–7 Agustus",
+        title: "Pemasangan dekorasi",
+        note: "Dekorasi dipasang menggunakan foam tape. Paku dan cat dinding tidak diperbolehkan.",
       },
     ],
   },
   {
-    id: 'phase-nilai',
-    phase: 'Lomba: Penilaian 5R',
+    id: "phase-nilai",
+    phase: "Penilaian 5R",
     items: [
       {
-        time: '10–27 Agustus (hari kerja)',
-        title: 'Sidak & penilaian budaya 5R',
-        note: 'Juri menilai Ringkas, Rapi, Resik, Rawat, Rajin di area ruangan masing-masing.',
+        time: "10–27 Agustus · hari kerja",
+        title: "Sidak dan penilaian 5R",
+        note: "Juri menilai penerapan Ringkas, Rapi, Resik, Rawat, dan Rajin di setiap ruangan.",
       },
     ],
   },
   {
-    id: 'phase-peak',
-    phase: 'Hari puncak · 13 Agustus',
+    id: "phase-peak",
+    phase: "Hari Puncak · 13 Agustus",
     highlight: true,
     items: [
       {
-        time: '12.45–13.05',
-        title: 'Sambutan & doa',
-        note: 'Sambutan CEO dan Ketua Panitia, dilanjutkan doa pembuka.',
+        time: "12.45–13.05",
+        title: "Sambutan dan doa",
+        note: "Acara dibuka dengan sambutan CEO dan Ketua Panitia, lalu dilanjutkan dengan doa.",
       },
       {
-        time: '13.05–15.00',
-        title: 'Sesi 1 · Estafet balon tanpa tangan',
-        note: 'Penyisihan dan final per kategori Putra & Putri.',
+        time: "13.05–15.00",
+        title: "Estafet Balon Tanpa Tangan",
+        note: "Babak penyisihan dan final berlangsung terpisah untuk kategori Putra dan Putri.",
       },
       {
-        time: '15.00–15.30',
-        title: 'Istirahat & sholat',
-        note: 'Break singkat, sholat Ashar, area disiapkan untuk sesi basah.',
+        time: "15.00–15.30",
+        title: "Istirahat dan salat",
+        note: "Waktu istirahat dan salat Asar sekaligus persiapan area untuk lomba berikutnya.",
       },
       {
-        time: '15.30–17.00',
-        title: 'Sesi 2 · Estafet air gelas bocor',
-        note: 'Durasi main 3 menit per sesi. Juara ditentukan volume air terbanyak.',
+        time: "15.30–17.00",
+        title: "Estafet Air Gelas Bocor",
+        note: "Setiap sesi berlangsung selama 3 menit. Pemenang ditentukan dari volume air terbanyak.",
       },
     ],
   },
   {
-    id: 'phase-award',
-    phase: 'Pengumuman',
+    id: "phase-award",
+    phase: "Pengumuman",
     items: [
       {
-        time: 'Jumat, 28 Agustus',
-        title: 'Pengumuman & pembagian hadiah',
-        note: 'Setelah kajian Jumat. Juara per lomba dan kategori diumumkan resmi.',
+        time: "Jumat, 28 Agustus",
+        title: "Pengumuman dan pembagian hadiah",
+        note: "Pemenang setiap lomba dan kategori diumumkan setelah kajian Jumat.",
       },
     ],
   },
-]
+];
 
 export const competitions = [
   {
-    id: 'dekor-5r',
-    number: '01',
-    short: 'Dekor & 5R',
-    title: 'Hias Ruangan & Budaya 5R',
-    category: 'Umum · per ruangan',
-    tone: 'red',
-    imageKey: 'dekor-5r',
+    id: "dekor-5r",
+    number: "01",
+    short: "Dekorasi & 5R",
+    title: "Dekorasi Ruangan & Budaya 5R",
+    category: "Umum · per ruangan",
+    tone: "red",
+    imageKey: "dekor-5r",
     summary:
-      'Setiap area kerja mendekor ruangan dan menjaga standar 5R. Pakai foam tape, tanpa paku atau cat.',
+      "Percantik area kerja sekaligus tunjukkan penerapan 5R. Gunakan foam tape dan hindari paku atau cat yang dapat merusak fasilitas.",
     rooms: roomAreas,
     workflow: [
       {
         step: 1,
-        title: 'Sosialisasi',
-        time: 'Senin, 3 Agustus',
-        desc: 'Pahami larangan paku/cat dan standar foam tape di jam kerja.',
-        icon: 'fa-bullhorn',
+        title: "Pahami aturannya",
+        time: "Senin, 3 Agustus",
+        desc: "Ikuti sosialisasi untuk memahami aturan dekorasi, penggunaan foam tape, dan perlindungan fasilitas.",
+        icon: "fa-bullhorn",
       },
       {
         step: 2,
-        title: 'Pasang dekorasi',
-        time: '4–7 Agustus',
-        desc: 'Hias area kerja di jam kerja: Implementator, Hardware & Finance, Sales, IT Dalam, IT Luar.',
-        icon: 'fa-paint-roller',
+        title: "Mulai menghias",
+        time: "4–7 Agustus",
+        desc: "Dekorasi dilakukan di area masing-masing.",
+        icon: "fa-paint-roller",
       },
       {
         step: 3,
-        title: 'Penilaian 5R',
-        time: '10–27 Agustus',
-        desc: 'Ringkas · Rapi · Resik · Rawat · Rajin dinilai di hari kerja.',
-        icon: 'fa-clipboard-check',
+        title: "Terapkan 5R",
+        time: "10–27 Agustus",
+        desc: "Jaga ruangan tetap Ringkas, Rapi, Resik, Rawat, dan Rajin setiap hari.",
+        icon: "fa-clipboard-check",
       },
       {
         step: 4,
-        title: 'Pengumuman',
-        time: '28 Agustus',
-        desc: 'Juara diumumkan setelah kajian Jumat.',
-        icon: 'fa-trophy',
+        title: "Tunggu hasilnya",
+        time: "28 Agustus",
+        desc: "Pemenang diumumkan setelah kajian Jumat.",
+        icon: "fa-trophy",
       },
     ],
     forPeserta: {
-      headline: 'Untuk peserta',
+      headline: "Panduan peserta",
       points: [
-        { title: 'Sosialisasi dulu', text: 'Hadir Senin, 3 Agustus untuk penjelasan aturan di jam kerja.' },
-        { title: 'Dekor 4–7 Agustus', text: 'Pasang hiasan hanya di jam kerja. Foam tape wajib; dilarang paku/cat.' },
-        { title: 'Ornamen ekstra', text: 'Boleh menambah hiasan (biaya mandiri) selama tidak merusak fasilitas.' },
-        { title: 'Jaga 5R', text: 'Penilaian sidak 10–27 Agustus di hari kerja. Jaga kerapian harian.' },
+        {
+          title: "Ikuti sosialisasi",
+          text: "Hadiri sosialisasi pada Senin, 3 Agustus untuk memahami seluruh aturan lomba.",
+        },
+        {
+          title: "Pemasangan dekorasi",
+          text: "Pemasangan dekorasi dilakukan pada 4–7 Agustus menggunakan foam tape, tanpa paku atau cat dinding.",
+        },
+        {
+          title: "Boleh menambah ornamen",
+          text: "Tambahan dekorasi dengan biaya mandiri diperbolehkan selama aman dan tidak merusak fasilitas.",
+        },
+        {
+          title: "Jaga ruangan setiap hari",
+          text: "Penilaian 5R berlangsung melalui sidak pada 10–27 Agustus, jadi pastikan ruangan selalu tertata.",
+        },
       ],
       tips: [
-        'Pisahkan barang terpakai vs tidak (Ringkas)',
-        'Ikat kabel dengan cable tie (Rapi)',
-        'Bersihkan sisa potongan hiasan (Resik)',
+        "Pisahkan barang yang masih digunakan dan yang tidak diperlukan.",
+        "Rapikan kabel menggunakan cable tie.",
+        "Bersihkan sisa bahan dekorasi setelah digunakan.",
       ],
     },
     forPanitia: {
-      headline: 'Untuk panitia',
+      headline: "Panduan panitia",
       points: [
-        { title: '3 Agustus', text: 'Sosialisasi aturan teknis di jam kerja (larangan paku, cat, dsb.).' },
-        { title: '4–7 Agustus', text: 'Dampingi pemasangan dekorasi; cek foam tape & keamanan fasilitas.' },
-        { title: '10–27 Agustus', text: 'Nilai 5R di hari kerja. Pelanggaran fasilitas = potongan poin / diskualifikasi.' },
+        {
+          title: "Sosialisasi · 3 Agustus",
+          text: "Jelaskan aturan teknis, termasuk larangan menggunakan paku, cat, atau bahan yang merusak fasilitas.",
+        },
+        {
+          title: "Pendampingan · 4–7 Agustus",
+          text: "Dampingi proses dekorasi dan pastikan pemasangan menggunakan bahan yang aman.",
+        },
+        {
+          title: "Penilaian · 10–27 Agustus",
+          text: "Lakukan penilaian 5R pada hari kerja dan catat setiap pelanggaran sebagai dasar pengurangan poin atau diskualifikasi.",
+        },
       ],
       checklist: [
-        'Cek setiap ruangan: Implementator, Hardware & Finance, Sales, IT Dalam, IT Luar',
-        'Dokumentasikan temuan sidak',
-        'Catat pelanggaran fasilitas secara tertulis',
+        "Periksa seluruh ruangan peserta.",
+        "Dokumentasikan setiap temuan saat sidak.",
+        "Catat pelanggaran fasilitas secara tertulis.",
       ],
     },
   },
   {
-    id: 'balon',
-    number: '02',
-    short: 'Estafet Balon',
-    title: 'Estafet Balon Tanpa Tangan',
-    category: 'Putra & Putri · juara terpisah',
-    tone: 'amber',
-    imageKey: 'balon',
+    id: "balon",
+    number: "02",
+    short: "Estafet Balon",
+    title: "Estafet Balon Tanpa Tangan",
+    category: "Putra & Putri · juara terpisah",
+    tone: "amber",
+    imageKey: "balon",
     summary:
-      'Berpasangan, bawa balon dari start sampai finish tanpa pakai tangan. Juara: waktu tercepat.',
+      "Bawa balon secara berpasangan dari garis start hingga finish tanpa menggunakan tangan. Tim tercepat menjadi pemenang.",
     workflow: [
       {
         step: 1,
-        title: 'Siap di garis start',
-        time: 'Sesi 1',
-        desc: 'Pasangan berdiri di start, balon siap diapit.',
-        icon: 'fa-flag-checkered',
+        title: "Bersiap di garis start",
+        time: "Mulai lomba",
+        desc: "Pasangan pertama berdiri di garis start dan bersiap mengapit balon.",
+        icon: "fa-flag-checkered",
       },
       {
         step: 2,
-        title: 'Apit balon',
-        time: 'Tanpa tangan',
-        desc: 'Balon dijepit di perut/dada. Tidak boleh dipegang tangan.',
-        icon: 'fa-people-arrows',
+        title: "Apit balon",
+        time: "Tanpa tangan",
+        desc: "Jepit balon menggunakan bagian perut atau dada. Balon tidak boleh dipegang dengan tangan.",
+        icon: "fa-people-arrows",
       },
       {
         step: 3,
-        title: 'Estafet ke rekan',
-        time: 'Oper aman',
-        desc: 'Oper balon ke pasangan berikutnya tanpa sentuhan tangan.',
-        icon: 'fa-right-left',
+        title: "Oper ke pasangan berikutnya",
+        time: "Lanjutkan estafet",
+        desc: "Pindahkan balon ke pasangan berikutnya tanpa menyentuhnya dengan tangan.",
+        icon: "fa-right-left",
       },
       {
         step: 4,
-        title: 'Finish + stopwatch',
-        time: 'Catat waktu',
-        desc: 'Toleransi gagal maks. 3× (jatuh/pecah). >3 = gugur.',
-        icon: 'fa-stopwatch',
+        title: "Capai garis finish",
+        time: "Waktu dicatat",
+        desc: "Setiap tim mendapat toleransi maksimal 3 kali jika balon jatuh atau pecah. Lebih dari itu, tim gugur.",
+        icon: "fa-stopwatch",
       },
       {
         step: 5,
-        title: 'Final top 3',
-        time: 'Per kategori',
-        desc: '3 waktu tercepat Putra & Putri masuk final, perebutkan juara 1–3.',
-        icon: 'fa-medal',
+        title: "Masuk babak final",
+        time: "3 tim tercepat",
+        desc: "Tiga tim tercepat dari kategori Putra dan Putri maju ke final untuk memperebutkan juara 1–3.",
+        icon: "fa-medal",
       },
     ],
     forPeserta: {
-      headline: 'Untuk peserta',
+      headline: "Panduan peserta",
       points: [
-        { title: 'Jangan pakai tangan', text: 'Balon tidak boleh dipegang. Hanya diapit tubuh.' },
-        { title: 'Toleransi 3×', text: 'Maksimal 3 kali gagal (jatuh/pecah). Lebih dari itu diskualifikasi.' },
-        { title: 'Penentuan juara', text: 'Waktu tercepat. Top 3 per kategori masuk final.' },
+        {
+          title: "Tanpa sentuhan tangan",
+          text: "Balon hanya boleh diapit menggunakan tubuh dan tidak boleh dipegang dengan tangan.",
+        },
+        {
+          title: "Maksimal 3 kali gagal",
+          text: "Balon boleh jatuh atau pecah maksimal 3 kali. Kegagalan berikutnya membuat tim gugur.",
+        },
+        {
+          title: "Kejar waktu terbaik",
+          text: "Tiga tim tercepat dari setiap kategori akan melaju ke babak final.",
+        },
       ],
-      tips: ['Latih langkah berpasangan', 'Siapkan balon cadangan dalam sisa toleransi'],
+      tips: [
+        "Latih langkah dan kecepatan bersama pasangan.",
+        "Jaga posisi tubuh agar balon tidak mudah jatuh.",
+      ],
     },
     forPanitia: {
-      headline: 'Untuk panitia',
+      headline: "Panduan panitia",
       points: [
-        { title: 'Alat wajib', text: 'Balon, peluit, dan stopwatch resmi.' },
-        { title: 'Format putra', text: 'Penyisihan 3 sesi: 3 + 3 + 2. Final: 3 waktu tercepat.' },
-        { title: 'Format putri', text: 'Penyisihan 2 sesi: 3 + 2. Final: 3 waktu tercepat.' },
+        {
+          title: "Peralatan",
+          text: "Siapkan balon, peluit, dan stopwatch resmi untuk mencatat waktu.",
+        },
+        {
+          title: "Format Putra",
+          text: "Penyisihan terdiri dari 3 sesi dengan pembagian 3, 3, dan 2 kelompok. Tiga waktu tercepat maju ke final.",
+        },
+        {
+          title: "Format Putri",
+          text: "Penyisihan terdiri dari 2 sesi dengan pembagian 3 dan 2 kelompok. Tiga waktu tercepat maju ke final.",
+        },
       ],
-      tools: ['Balon', 'Peluit', 'Stopwatch (wajib)'],
+      tools: ["Balon", "Peluit", "Stopwatch"],
       putra: [
-        'Penyisihan 3 sesi: 3 + 3 + 2 kelompok',
-        'Final: 3 kelompok waktu tercepat dari seluruh penyisihan',
+        "Penyisihan: 3 sesi dengan pembagian 3, 3, dan 2 kelompok.",
+        "Final: 3 kelompok dengan waktu tercepat dari seluruh sesi penyisihan.",
       ],
       putri: [
-        'Penyisihan 2 sesi: 3 + 2 kelompok',
-        'Final: 3 kelompok waktu tercepat dari seluruh penyisihan',
+        "Penyisihan: 2 sesi dengan pembagian 3 dan 2 kelompok.",
+        "Final: 3 kelompok dengan waktu tercepat dari seluruh sesi penyisihan.",
       ],
     },
   },
   {
-    id: 'air',
-    number: '03',
-    short: 'Estafet Air',
-    title: 'Estafet Air Gelas Bocor',
-    category: 'Putra & Putri · juara terpisah',
-    tone: 'blue',
-    imageKey: 'air',
+    id: "air",
+    number: "03",
+    short: "Estafet Air",
+    title: "Estafet Air Gelas Bocor",
+    category: "Putra & Putri · juara terpisah",
+    tone: "blue",
+    imageKey: "air",
     summary:
-      'Oper gelas bocor dari atas kepala ke galon penampung. Juara: air terbanyak, waktu 3 menit.',
+      "Oper gelas bocor melewati atas kepala hingga air terkumpul di galon penampung. Tim dengan volume air terbanyak dalam 3 menit menjadi pemenang.",
     workflow: [
       {
         step: 1,
-        title: 'Ember sumber',
-        time: 'Isi air',
-        desc: 'Ambil air dari ember utama dengan gelas bocor.',
-        icon: 'fa-bucket',
+        title: "Ambil air",
+        time: "Dari ember utama",
+        desc: "Peserta pertama mengambil air dari ember menggunakan gelas bocor.",
+        icon: "fa-bucket",
       },
       {
         step: 2,
-        title: 'Oper atas kepala',
-        time: 'Estafet',
-        desc: 'Oper gelas ke rekan berikutnya melewati atas kepala.',
-        icon: 'fa-hands-holding',
+        title: "Oper lewat atas kepala",
+        time: "Mulai estafet",
+        desc: "Gelas dioper ke peserta berikutnya melalui atas kepala hingga mencapai peserta terakhir.",
+        icon: "fa-hands-holding",
       },
       {
         step: 3,
-        title: 'Jangan sumbat lubang',
-        time: 'Larangan',
-        desc: 'Dilarang menutup lubang bocor dengan jari.',
-        icon: 'fa-ban',
+        title: "Biarkan gelas tetap bocor",
+        time: "Jangan ditutup",
+        desc: "Lubang pada gelas tidak boleh ditutup atau disumbat dengan jari.",
+        icon: "fa-ban",
       },
       {
         step: 4,
-        title: 'Tuang ke galon',
-        time: '3 menit',
-        desc: 'Ujung barisan menuang ke galon penampung. Timer 3 menit/sesi.',
-        icon: 'fa-hourglass-half',
+        title: "Tuang ke galon",
+        time: "Durasi 3 menit",
+        desc: "Peserta terakhir menuangkan air ke galon penampung hingga waktu sesi berakhir.",
+        icon: "fa-hourglass-half",
       },
       {
         step: 5,
-        title: 'Ukur volume',
-        time: 'Final',
-        desc: 'Volume terbanyak lolos final, lalu perebutkan juara 1–3.',
-        icon: 'fa-flask',
+        title: "Hitung volume air",
+        time: "Penentuan final",
+        desc: "Tim dengan volume air terbanyak melaju ke final dan kembali bertanding untuk memperebutkan juara 1–3.",
+        icon: "fa-flask",
       },
     ],
     forPeserta: {
-      headline: 'Untuk peserta',
+      headline: "Panduan peserta",
       points: [
-        { title: 'Durasi 3 menit', text: 'Setiap sesi tepat 3 menit. Manfaatkan ritme, bukan hanya buru-buru.' },
-        { title: 'Lubang tetap bocor', text: 'Dilarang menyumbat lubang gelas dengan jari.' },
-        { title: 'Toleransi 3×', text: 'Maksimal 3 kali gelas jatuh. Juara = air terbanyak di galon.' },
+        {
+          title: "Durasi 3 menit",
+          text: "Setiap sesi berlangsung selama 3 menit. Jaga ritme agar air dapat dioper dengan stabil.",
+        },
+        {
+          title: "Jangan tutup lubang",
+          text: "Lubang pada gelas harus tetap terbuka dan tidak boleh disumbat dengan jari.",
+        },
+        {
+          title: "Maksimal 3 kali jatuh",
+          text: "Gelas boleh jatuh maksimal 3 kali. Pemenang ditentukan dari volume air terbanyak di galon.",
+        },
       ],
-      tips: ['Jaga ritme oper', 'Siapkan area basah & handuk kecil'],
+      tips: [
+        "Bangun ritme oper yang konsisten.",
+        "Berhati-hati karena area permainan akan basah dan licin.",
+      ],
     },
     forPanitia: {
-      headline: 'Untuk panitia',
+      headline: "Panduan panitia",
       points: [
-        { title: 'Alat', text: 'Ember air, gelas/galon bocor, penampung kosong, timer 3 menit.' },
-        { title: 'Format putra', text: 'Penyisihan 2 sesi (4+4). Final: 2 terbaik/sesi (total 4).' },
-        { title: 'Format putri', text: 'Penyisihan 2 sesi (3+2). Final: 4 volume terbanyak keseluruhan.' },
+        {
+          title: "Peralatan",
+          text: "Siapkan ember berisi air, gelas bocor, galon penampung kosong, dan timer 3 menit.",
+        },
+        {
+          title: "Format Putra",
+          text: "Penyisihan terdiri dari 2 sesi dengan masing-masing 4 kelompok. Dua tim terbaik dari setiap sesi maju ke final.",
+        },
+        {
+          title: "Format Putri",
+          text: "Penyisihan terdiri dari 2 sesi dengan pembagian 3 dan 2 kelompok. Empat volume terbanyak secara keseluruhan maju ke final.",
+        },
       ],
       tools: [
-        'Ember berisi air',
-        'Gelas/galon bocor',
-        'Galon penampung kosong',
-        'Timer 3 menit',
+        "Ember berisi air",
+        "Gelas bocor",
+        "Galon penampung kosong",
+        "Timer 3 menit",
       ],
       putra: [
-        'Penyisihan 2 sesi: 4 + 4 kelompok',
-        'Final: 2 kelompok air terbanyak per sesi (total 4) diadu lagi',
+        "Penyisihan: 2 sesi, masing-masing diikuti 4 kelompok.",
+        "Final: 2 kelompok dengan volume air terbanyak dari setiap sesi, total 4 kelompok.",
       ],
       putri: [
-        'Penyisihan 2 sesi: 3 + 2 kelompok',
-        'Final: 4 kelompok air terbanyak keseluruhan dari penyisihan Putri',
+        "Penyisihan: 2 sesi dengan pembagian 3 dan 2 kelompok.",
+        "Final: 4 kelompok dengan volume air terbanyak dari seluruh sesi penyisihan.",
       ],
     },
   },
-]
+];
 
 export const landingHighlights = [
   {
-    id: 'teams',
-    label: 'Tim berlaga',
-    value: '13',
-    hint: '8 putra · 5 putri',
+    id: "teams",
+    label: "Tim peserta",
+    value: "13",
+    hint: "8 Putra · 5 Putri",
   },
   {
-    id: 'games',
-    label: 'Cabang lomba',
-    value: '3',
-    hint: '5R · Balon · Air',
+    id: "games",
+    label: "Jenis lomba",
+    value: "3",
+    hint: "Dekorasi & 5R · Balon · Air",
   },
   {
-    id: 'peak',
-    label: 'Hari puncak',
-    value: '13 Ags',
-    hint: 'Mulai 12.45 WIB',
+    id: "peak",
+    label: "Hari puncak",
+    value: "13 Ags",
+    hint: "Mulai pukul 12.45 WIB",
   },
   {
-    id: 'award',
-    label: 'Pengumuman',
-    value: '28 Ags',
-    hint: 'Setelah kajian',
+    id: "award",
+    label: "Pengumuman",
+    value: "28 Ags",
+    hint: "Setelah kajian Jumat",
   },
-]
+];

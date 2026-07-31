@@ -6,6 +6,7 @@ export function useCountdown(targetDate = '2026-08-13T12:45:00') {
     hours: '00',
     mins: '00',
     secs: '00',
+    diff: 0,
     done: false
   })
 
@@ -17,7 +18,7 @@ export function useCountdown(targetDate = '2026-08-13T12:45:00') {
       const diff = target - now
 
       if (diff <= 0) {
-        setTimeLeft({ days: '00', hours: '00', mins: '00', secs: '00', done: true })
+        setTimeLeft({ days: '00', hours: '00', mins: '00', secs: '00', diff: 0, done: true })
         return
       }
 
@@ -31,6 +32,7 @@ export function useCountdown(targetDate = '2026-08-13T12:45:00') {
         hours: hours < 10 ? `0${hours}` : String(hours),
         mins: mins < 10 ? `0${mins}` : String(mins),
         secs: secs < 10 ? `0${secs}` : String(secs),
+        diff,
         done: false
       })
     }

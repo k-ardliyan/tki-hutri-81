@@ -151,7 +151,12 @@ export default function Hero() {
               </span>
             </div>
 
-            <Countdown target={eventMeta.peakTarget} />
+            <Countdown
+              peakTarget={eventMeta.peakTarget}
+              eventEndTarget={eventMeta.eventEndTarget}
+              awardTarget={eventMeta.awardTarget}
+              awardEndTarget={eventMeta.awardEndTarget}
+            />
 
             <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3.5 text-xs text-slate-500">
               <div className="flex items-center gap-1.5">
