@@ -1,14 +1,47 @@
-import { useEffect, useRef } from 'react'
-import { Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import {
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useSearchParams,
+} from 'react-router-dom'
 import SiteHeader from './components/layout/Header'
 import BottomNav from './components/layout/BottomNav'
 import SiteFooter from './components/layout/SiteFooter'
 import Hero from './components/hero/Hero'
-import HomePage from './components/pages/HomePage'
-import LombaPage from './components/pages/LombaPage'
-import RundownPage from './components/pages/RundownPage'
-import TimPage from './components/pages/TimPage'
+import PageFallback from './components/ui/PageFallback'
+import { preloadRoute } from './components/ui/routeLoader'
 import { gsap, shouldReduceMotion } from './lib/gsap'
+
+// ─── Route-level code splitting ────────────────────────────────────────────
+// Each page becomes its own chunk. The bundler emits one JS file per page; the
+// browser only downloads it once the user navigates there (or when our
+// `RoutePrefetch` wrapper warms the cache on hover/visibility).
+const loadHomePage = () => import('./components/pages/HomePage.jsx')
+const loadLombaPage = () => import('./components/pages/LombaPage.jsx')
+const loadRundownPage = () => import('./components/pages/RundownPage.jsx')
+const loadTimPage = () => import('./components/pages/TimPage.jsx')
+
+const HomePage = lazy(loadHomePage)
+const LombaPage = lazy(loadLombaPage)
+const RundownPage = lazy(loadRundownPage)
+const TimPage = lazy(loadTimPage)
+
+// ─── Warm the network cache for the most-likely next routes ────────────────
+// After first paint, kick off a low-priority prefetch of the other page
+// chunks so navigating between Beranda / Lomba / Rundown / Tim feels instant.
+// We never await these — they're fire-and-forget.
+if (typeof window !== 'undefined') {
+  const idle =
+    window.requestIdleCallback ||
+    ((cb) => setTimeout(cb, 1500))
+  idle(() => {
+    preloadRoute(loadLombaPage).catch(() => {})
+    preloadRoute(loadRundownPage).catch(() => {})
+    preloadRoute(loadTimPage).catch(() => {})
+  })
+}
 
 /** Redirect ke /beranda sambil preserve ?u= dan query params lainnya */
 function HomeRedirect() {
@@ -50,19 +83,21 @@ export default function App() {
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50 text-slate-800 antialiased">
       <SiteHeader />
 
-      <main className="mb-auto pb-16 lg:pb-0">
+      <main className="mb-auto pb-24 lg:pb-0">
         {isHome && <Hero />}
         <div className="shell py-6 sm:py-8">
           <div ref={panelRef}>
-            <Routes>
-              <Route index element={<HomeRedirect />} />
-              <Route path="/beranda" element={<HomePage />} />
-              <Route path="/lomba" element={<LombaPage />} />
-              <Route path="/lomba/:id" element={<LombaPage />} />
-              <Route path="/rundown" element={<RundownPage />} />
-              <Route path="/tim" element={<TimPage />} />
-              <Route path="*" element={<HomeRedirect />} />
-            </Routes>
+            <Suspense fallback={<PageFallback />}>
+              <Routes>
+                <Route index element={<HomeRedirect />} />
+                <Route path="/beranda" element={<HomePage />} />
+                <Route path="/lomba" element={<LombaPage />} />
+                <Route path="/lomba/:id" element={<LombaPage />} />
+                <Route path="/rundown" element={<RundownPage />} />
+                <Route path="/tim" element={<TimPage />} />
+                <Route path="*" element={<HomeRedirect />} />
+              </Routes>
+            </Suspense>
           </div>
         </div>
       </main>

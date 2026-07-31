@@ -4,6 +4,8 @@ import { useAudienceNavigate, useAudience } from '../../context/AudienceContext'
 import LogoTki from '../brand/LogoTki'
 import LogoFtp from '../brand/LogoFtp'
 import LogoHutRi81 from '../brand/LogoHutRi81'
+import RoutePrefetch from '../ui/RoutePrefetch'
+import { preloadRoute, makeRouteLoader } from '../ui/routeLoader'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 
 const NAV = [
@@ -12,6 +14,19 @@ const NAV = [
   { id: 'rundown', label: 'Rundown', path: '/rundown' },
   { id: 'tim', label: 'Tim', path: '/tim' },
 ]
+
+const LOADERS = {
+  beranda: makeRouteLoader(() =>
+    import('../../components/pages/HomePage.jsx'),
+  ),
+  lomba: makeRouteLoader(() =>
+    import('../../components/pages/LombaPage.jsx'),
+  ),
+  rundown: makeRouteLoader(() =>
+    import('../../components/pages/RundownPage.jsx'),
+  ),
+  tim: makeRouteLoader(() => import('../../components/pages/TimPage.jsx')),
+}
 
 export default function SiteHeader() {
   const navigate = useAudienceNavigate()
@@ -111,20 +126,25 @@ export default function SiteHeader() {
         >
           {NAV.map((item) => {
             const active = activeId === item.id
+            const loader = LOADERS[item.id]
             return (
-              <button
-                key={item.id}
-                type="button"
-                data-active={active ? 'true' : 'false'}
-                onClick={() => navigate(item.path)}
-                className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                  active
-                    ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
-                    : 'text-slate-600 hover:bg-white hover:text-slate-900'
-                }`}
-              >
-                {item.label}
-              </button>
+              <RoutePrefetch key={item.id} loader={loader}>
+                <button
+                  type="button"
+                  data-active={active ? 'true' : 'false'}
+                  onClick={() => {
+                    preloadRoute(loader).catch(() => {})
+                    navigate(item.path)
+                  }}
+                  className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                    active
+                      ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              </RoutePrefetch>
             )
           })}
         </nav>

@@ -4,6 +4,7 @@ import { useAudience, useAudienceNavigate } from "../../context/AudienceContext"
 import { createPortal } from "react-dom";
 import { competitions } from "../../data/content";
 import { assets } from "../../assets";
+import { LazyImage } from "../ui/LazyImage";
 import { gsap, shouldReduceMotion } from "../../lib/gsap";
 
 const tone = {
@@ -485,10 +486,13 @@ export default function LombaPage() {
 
       <article className={`surface-card overflow-hidden border ${t.border}`}>
         <div className="relative min-h-[150px] overflow-hidden sm:min-h-[200px]">
-          <img
+          <LazyImage
             src={assets.lomba[active.imageKey]}
             alt={active.title}
+            wrapperClassName="absolute inset-0 block"
             className="absolute inset-0 h-full w-full object-cover"
+            rootMargin="600px"
+            fetchPriority="low"
           />
           <div
             className={`absolute inset-0 bg-gradient-to-t ${t.head} opacity-85`}

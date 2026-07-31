@@ -2,14 +2,14 @@ import logoTkiBlue from "./logo-tki-blue.svg";
 import logoTkiWhite from "./logo-tki-white.svg";
 import logoHutRi81Svg from "./brand/logo-hut-ri-81.svg";
 import tuguJamSalatigaSvg from "./brand/tugu-jam-salatiga.svg";
-import tuguJamSalatiga from "./brand/tugu-jam-salatiga.png";
-import ringkasanBanner from "./brand/ringkasan-banner.png";
-import imgDekor5r from "./lomba/dekor-5r.png";
-import imgBalon from "./lomba/estafet-balon.png";
-import imgAir from "./lomba/estafet-air.png";
-import imgFoam from "./galeri/foam-tape.png";
-import imgNoNail from "./galeri/no-nail.png";
-import imgCable from "./galeri/cable-tidy.png";
+import tuguJamSalatiga from "./brand/tugu-jam-salatiga.webp";
+import ringkasanBanner from "./brand/ringkasan-banner.webp";
+import imgDekor5r from "./lomba/dekor-5r.webp";
+import imgBalon from "./lomba/estafet-balon.webp";
+import imgAir from "./lomba/estafet-air.webp";
+import imgFoam from "./galeri/foam-tape.webp";
+import imgNoNail from "./galeri/no-nail.webp";
+import imgCable from "./galeri/cable-tidy.webp";
 
 export const assets = {
   /** Fallback raster refs (prefer <LogoTki /> / <LogoHutRi81 />) */

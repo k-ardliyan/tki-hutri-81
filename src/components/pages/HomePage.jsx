@@ -3,6 +3,7 @@ import { useAudienceNavigate } from '../../context/AudienceContext'
 import { competitions } from '../../data/content'
 import { summaryKelompok } from '../../data/kelompok'
 import { assets } from '../../assets'
+import { LazyImage } from '../ui/LazyImage'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 
 const STATS = [
@@ -159,19 +160,19 @@ export default function HomePage() {
             {STATS.map((item) => (
               <div
                 key={item.id}
-                className="group flex items-center gap-3.5 p-4 sm:p-5 transition hover:bg-rose-50/30"
+                className="group flex items-center gap-2.5 p-3.5 sm:gap-3.5 sm:p-5 transition hover:bg-rose-50/30"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-100/70 text-brand-red transition-transform group-hover:scale-110">
-                  <i className={`${item.icon} text-lg`} />
+                <div className="flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-rose-100/70 text-brand-red transition-transform group-hover:scale-110">
+                  <i className={`${item.icon} text-sm sm:text-lg`} />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+                    <span className="font-heading text-xl font-black tracking-tight text-slate-900 sm:text-3xl">
                       {item.value}
                     </span>
                   </div>
-                  <p className="truncate text-xs font-bold text-slate-800 sm:text-sm">{item.label}</p>
-                  <p className="truncate text-[11px] font-medium text-slate-500 sm:text-xs">{item.sub}</p>
+                  <p className="text-xs font-bold leading-tight text-slate-800 sm:text-sm">{item.label}</p>
+                  <p className="text-[10px] font-medium leading-tight text-slate-500 sm:text-xs">{item.sub}</p>
                 </div>
               </div>
             ))}
@@ -230,10 +231,13 @@ export default function HomePage() {
 
           {/* Right Banner Cartoon Festive Image with Overlay Floating Dark Badge */}
           <div className="relative min-h-[220px] overflow-hidden border-t border-slate-100 sm:min-h-[260px] lg:border-l lg:border-t-0">
-            <img
+            <LazyImage
               src={assets.ringkasanBanner}
               alt="Suasana Perayaan Kemerdekaan 5R"
+              wrapperClassName="absolute inset-0 block"
               className="absolute inset-0 h-full w-full object-cover"
+              rootMargin="600px"
+              fetchPriority="low"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
 
@@ -295,10 +299,13 @@ export default function HomePage() {
                 {/* Image Header with Badges */}
                 <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-rose-50">
                   {img ? (
-                    <img
+                    <LazyImage
                       src={img}
                       alt={c.title}
+                      wrapperClassName="w-full h-full block"
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      rootMargin="400px"
+                      fetchPriority="low"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-brand-red font-bold">
