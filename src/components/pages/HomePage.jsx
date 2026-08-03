@@ -1,86 +1,86 @@
-import { useEffect, useRef } from 'react'
-import { useAudienceNavigate } from '../../context/AudienceContext'
-import { competitions } from '../../data/content'
-import { summaryKelompok } from '../../data/kelompok'
-import { assets } from '../../assets'
-import { LazyImage } from '../ui/LazyImage'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useRef } from "react";
+import { useAudienceNavigate } from "../../context/AudienceContext";
+import { competitions } from "../../data/content";
+import { summaryKelompok } from "../../data/kelompok";
+import { assets } from "../../assets";
+import { LazyImage } from "../ui/LazyImage";
+import { gsap, shouldReduceMotion } from "../../lib/gsap";
 
 const STATS = [
   {
-    id: 'teams',
-    icon: 'fa-solid fa-users',
+    id: "teams",
+    icon: "fa-solid fa-users",
     value: summaryKelompok.total,
-    label: 'Tim Berlaga',
+    label: "Tim Berlaga",
     sub: `${summaryKelompok.putra} putra · ${summaryKelompok.putri} putri`,
   },
   {
-    id: 'lomba',
-    icon: 'fa-solid fa-trophy',
-    value: '3',
-    label: 'Cabang Lomba',
-    sub: '5R · Balon · Air',
+    id: "lomba",
+    icon: "fa-solid fa-trophy",
+    value: "3",
+    label: "Cabang Lomba",
+    sub: "5R · Balon · Air",
   },
   {
-    id: 'peak',
-    icon: 'fa-solid fa-calendar-check',
-    value: '13 Ags',
-    label: 'Hari Puncak',
-    sub: 'Mulai 12.45 WIB',
+    id: "peak",
+    icon: "fa-solid fa-calendar-check",
+    value: "13 Ags",
+    label: "Hari Puncak",
+    sub: "Mulai 12.45 WIB",
   },
   {
-    id: 'award',
-    icon: 'fa-solid fa-bullhorn',
-    value: '28 Ags',
-    label: 'Pengumuman',
-    sub: 'Setelah kajian',
+    id: "award",
+    icon: "fa-solid fa-bullhorn",
+    value: "28 Ags",
+    label: "Pengumuman",
+    sub: "Setelah kajian",
   },
-]
+];
 
 const TIMELINE = [
   {
-    id: 'sosialisasi',
-    icon: 'fa-solid fa-bullhorn',
-    title: 'Sosialisasi',
-    date: '3 Ags',
-    day: 'Senin',
-    desc: 'Penjelasan aturan dan teknis untuk semua tim.',
+    id: "sosialisasi",
+    icon: "fa-solid fa-bullhorn",
+    title: "Sosialisasi",
+    date: "3 Ags",
+    day: "Senin",
+    desc: "Penjelasan aturan dan teknis untuk semua tim.",
   },
   {
-    id: 'dekor',
-    icon: 'fa-solid fa-paint-roller',
-    title: 'Dekor',
-    date: '4–7 Ags',
-    day: 'Selasa–Jumat',
-    desc: 'Bikin dekorasi ruangan bertema kemerdekaan. Tetap jaga 5R.',
+    id: "dekor",
+    icon: "fa-solid fa-paint-roller",
+    title: "Dekor",
+    date: "4–7 Ags",
+    day: "Selasa–Jumat",
+    desc: "Bikin dekorasi ruangan bertema kemerdekaan. Tetap jaga 5R.",
   },
   {
-    id: 'puncak',
-    icon: 'fa-solid fa-flag-checkered',
-    title: 'Puncak Acara',
-    date: '13 Ags',
-    day: 'Kamis',
-    desc: 'Lomba utama lapangan dari jam 12.45 WIB.',
+    id: "puncak",
+    icon: "fa-solid fa-flag-checkered",
+    title: "Puncak Acara",
+    date: "13 Ags",
+    day: "Kamis",
+    desc: "Lomba utama lapangan dari jam 12.45 WIB.",
     highlight: true,
   },
   {
-    id: 'pengumuman',
-    icon: 'fa-solid fa-trophy',
-    title: 'Pengumuman',
-    date: '28 Ags',
-    day: 'Jumat',
-    desc: 'Pembagian hadiah setelah kajian Jumat.',
+    id: "pengumuman",
+    icon: "fa-solid fa-trophy",
+    title: "Pengumuman",
+    date: "28 Ags",
+    day: "Jumat",
+    desc: "Pembagian hadiah setelah kajian Jumat.",
   },
-]
+];
 
 export default function HomePage() {
-  const navigate = useAudienceNavigate()
-  const rootRef = useRef(null)
-  const floatingBadgeRef = useRef(null)
-  const timelineLineRef = useRef(null)
+  const navigate = useAudienceNavigate();
+  const rootRef = useRef(null);
+  const floatingBadgeRef = useRef(null);
+  const timelineLineRef = useRef(null);
 
   useEffect(() => {
-    if (!rootRef.current || shouldReduceMotion()) return undefined
+    if (!rootRef.current || shouldReduceMotion()) return undefined;
 
     const ctx = gsap.context(() => {
       // ── CRITICAL FIX: Use gsap.fromTo() with explicit final state + clearProps:'all'
@@ -92,17 +92,32 @@ export default function HomePage() {
 
       // 1. Stats Bar Cards Entrance Stagger
       gsap.fromTo(
-        '.stat-card',
+        ".stat-card",
         { y: 20, opacity: 0, scale: 0.95 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(1.7)', clearProps: 'all' },
-      )
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.08,
+          ease: "back.out(1.7)",
+          clearProps: "all",
+        },
+      );
 
       // 2. Overview Section Entrance
       gsap.fromTo(
-        '.overview-anim',
+        ".overview-anim",
         { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out', clearProps: 'all' },
-      )
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power2.out",
+          clearProps: "all",
+        },
+      );
 
       // 3. Floating Sine Wave for Overview Dark Badge Card (infinite — keep as-is)
       if (floatingBadgeRef.current) {
@@ -111,45 +126,65 @@ export default function HomePage() {
           duration: 2.6,
           repeat: -1,
           yoyo: true,
-          ease: 'sine.inOut',
-        })
+          ease: "sine.inOut",
+        });
       }
 
       // 4. Competition Cards Stagger Reveal
       gsap.fromTo(
-        '.lomba-card',
+        ".lomba-card",
         { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.55, stagger: 0.1, ease: 'power2.out', clearProps: 'all' },
-      )
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.55,
+          stagger: 0.1,
+          ease: "power2.out",
+          clearProps: "all",
+        },
+      );
 
       // 5. Timeline Line Draw
       if (timelineLineRef.current) {
         gsap.fromTo(
           timelineLineRef.current,
           { scaleX: 0 },
-          { scaleX: 1, duration: 1.2, ease: 'power2.out', transformOrigin: 'left center', clearProps: 'scaleX,transform' },
-        )
+          {
+            scaleX: 1,
+            duration: 1.2,
+            ease: "power2.out",
+            transformOrigin: "left center",
+            clearProps: "scaleX,transform",
+          },
+        );
       }
 
       // 5b. Timeline Nodes Scale Entrance
       gsap.fromTo(
-        '.tl-node',
+        ".tl-node",
         { scale: 0, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.5, stagger: 0.12, ease: 'back.out(1.8)', clearProps: 'all' },
-      )
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.12,
+          ease: "back.out(1.8)",
+          clearProps: "all",
+        },
+      );
 
       // 6. Glowing Outer Ring Pulse (infinite — keep as-is)
-      gsap.to('.tl-highlight-pulse', {
+      gsap.to(".tl-highlight-pulse", {
         scale: 1.35,
         opacity: 0,
         duration: 1.6,
         repeat: -1,
-        ease: 'sine.out',
-      })
-    }, rootRef)
+        ease: "sine.out",
+      });
+    }, rootRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div ref={rootRef} className="space-y-8 sm:space-y-10">
@@ -171,8 +206,12 @@ export default function HomePage() {
                       {item.value}
                     </span>
                   </div>
-                  <p className="text-xs font-bold leading-tight text-slate-800 sm:text-sm">{item.label}</p>
-                  <p className="text-[10px] font-medium leading-tight text-slate-500 sm:text-xs">{item.sub}</p>
+                  <p className="text-xs font-bold leading-tight text-slate-800 sm:text-sm">
+                    {item.label}
+                  </p>
+                  <p className="text-[10px] font-medium leading-tight text-slate-500 sm:text-xs">
+                    {item.sub}
+                  </p>
                 </div>
               </div>
             ))}
@@ -192,27 +231,30 @@ export default function HomePage() {
             </div>
 
             <h2 className="font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-              HUT RI ke-81 di TKI. <span className="text-brand-red">Lomba, dekor, dan kebersamaan</span>
+              HUT RI ke-81 di TKI.{" "}
+              <span className="text-brand-red">
+                Lomba, dekor, dan kebersamaan
+              </span>
             </h2>
 
             <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-[15px]">
-              Tiga lomba, 13 tim, satu perayaan. Ringkasan ada di sini; aturan lengkap di tab{' '}
-              <strong className="text-slate-900">Lomba</strong>, jadwal di{' '}
-              <strong className="text-slate-900">Rundown</strong>, daftar peserta di{' '}
-              <strong className="text-slate-900">Tim</strong>.
+              Tiga lomba, 13 tim, satu perayaan. Ringkasan ada di sini; aturan
+              lengkap di tab <strong className="text-slate-900">Lomba</strong>,
+              jadwal di <strong className="text-slate-900">Rundown</strong>,
+              daftar peserta di <strong className="text-slate-900">Tim</strong>.
             </p>
 
             <div className="flex flex-wrap gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={() => navigate('/lomba')}
+                onClick={() => navigate("/lomba")}
                 className="rounded-full bg-brand-red px-5 py-3 text-xs font-bold text-white shadow-lg shadow-red-600/25 transition hover:-translate-y-0.5 hover:bg-red-700"
               >
                 Panduan lomba
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/rundown')}
+                onClick={() => navigate("/rundown")}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
                 <i className="fa-solid fa-calendar text-[11px] text-slate-400" />
@@ -220,7 +262,7 @@ export default function HomePage() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/tim')}
+                onClick={() => navigate("/tim")}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
                 <i className="fa-solid fa-user text-[11px] text-slate-400" />
@@ -253,8 +295,12 @@ export default function HomePage() {
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-amber-400/90">
                   PENGUMUMAN JUARA
                 </p>
-                <p className="font-heading text-lg font-black text-white">28 Agustus 2026</p>
-                <p className="text-[11px] text-white/75">Setelah kajian Jumat · Mushola TKI</p>
+                <p className="font-heading text-lg font-black text-white">
+                  28 Agustus 2026
+                </p>
+                <p className="text-[11px] text-white/75">
+                  Setelah kajian Jumat · Mushola TKI
+                </p>
               </div>
             </div>
           </div>
@@ -277,7 +323,7 @@ export default function HomePage() {
           </div>
           <button
             type="button"
-            onClick={() => navigate('/lomba')}
+            onClick={() => navigate("/lomba")}
             className="group inline-flex items-center gap-1.5 text-xs font-extrabold text-brand-red hover:underline"
           >
             <span>Lihat semua lomba</span>
@@ -288,12 +334,12 @@ export default function HomePage() {
         {/* Guaranteed 3 Competition Cards Display Grid */}
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           {competitions.map((c, index) => {
-            const img = assets.lomba?.[c.imageKey] || assets.lomba?.[c.id]
-            const numBadge = String(index + 1).padStart(2, '0')
+            const img = assets.lomba?.[c.imageKey] || assets.lomba?.[c.id];
+            const numBadge = String(index + 1).padStart(2, "0");
             return (
               <div
                 key={c.id}
-                onClick={() => navigate('/lomba/' + c.id)}
+                onClick={() => navigate("/lomba/" + c.id)}
                 className="lomba-card group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-1 hover:border-red-200 hover:shadow-md flex flex-col justify-between"
               >
                 {/* Image Header with Badges */}
@@ -343,7 +389,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </section>
@@ -369,7 +415,10 @@ export default function HomePage() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {TIMELINE.map((step) => (
-              <div key={step.id} className="tl-node flex flex-col items-center text-center space-y-3">
+              <div
+                key={step.id}
+                className="tl-node flex flex-col items-center text-center space-y-3"
+              >
                 {/* Node Icon */}
                 <div className="relative z-10">
                   {step.highlight ? (
@@ -390,16 +439,20 @@ export default function HomePage() {
                 <div className="space-y-1">
                   <p
                     className={`text-sm font-extrabold ${
-                      step.highlight ? 'text-brand-red' : 'text-slate-900'
+                      step.highlight ? "text-brand-red" : "text-slate-900"
                     }`}
                   >
                     {step.title}
                   </p>
                   <p className="font-heading text-base font-black text-slate-900">
-                    {step.date}{' '}
-                    <span className="text-xs font-semibold text-slate-500">({step.day})</span>
+                    {step.date}{" "}
+                    <span className="text-xs font-semibold text-slate-500">
+                      ({step.day})
+                    </span>
                   </p>
-                  <p className="max-w-xs text-xs leading-relaxed text-slate-500">{step.desc}</p>
+                  <p className="max-w-xs text-xs leading-relaxed text-slate-500">
+                    {step.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -407,5 +460,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

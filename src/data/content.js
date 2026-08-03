@@ -89,7 +89,7 @@ export const rundown = [
       {
         time: "Selasa–Jumat, 4–7 Agustus",
         title: "Pemasangan dekorasi",
-        note: "Dekorasi dipasang menggunakan foam tape. Paku dan cat dinding tidak diperbolehkan.",
+        note: "Dekorasi dipasang menggunakan foam tape. Paku dan cat dinding tidak diperbolehkan. Dekorasi harus dipasang di tempat yang tidak menghalangi pandangan CCTV.",
       },
     ],
   },
@@ -154,21 +154,21 @@ export const competitions = [
     tone: "red",
     imageKey: "dekor-5r",
     summary:
-      "Percantik area kerja sekaligus tunjukkan penerapan 5R. Gunakan foam tape dan hindari paku atau cat yang dapat merusak fasilitas.",
+      "Percantik area kerja sekaligus tunjukkan penerapan 5R. Gunakan foam tape, hindari paku atau cat, dan pastikan posisi dekorasi tidak menghalangi pandangan CCTV.",
     rooms: roomAreas,
     workflow: [
       {
         step: 1,
         title: "Sosialisasi Lomba",
         time: "Senin, 3 Agustus",
-        desc: "Penjelasan aturan lomba, larangan paku/cat, dan panduan penggunaan foam tape.",
+        desc: "Penjelasan aturan lomba, larangan paku/cat, penggunaan foam tape, dan posisi dekorasi aman dari pandangan CCTV.",
         icon: "fa-bullhorn",
       },
       {
         step: 2,
         title: "Pemasangan Dekorasi",
         time: "4–7 Agustus",
-        desc: "Proses menghias area kerja masing-masing menggunakan bahan yang aman.",
+        desc: "Proses menghias area kerja masing-masing menggunakan bahan yang aman dan tidak menutupi kamera CCTV.",
         icon: "fa-paint-roller",
       },
       {
@@ -194,6 +194,10 @@ export const competitions = [
           text: "Wajib menggunakan foam tape. Dilarang keras memakai paku, cat dinding, atau selotip perusak fasilitas.",
         },
         {
+          title: "Posisi Dekorasi Aman (Bebas CCTV)",
+          text: "Dekorasi wajib dipasang di tempat yang tidak menghalangi atau menutupi pandangan kamera CCTV.",
+        },
+        {
           title: "Ornamen Tambahan Mandiri",
           text: "Peserta bebas menambah pernak-pernik dekorasi mandiri selama aman dan tidak mengganggu area lain.",
         },
@@ -203,6 +207,7 @@ export const competitions = [
         },
       ],
       tips: [
+        "Pastikan seluruh ornamen hiasan tidak menutupi sudut pandang CCTV ruangan.",
         "Pisahkan barang yang masih digunakan dan yang tidak diperlukan (Ringkas).",
         "Rapikan kabel-kabel kerja menggunakan cable tie (Rapi).",
         "Pastikan sisa bahan dekorasi langsung dibersihkan setelah dipakai (Resik).",
@@ -213,11 +218,11 @@ export const competitions = [
       points: [
         {
           title: "Sosialisasi · 3 Agustus",
-          text: "Jelaskan aturan teknis, termasuk larangan menggunakan paku, cat, atau bahan yang merusak fasilitas.",
+          text: "Jelaskan aturan teknis, larangan menggunakan paku, cat, serta penempatan dekorasi di posisi yang tidak menghalangi CCTV.",
         },
         {
           title: "Pendampingan · 4–7 Agustus",
-          text: "Dampingi proses dekorasi dan pastikan pemasangan menggunakan bahan yang aman.",
+          text: "Dampingi proses dekorasi dan pastikan pemasangan tidak menutupi pandangan kamera CCTV serta menggunakan bahan yang aman.",
         },
         {
           title: "Penilaian · 10–27 Agustus",
@@ -226,6 +231,7 @@ export const competitions = [
       ],
       checklist: [
         "Periksa seluruh ruangan peserta.",
+        "Pastikan dekorasi tidak menghalangi sudut pandang kamera CCTV.",
         "Dokumentasikan setiap temuan saat sidak.",
         "Catat pelanggaran fasilitas secara tertulis.",
       ],
