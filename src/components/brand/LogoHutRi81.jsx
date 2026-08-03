@@ -40,13 +40,13 @@ export default function LogoHutRi81({
   return (
     <div
       ref={containerRef}
-      className={`inline-flex items-center justify-center ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center ${className}`}
     >
       <img
         src={assets.logoHutRi81Svg}
         alt={title}
         title={title}
-        className={`h-full w-full object-contain ${
+        className={`h-full w-auto max-w-full object-contain ${
           isWhite ? 'brightness-0 invert' : ''
         }`}
       />

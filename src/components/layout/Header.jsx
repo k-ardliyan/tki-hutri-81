@@ -95,7 +95,7 @@ export default function SiteHeader() {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-sm shadow-slate-900/5 backdrop-blur-xl"
+      className="border-b border-slate-200/80 bg-white/90 shadow-sm shadow-slate-900/5 backdrop-blur-xl sm:sticky sm:top-0 z-40"
     >
       <div className="h-1 w-full bg-gradient-to-r from-brand-deep via-brand-red to-brand-gold" />
 
@@ -106,16 +106,16 @@ export default function SiteHeader() {
           onClick={() => navigate('/beranda')}
           className="flex min-w-0 cursor-pointer items-center gap-2.5 text-left transition hover:opacity-90 active:scale-[0.98] sm:gap-3"
         >
-          <div ref={logosRef} className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-            <LogoHutRi81 className="h-9 sm:h-10 w-auto" animate />
-            <div className="hidden sm:block h-6 sm:h-7 w-px bg-slate-200 shrink-0" />
-            <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
-              <LogoTki className="h-3.5 sm:h-4 w-auto" animate />
+          <div ref={logosRef} className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <LogoHutRi81 className="h-9 sm:h-10 w-auto shrink-0" animate />
+            <div className="h-5 sm:h-7 w-px bg-slate-200 shrink-0" />
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <LogoTki className="h-3.5 sm:h-4 w-auto shrink-0" animate />
               <svg viewBox="0 0 16 16" className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 text-slate-400 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
                 <line x1="4" y1="4" x2="12" y2="12" />
                 <line x1="12" y1="4" x2="4" y2="12" />
               </svg>
-              <LogoFtp className="h-3.5 sm:h-4 w-auto" animate />
+              <LogoFtp className="h-3.5 sm:h-4 w-auto shrink-0" animate />
             </div>
           </div>
         </button>
@@ -158,15 +158,14 @@ export default function SiteHeader() {
           )}
           <div
             ref={chipRef}
-            className="flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/90 px-3.5 py-1.5 text-xs font-bold text-brand-red shadow-sm"
+            className="hidden sm:flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/90 px-3.5 py-1.5 text-xs font-bold text-brand-red shadow-sm"
           >
             <span className="live-dot relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-50" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-red" />
             </span>
             <i className="fa-regular fa-calendar text-[11px] text-brand-red" />
-            <span className="hidden sm:inline">13 Agustus 2026</span>
-            <span className="sm:hidden">13 Ags</span>
+            <span>13 Agustus 2026</span>
           </div>
         </div>
       </div>

@@ -118,22 +118,22 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
 
         {/* LAYER 2 (FOREGROUND): Responsive Tugu Jam Group */}
         <g id="tugu-jam-salatiga-vector" ref={tuguRef}>
-          {/* Mobile & Tablet Layout (< 1024px) — Safely positioned in right corner */}
+          {/* Mobile & Tablet Layout (< 1024px) — Zoomed in, cropped bottom, matching hero aesthetic */}
           <g className="lg:hidden">
             {assets.tuguJamSalatigaSvg && (
               <image
                 href={assets.tuguJamSalatigaSvg}
                 xlinkHref={assets.tuguJamSalatigaSvg}
-                x="530"
-                y="50"
-                width="260"
-                height="500"
-                preserveAspectRatio="xMaxYMax meet"
-                opacity="0.65"
-                className="drop-shadow-xl"
+                x="370"
+                y="-75"
+                width="560"
+                height="940"
+                preserveAspectRatio="xMaxYMin slice"
+                opacity="0.82"
+                className="drop-shadow-2xl"
               />
             )}
-            <circle cx="660" cy="175" r="35" fill="url(#clockGlow)" />
+            <circle cx="635" cy="150" r="60" fill="url(#clockGlow)" />
           </g>
 
           {/* Desktop Layout (>= 1024px) — Ultra Massive & Shifted Further Right */}

@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 import { useAudienceNavigate } from '../../context/AudienceContext'
 import RoutePrefetch from '../ui/RoutePrefetch'
 import { preloadRoute, makeRouteLoader } from '../ui/routeLoader'
+import { useAutoBottomNavHide } from '../../hooks/useAutoBottomNavHide'
 
 const NAV = [
   { id: 'beranda', label: 'Beranda', icon: 'fa-house', path: '/beranda' },
@@ -32,11 +33,18 @@ const LOADERS = {
 export default function BottomNav() {
   const navigate = useAudienceNavigate()
   const { pathname } = useLocation()
+  const isNavVisible = useAutoBottomNavHide(1200)
 
   const activeId = NAV.find((n) => pathname.startsWith(n.path))?.id ?? 'beranda'
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] lg:hidden translate-z-0">
+    <div
+      className={`fixed inset-x-0 bottom-0 z-50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] lg:hidden transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        isNavVisible
+          ? 'translate-y-0'
+          : 'translate-y-[calc(100%+1.5rem)] pointer-events-none'
+      }`}
+    >
       <nav className="mx-auto grid max-w-lg grid-cols-4 gap-1 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-2xl shadow-slate-900/10 backdrop-blur-xl isolate">
         {NAV.map((item) => {
           const active = activeId === item.id
