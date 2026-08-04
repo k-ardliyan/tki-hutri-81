@@ -69,41 +69,41 @@ export default function Hero() {
       <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-amber-400/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 left-10 h-80 w-80 rounded-full bg-rose-500/10 blur-3xl" />
 
-      <div className="shell relative z-10 grid gap-8 pt-10 pb-14 sm:pt-14 sm:pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <div className="shell relative z-10 grid gap-5 sm:gap-8 pt-6 pb-10 sm:pt-14 sm:pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center w-full max-w-6xl overflow-hidden px-3.5 sm:px-6">
         {/* Left Column Content */}
-        <div className="space-y-5">
+        <div className="space-y-3.5 sm:space-y-5 w-full max-w-full overflow-hidden">
           {/* Animated Dual White Logos Header — Prominent HUT RI 81 + Sleek TKI x FTP Logos */}
-          <div className="hero-animate flex items-center gap-3.5 sm:gap-4">
-            <LogoHutRi81 variant="white" animate className="h-14 sm:h-16 w-auto drop-shadow-md" />
-            <div className="h-9 sm:h-11 w-px bg-white/35 shrink-0" />
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <LogoTki variant="white" animate className="h-5 sm:h-6 w-auto drop-shadow-md" />
-              <svg viewBox="0 0 16 16" className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-white/45 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
+          <div className="hero-animate flex flex-wrap items-center gap-2 sm:gap-4 max-w-full">
+            <LogoHutRi81 variant="white" animate className="h-9 sm:h-16 w-auto drop-shadow-md shrink-0" />
+            <div className="h-6 sm:h-11 w-px bg-white/35 shrink-0" />
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              <LogoTki variant="white" animate className="h-3.5 sm:h-6 w-auto drop-shadow-md" />
+              <svg viewBox="0 0 16 16" className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0 text-white/45 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
                 <line x1="4" y1="4" x2="12" y2="12" />
                 <line x1="12" y1="4" x2="4" y2="12" />
               </svg>
-              <LogoFtp variant="white" animate className="h-5 sm:h-6 w-auto drop-shadow-md" />
+              <LogoFtp variant="white" animate className="h-3.5 sm:h-6 w-auto drop-shadow-md" />
             </div>
           </div>
 
-          <div className="hero-animate space-y-2.5">
-            <h1 className="font-heading text-3xl font-black leading-[1.15] tracking-tight sm:text-5xl lg:text-[3.25rem]">
+          <div className="hero-animate space-y-1.5 sm:space-y-2">
+            <h1 className="font-heading text-xl sm:text-5xl lg:text-[3.25rem] font-black leading-[1.15] tracking-tight">
               Peringatan{' '}
-              <span className="inline-block align-baseline rounded-xl bg-white px-3 py-0.5 text-brand-red shadow-lg my-0.5">
+              <span className="inline-block align-baseline rounded-xl bg-white px-2 sm:px-3 py-0.5 text-brand-red shadow-lg my-0.5">
                 HUT RI ke-81
               </span>
             </h1>
-            <p className="max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">
+            <p className="max-w-xl text-[11px] leading-relaxed text-white/90 sm:text-base">
               Lomba, dekor, dan kebersamaan. Semuanya demi satu semangat yang sama.
             </p>
           </div>
 
           {/* Action Buttons — High Contrast Primary CTA */}
-          <div className="hero-animate flex flex-wrap gap-3 sm:gap-3.5 pt-1">
+          <div className="hero-animate flex flex-col sm:flex-row gap-2 sm:gap-3.5 pt-1 w-full max-w-full">
             <button
               type="button"
               onClick={() => navigate('/lomba')}
-              className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-5 py-3 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95 flex-1 sm:flex-initial text-center"
+              className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95 text-center w-full sm:w-auto min-h-[40px] sm:min-h-[44px]"
             >
               <i className="fa-solid fa-book-open text-xs text-[#990a15]" />
               <span>Lihat panduan lomba</span>
@@ -112,7 +112,7 @@ export default function Hero() {
             <button
               type="button"
               onClick={() => navigate('/tim')}
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-white/30 bg-black/20 px-5 py-3 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition-all duration-200 hover:bg-white/15 active:scale-95 flex-1 sm:flex-initial text-center"
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-white/30 bg-black/20 px-4 py-2.5 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition-all duration-200 hover:bg-white/15 active:scale-95 text-center w-full sm:w-auto min-h-[40px] sm:min-h-[44px]"
             >
               <i className="fa-solid fa-users text-xs" />
               <span>Daftar tim</span>
@@ -122,8 +122,8 @@ export default function Hero() {
         </div>
 
         {/* Right Column: Vertically Centered Event Status & Reminder Card */}
-        <div className="hero-animate [perspective:1000px] lg:self-center">
-          <div ref={cardRef} className="transition-transform duration-200">
+        <div className="hero-animate w-full max-w-full overflow-hidden [perspective:1000px] lg:self-center">
+          <div ref={cardRef} className="transition-transform duration-200 w-full max-w-full">
             <EventStatusReminder />
           </div>
         </div>

@@ -46,7 +46,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.PRE_EVENT,
       badgeLabel: "MENYONGSONG HUT RI KE-81",
-      badgeColor: "bg-rose-500/20 text-rose-200 border-rose-400/30",
+      badgeColor: "bg-rose-500/25 text-rose-100 border-rose-300/40",
       statusType: "upcoming",
       title: "Persiapan Perayaan Kemerdekaan",
       subtitle: "Siapkan ruang dan semangat kelompokmu menyambut perlombaan!",
@@ -78,7 +78,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.SOSIALISASI,
       badgeLabel: "HARI INI: SOSIALISASI LOMBA",
-      badgeColor: "bg-blue-500/20 text-blue-200 border-blue-400/40",
+      badgeColor: "bg-blue-500/25 text-blue-100 border-blue-300/40",
       statusType: "active",
       title: "Sosialisasi & Penjelasan Aturan Lomba",
       subtitle: "Senin, 3 Agustus 2026 · Simak teknis lomba dan siapkan tim!",
@@ -110,7 +110,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.DEKORASI,
       badgeLabel: "SEDANG BERLANGSUNG: MASA DEKORASI",
-      badgeColor: "bg-amber-500/20 text-amber-200 border-amber-400/40",
+      badgeColor: "bg-amber-400/20 text-amber-200 border-amber-300/40",
       statusType: "active",
       title: "Lomba Dekorasi Ruangan (4–7 Agustus)",
       subtitle:
@@ -143,7 +143,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.PENILAIAN_5R_AWAL,
       badgeLabel: "SEDANG BERLANGSUNG: PENILAIAN 5R",
-      badgeColor: "bg-emerald-500/20 text-emerald-200 border-emerald-400/40",
+      badgeColor: "bg-emerald-400/20 text-emerald-200 border-emerald-300/40",
       statusType: "active",
       title: "Masa Sidak Penilaian 5R Harian",
       subtitle:
@@ -176,7 +176,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.HARI_PUNCAK_PRE,
       badgeLabel: "HARI INI: HARI PUNCAK LOMBA",
-      badgeColor: "bg-red-500/30 text-white border-red-300/50 animate-pulse",
+      badgeColor: "bg-red-500 text-white border-red-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Hari Puncak Lomba Kemerdekaan!",
       subtitle:
@@ -209,7 +209,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.HARI_PUNCAK_LIVE,
       badgeLabel: "LIVE: ACARA SEDANG BERLANGSUNG",
-      badgeColor: "bg-emerald-500 text-white border-emerald-300 animate-pulse",
+      badgeColor: "bg-emerald-500 text-white border-emerald-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Perlombaan Utama Sedang Berlangsung!",
       subtitle:
@@ -242,7 +242,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.PENILAIAN_5R_LANJUT,
       badgeLabel: "MENUNGGU PENGUMUMAN JUARA",
-      badgeColor: "bg-purple-500/20 text-purple-200 border-purple-400/40",
+      badgeColor: "bg-purple-500/25 text-purple-100 border-purple-300/40",
       statusType: "active",
       title: "Lomba Lapangan Selesai · Penilaian 5R Masih Berjalan",
       subtitle:
@@ -275,7 +275,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.PENGUMUMAN_DAY,
       badgeLabel: "HARI INI: PENGUMUMAN PEMENANG JUARA",
-      badgeColor: "bg-amber-500/30 text-white border-amber-300/50 animate-pulse",
+      badgeColor: "bg-amber-500 text-white border-amber-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Hari Pengumuman Pemenang & Hadiah!",
       subtitle:
@@ -308,7 +308,7 @@ export function getEventPhase(customDate = null) {
     return {
       id: PHASES.PENGUMUMAN_DAY,
       badgeLabel: "LIVE: PENGUMUMAN JUARA SEDANG BERLANGSUNG",
-      badgeColor: "bg-emerald-500 text-white border-emerald-300 animate-pulse",
+      badgeColor: "bg-emerald-500 text-white border-emerald-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Pengumuman Pemenang & Pembagian Hadiah!",
       subtitle:
@@ -335,7 +335,7 @@ export function getEventPhase(customDate = null) {
   return {
     id: PHASES.FINISHED,
     badgeLabel: "RANGKAIAN ACARA TELAH SELESAI",
-    badgeColor: "bg-slate-500/20 text-slate-200 border-slate-400/30",
+    badgeColor: "bg-white/20 text-white border-white/30",
     statusType: "completed",
     title: "Terima Kasih Atas Partisipasinya!",
     subtitle:
