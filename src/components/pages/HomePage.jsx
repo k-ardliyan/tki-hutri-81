@@ -5,6 +5,7 @@ import { summaryKelompok } from "../../data/kelompok";
 import { assets } from "../../assets";
 import { LazyImage } from "../ui/LazyImage";
 import { gsap, shouldReduceMotion } from "../../lib/gsap";
+import { getEventPhase, PHASES } from "../../lib/eventPhase";
 
 const STATS = [
   {
@@ -396,11 +397,17 @@ export default function HomePage() {
 
       {/* 4. Jadwal Penting Section (Horizontal Timeline) */}
       <section className="space-y-5 rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-            JADWAL PENTING
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
+              JADWAL PENTING
+            </span>
+            <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
+          </div>
+          <span className="text-[11px] font-bold text-slate-500">
+            <i className="fa-solid fa-circle-check text-emerald-500 mr-1" />
+            Agenda Berjalan
           </span>
-          <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
         </div>
 
         {/* Timeline Horizontal Grid */}
@@ -414,48 +421,64 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {TIMELINE.map((step) => (
-              <div
-                key={step.id}
-                className="tl-node flex flex-col items-center text-center space-y-3"
-              >
-                {/* Node Icon */}
-                <div className="relative z-10">
-                  {step.highlight ? (
-                    <div className="relative flex h-14 w-14 items-center justify-center">
-                      <span className="tl-highlight-pulse absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-30" />
-                      <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand-red text-white shadow-xl shadow-red-600/40 ring-4 ring-rose-100">
-                        <i className={`${step.icon} text-lg`} />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-rose-100 bg-rose-50/80 text-brand-red shadow-sm">
-                      <i className={`${step.icon} text-base`} />
-                    </div>
-                  )}
-                </div>
+            {TIMELINE.map((step) => {
+              const currentPhaseId = getEventPhase().id;
+              const isStepActive =
+                (step.id === 'sosialisasi' && currentPhaseId === PHASES.SOSIALISASI) ||
+                (step.id === 'dekor' && currentPhaseId === PHASES.DEKORASI) ||
+                (step.id === 'puncak' && (currentPhaseId === PHASES.HARI_PUNCAK_PRE || currentPhaseId === PHASES.HARI_PUNCAK_LIVE)) ||
+                (step.id === 'pengumuman' && currentPhaseId === PHASES.PENGUMUMAN_DAY);
 
-                {/* Details */}
-                <div className="space-y-1">
-                  <p
-                    className={`text-sm font-extrabold ${
-                      step.highlight ? "text-brand-red" : "text-slate-900"
-                    }`}
-                  >
-                    {step.title}
-                  </p>
-                  <p className="font-heading text-base font-black text-slate-900">
-                    {step.date}{" "}
-                    <span className="text-xs font-semibold text-slate-500">
-                      ({step.day})
-                    </span>
-                  </p>
-                  <p className="max-w-xs text-xs leading-relaxed text-slate-500">
-                    {step.desc}
-                  </p>
+              return (
+                <div
+                  key={step.id}
+                  className={`tl-node flex flex-col items-center text-center space-y-3 p-3 rounded-2xl transition ${
+                    isStepActive ? 'bg-rose-50/70 border border-rose-200 shadow-sm' : ''
+                  }`}
+                >
+                  {/* Node Icon */}
+                  <div className="relative z-10">
+                    {isStepActive || step.highlight ? (
+                      <div className="relative flex h-14 w-14 items-center justify-center">
+                        <span className="tl-highlight-pulse absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-30" />
+                        <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand-red text-white shadow-xl shadow-red-600/40 ring-4 ring-rose-100">
+                          <i className={`${step.icon} text-lg`} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-rose-100 bg-rose-50/80 text-brand-red shadow-sm">
+                        <i className={`${step.icon} text-base`} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-1">
+                    {isStepActive && (
+                      <span className="inline-block rounded-full bg-brand-red px-2.5 py-0.5 text-[10px] font-black uppercase text-white shadow-sm mb-1">
+                        ● Aktif Sekarang
+                      </span>
+                    )}
+                    <p
+                      className={`text-sm font-extrabold ${
+                        isStepActive || step.highlight ? "text-brand-red" : "text-slate-900"
+                      }`}
+                    >
+                      {step.title}
+                    </p>
+                    <p className="font-heading text-base font-black text-slate-900">
+                      {step.date}{" "}
+                      <span className="text-xs font-semibold text-slate-500">
+                        ({step.day})
+                      </span>
+                    </p>
+                    <p className="max-w-xs text-xs leading-relaxed text-slate-500">
+                      {step.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

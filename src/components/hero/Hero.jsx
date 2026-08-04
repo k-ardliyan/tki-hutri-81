@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAudienceNavigate } from '../../context/AudienceContext'
-import Countdown from './Countdown'
-import { eventMeta } from '../../data/content'
+import EventStatusReminder from './EventStatusReminder'
 import LogoHutRi81 from '../brand/LogoHutRi81'
 import LogoTki from '../brand/LogoTki'
 import LogoFtp from '../brand/LogoFtp'
@@ -70,7 +69,7 @@ export default function Hero() {
       <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-amber-400/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 left-10 h-80 w-80 rounded-full bg-rose-500/10 blur-3xl" />
 
-      <div className="shell relative z-10 grid gap-8 pt-10 pb-14 sm:pt-14 sm:pb-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+      <div className="shell relative z-10 grid gap-8 pt-10 pb-14 sm:pt-14 sm:pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         {/* Left Column Content */}
         <div className="space-y-5">
           {/* Animated Dual White Logos Header — Prominent HUT RI 81 + Sleek TKI x FTP Logos */}
@@ -99,25 +98,12 @@ export default function Hero() {
             </p>
           </div>
 
-          {/* 3 Translucent Info Badges */}
-          <div className="hero-animate flex flex-wrap gap-2.5 text-xs font-bold text-white">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3.5 py-2 backdrop-blur-md ring-1 ring-white/20">
-              <span>🏆</span> Hari puncak · Kamis, 13 Agustus 2026
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3.5 py-2 backdrop-blur-md ring-1 ring-white/20">
-              <span>🕒</span> Mulai 12.45 WIB
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3.5 py-2 backdrop-blur-md ring-1 ring-white/20">
-              <span>📣</span> Pengumuman · Jumat, 28 Agustus
-            </span>
-          </div>
-
           {/* Action Buttons — High Contrast Primary CTA */}
-          <div className="hero-animate flex flex-wrap gap-3.5 pt-1">
+          <div className="hero-animate flex flex-wrap gap-3 sm:gap-3.5 pt-1">
             <button
               type="button"
               onClick={() => navigate('/lomba')}
-              className="group inline-flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95"
+              className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-5 py-3 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95 flex-1 sm:flex-initial text-center"
             >
               <i className="fa-solid fa-book-open text-xs text-[#990a15]" />
               <span>Lihat panduan lomba</span>
@@ -126,7 +112,7 @@ export default function Hero() {
             <button
               type="button"
               onClick={() => navigate('/tim')}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/30 bg-black/20 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition-all duration-200 hover:bg-white/15 active:scale-95"
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-white/30 bg-black/20 px-5 py-3 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition-all duration-200 hover:bg-white/15 active:scale-95 flex-1 sm:flex-initial text-center"
             >
               <i className="fa-solid fa-users text-xs" />
               <span>Daftar tim</span>
@@ -135,39 +121,14 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right Column: Bottom-Aligned Countdown Card */}
-        <div className="hero-animate [perspective:1000px] lg:self-end">
-          <div
-            ref={cardRef}
-            className="rounded-3xl border border-white/90 bg-white p-6 shadow-2xl shadow-slate-950/25 text-slate-800 transition-transform duration-200"
-          >
-            <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
-              <p className="text-[11px] font-extrabold uppercase tracking-widest text-brand-red">
-                Hitung mundur
-              </p>
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-              </span>
-            </div>
-
-            <Countdown
-              peakTarget={eventMeta.peakTarget}
-              eventEndTarget={eventMeta.eventEndTarget}
-              awardTarget={eventMeta.awardTarget}
-              awardEndTarget={eventMeta.awardEndTarget}
-            />
-
-            <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3.5 text-xs text-slate-500">
-              <div className="flex items-center gap-1.5">
-                <i className="fa-solid fa-location-dot text-brand-red" />
-                <span className="font-semibold text-slate-700">Halaman TKI</span>
-              </div>
-              <div className="font-bold text-slate-900">13 Ags · 12.45 WIB</div>
-            </div>
+        {/* Right Column: Vertically Centered Event Status & Reminder Card */}
+        <div className="hero-animate [perspective:1000px] lg:self-center">
+          <div ref={cardRef} className="transition-transform duration-200">
+            <EventStatusReminder />
           </div>
         </div>
       </div>
     </section>
   )
 }
+

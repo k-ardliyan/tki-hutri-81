@@ -73,8 +73,11 @@ export default function Countdown({
   } else if (now >= eventEndTime && now < awardTime) {
     phase = 'COUNTDOWN_AWARD'
     activeTarget = awardTarget
-  } else {
+  } else if (now >= awardEndTime) {
     phase = 'FINISHED'
+  } else {
+    phase = 'COUNTDOWN_AWARD'
+    activeTarget = awardEndTarget
   }
 
   const { days, hours, mins, secs } = useCountdown(activeTarget)
