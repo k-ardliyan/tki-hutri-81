@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { rundown } from '../../data/content'
+import { useLoaderData } from '@tanstack/react-router'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 
 const phaseColors: Record<string, PhaseColor> = {
@@ -493,6 +493,7 @@ function PeakDayModal({ open, onClose, items }: {
 }
 
 export default function RundownPage() {
+  const { rundown } = useLoaderData({ from: '/rundown' })
   const [hoverEventId, setHoverEventId] = useState<string | null>(null)
   const [hoverPhase, setHoverPhase] = useState<string | null>(null)
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null)

@@ -1,19 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import { useLoaderData } from "@tanstack/react-router";
 import { useAudienceNavigate } from "../../context/AudienceContext";
-import { competitions } from "../../data/content";
-import { summaryKelompok } from "../../data/kelompok";
 import { assets } from "../../assets";
 import { LazyImage } from "../ui/LazyImage";
 import { gsap, shouldReduceMotion } from "../../lib/gsap";
 import { getEventPhase, PHASES } from "../../lib/eventPhase";
 
-const STATS = [
+const makeStats = (teamSummary: { total: number; putra: number; putri: number }) => [
   {
     id: "teams",
     icon: "fa-solid fa-users",
-    value: summaryKelompok.total,
+    value: teamSummary.total,
     label: "Tim Berlaga",
-    sub: `${summaryKelompok.putra} putra · ${summaryKelompok.putri} putri`,
+    sub: `${teamSummary.putra} putra · ${teamSummary.putri} putri`,
   },
   {
     id: "lomba",
@@ -107,6 +106,7 @@ function useSectionVisible(threshold = 0.15) {
 }
 
 export default function HomePage() {
+  const { competitions, teamSummary } = useLoaderData({ from: '/beranda' });
   const navigate = useAudienceNavigate();
   const rootRef = useRef(null);
 
@@ -158,7 +158,7 @@ export default function HomePage() {
       <section className="-mt-10 sm:-mt-12 relative z-20">
         <div className="stat-card isolate overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-950/10 [transform:translateZ(0)]">
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 lg:grid-cols-4 lg:divide-y-0 lg:divide-x lg:divide-slate-200/80">
-            {STATS.map((item) => (
+            {makeStats(teamSummary).map((item) => (
               <div
                 key={item.id}
                 className="group flex items-center gap-2.5 p-3.5 sm:gap-3.5 sm:p-5 transition hover:bg-rose-50/30"

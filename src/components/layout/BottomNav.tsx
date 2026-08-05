@@ -1,6 +1,5 @@
 import { useLocation } from "@tanstack/react-router";
 import { useAudienceNavigate } from "../../context/AudienceContext";
-import { preloadRoute, makeRouteLoader } from "../ui/routeLoader";
 import { useAutoBottomNavHide } from "../../hooks/useAutoBottomNavHide";
 
 const NAV = [
@@ -14,16 +13,6 @@ const NAV = [
   },
   { id: "tim", label: "Tim", icon: "fa-users", path: "/tim" },
 ];
-
-// One loader per tab. Cached so subsequent preloads are O(1).
-const LOADERS = {
-  beranda: makeRouteLoader(() => import("../../components/pages/HomePage")),
-  lomba: makeRouteLoader(() => import("../../components/pages/LombaPage")),
-  rundown: makeRouteLoader(
-    () => import("../../components/pages/RundownPage"),
-  ),
-  tim: makeRouteLoader(() => import("../../components/pages/TimPage")),
-};
 
 export default function BottomNav() {
   const navigate = useAudienceNavigate();
@@ -44,13 +33,11 @@ export default function BottomNav() {
       <nav className="mx-auto grid max-w-lg grid-cols-4 gap-1 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-2xl shadow-slate-900/10 backdrop-blur-xl isolate">
         {NAV.map((item) => {
           const active = activeId === item.id;
-          const loader = LOADERS[item.id as keyof typeof LOADERS];
           return (
             <button
                   type="button"
                   key={item.id}
                   onClick={() => {
-                    preloadRoute(loader).catch(() => {});
                     navigate(item.path);
                   }}
                   className={`flex w-full flex-col items-center justify-center gap-1 cursor-pointer rounded-xl py-2 px-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${

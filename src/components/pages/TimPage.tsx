@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { dataKelompok, summaryKelompok } from "../../data/kelompok";
+import { useLoaderData } from "@tanstack/react-router";
 
 interface KelompokGroup {
   id: string;
@@ -165,6 +165,7 @@ function CategorySection({
 }
 
 export default function TimPage() {
+  const { teams, summary } = useLoaderData({ from: '/tim' });
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
 
@@ -172,7 +173,7 @@ export default function TimPage() {
   const termLower = term.toLowerCase();
 
   const filtered = useMemo(() => {
-    return dataKelompok.filter((g) => {
+    return teams.filter((g) => {
       const byCat = filter === "all" || g.kategori === filter;
       const byQuery =
         !termLower ||
@@ -235,9 +236,9 @@ export default function TimPage() {
 
         <div className="mt-4 flex gap-2 overflow-x-auto overscroll-x-contain no-scrollbar">
           {[
-            { id: "all", label: `Semua (${summaryKelompok.total})` },
-            { id: "putra", label: `Putra (${summaryKelompok.putra})` },
-            { id: "putri", label: `Putri (${summaryKelompok.putri})` },
+            { id: "all", label: `Semua (${summary.total})` },
+            { id: "putra", label: `Putra (${summary.putra})` },
+            { id: "putri", label: `Putri (${summary.putri})` },
           ].map((f) => (
             <button
               key={f.id}

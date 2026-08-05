@@ -1,10 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
-import LombaPage from '../../components/pages/LombaPage'
+import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router'
+import PageFallback from '../../components/ui/PageFallback'
+
+const LombaPage = lazyRouteComponent(() => import('../../components/pages/LombaPage'))
 
 export const Route = createFileRoute('/lomba/')({
-  component: LombaListPage,
+  component: LombaPage,
+  pendingComponent: PageFallback,
 })
-
-function LombaListPage() {
-  return <LombaPage />
-}

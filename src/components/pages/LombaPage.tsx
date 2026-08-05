@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "@tanstack/react-router";
+import { useParams, useLoaderData } from "@tanstack/react-router";
 import { useAudience, useAudienceNavigate } from "../../context/AudienceContext";
 import { createPortal } from "react-dom";
-import { competitions } from "../../data/content";
 import { assets } from "../../assets";
 
 const lombaAssets: Record<string, string> = assets.lomba as Record<string, string>;
@@ -36,7 +35,7 @@ const tone = {
   },
 };
 
-function BranchChips({ activeId, onSelect, compact = false }: { activeId: string; onSelect: (id: string) => void; compact?: boolean }) {
+function BranchChips({ competitions, activeId, onSelect, compact = false }: { competitions: Competition[]; activeId: string; onSelect: (id: string) => void; compact?: boolean }) {
   return (
     <div
       className={`flex gap-2 ${compact ? "" : "overflow-x-auto overscroll-x-contain pb-0.5 no-scrollbar"}`}
@@ -231,6 +230,7 @@ interface Competition {
 }
 
 function StickyBranchBar({
+  competitions,
   open,
   menuOpen,
   setMenuOpen,
@@ -238,6 +238,7 @@ function StickyBranchBar({
   activeId,
   onSelect,
 }: {
+  competitions: Competition[];
   open: boolean;
   menuOpen: boolean;
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -417,6 +418,7 @@ function StickyBranchBar({
 
 export default function LombaPage() {
   const { id: paramId } = useParams({ strict: false }) as { id?: string };
+  const { competitions } = useLoaderData({ from: '/lomba' });
   const navigate = useAudienceNavigate();
   const { isPanitia } = useAudience();
   // Kalau bukan panitia, audience selalu dikunci ke "peserta"
@@ -480,6 +482,7 @@ export default function LombaPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <StickyBranchBar
+        competitions={competitions}
         open={stickyOn}
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
@@ -511,7 +514,7 @@ export default function LombaPage() {
         <p className="px-1 text-xs font-bold uppercase tracking-wide text-slate-400">
           Pilih cabang
         </p>
-        <BranchChips activeId={activeId} onSelect={selectBranch} />
+        <BranchChips competitions={competitions} activeId={activeId} onSelect={selectBranch} />
       </section>
 
       <div ref={detailTopRef} className="scroll-mt-36 sm:scroll-mt-40" />

@@ -7,7 +7,6 @@ import {
 import LogoTki from "../brand/LogoTki";
 import LogoFtp from "../brand/LogoFtp";
 import LogoHutRi81 from "../brand/LogoHutRi81";
-import { preloadRoute, makeRouteLoader } from "../ui/routeLoader";
 import { gsap, shouldReduceMotion } from "../../lib/gsap";
 
 const NAV = [
@@ -16,15 +15,6 @@ const NAV = [
   { id: "rundown", label: "Rundown", path: "/rundown" },
   { id: "tim", label: "Tim", path: "/tim" },
 ];
-
-const LOADERS = {
-  beranda: makeRouteLoader(() => import("../../components/pages/HomePage")),
-  lomba: makeRouteLoader(() => import("../../components/pages/LombaPage")),
-  rundown: makeRouteLoader(
-    () => import("../../components/pages/RundownPage"),
-  ),
-  tim: makeRouteLoader(() => import("../../components/pages/TimPage")),
-};
 
 export default function SiteHeader() {
   const navigate = useAudienceNavigate();
@@ -156,14 +146,12 @@ export default function SiteHeader() {
         >
           {NAV.map((item) => {
             const active = activeId === item.id;
-            const loader = LOADERS[item.id as keyof typeof LOADERS];
             return (
               <button
                 key={item.id}
                 type="button"
                 data-active={active ? "true" : "false"}
                 onClick={() => {
-                  preloadRoute(loader).catch(() => {});
                   navigate(item.path);
                 }}
                 className={`cursor-pointer rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
