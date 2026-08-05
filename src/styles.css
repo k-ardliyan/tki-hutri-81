@@ -13,6 +13,17 @@
   --color-line: #e8edf5;
   --color-canvas: #f6f7fb;
   --color-surface: #ffffff;
+  /* Semantic status colors — shape-consistent with brand */
+  --color-status-done: #059669;
+  --color-status-done-soft: #ecfdf5;
+  --color-status-pending: #d97706;
+  --color-status-pending-soft: #fffbeb;
+  --color-status-danger: #dc2626;
+  --color-status-danger-soft: #fef2f2;
+  /* Radius system — ONE scale throughout */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
 }
 
 @layer base {

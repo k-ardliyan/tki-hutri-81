@@ -3,7 +3,7 @@ import { useAudienceNavigate } from "../../context/AudienceContext";
 import { useAutoBottomNavHide } from "../../hooks/useAutoBottomNavHide";
 
 const NAV = [
-  { id: "beranda", label: "Beranda", icon: "fa-house", path: "/beranda" },
+  { id: "beranda", label: "Beranda", icon: "fa-house", path: "/" },
   { id: "lomba", label: "Lomba", icon: "fa-flag", path: "/lomba" },
   {
     id: "rundown",
@@ -20,7 +20,7 @@ export default function BottomNav() {
   const isNavVisible = useAutoBottomNavHide(1200);
 
   const activeId =
-    NAV.find((n) => pathname.startsWith(n.path))?.id ?? "beranda";
+    NAV.find((n) => pathname === n.path || (n.path !== "/" && pathname.startsWith(n.path)))?.id ?? "beranda";
 
   return (
     <div

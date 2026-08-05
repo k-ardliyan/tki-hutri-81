@@ -106,7 +106,7 @@ function useSectionVisible(threshold = 0.15) {
 }
 
 export default function HomePage() {
-  const { competitions, teamSummary } = useLoaderData({ from: '/beranda' });
+  const { competitions, teamSummary } = useLoaderData({ from: '/' });
   const navigate = useAudienceNavigate();
   const rootRef = useRef(null);
 

@@ -1,0 +1,391 @@
+{
+  "id": "produksi",
+  "label": "Checklist 5R Produksi",
+  "source": "checklist-5r-produksi.md",
+  "scale": { "min": 1, "max": 5 },
+  "categories": [
+    {
+      "id": "ringkas",
+      "label": "A. RINGKAS",
+      "sortOrder": 1,
+      "criteria": [
+        {
+          "id": "produksi-ringkas-1",
+          "order": 1,
+          "text": "Kartu PVC cacat/reject dipisahkan dari hasil good product",
+          "options": [
+            { "score": 1, "desc": "Kartu cacat/reject bercampur dengan produk good" },
+            { "score": 2, "desc": "Pemisahan sudah ada namun masih sering tercampur" },
+            { "score": 3, "desc": "Kartu cacat sudah cukup dipisahkan tetapi belum rapi" },
+            { "score": 4, "desc": "Hampir semua kartu cacat/reject sudah dipisahkan dengan baik" },
+            { "score": 5, "desc": "Semua kartu cacat/reject dipisahkan jelas dari produk good dan terkontrol" }
+          ]
+        },
+        {
+          "id": "produksi-ringkas-2",
+          "order": 2,
+          "text": "Bahan baku (blank card, ribbon, tinta) tidak menumpuk berlebihan",
+          "options": [
+            { "score": 1, "desc": "Bahan baku menumpuk sangat banyak dan tidak terkontrol" },
+            { "score": 2, "desc": "Bahan baku cukup menumpuk dan mengganggu area kerja" },
+            { "score": 3, "desc": "Bahan baku mulai tertata namun masih ada penumpukan" },
+            { "score": 4, "desc": "Stok bahan baku terjaga dan tidak berlebihan" },
+            { "score": 5, "desc": "Bahan baku tertata rapi, terkontrol, dan sesuai kebutuhan produksi" }
+          ]
+        },
+        {
+          "id": "produksi-ringkas-3",
+          "order": 3,
+          "text": "Tinta baru, tinta bekas yang tidak bisa dipakai dan tinta sisa refill dipisahkan & diberi label",
+          "options": [
+            { "score": 1, "desc": "Semua tinta tercampur tanpa pemisahan" },
+            { "score": 2, "desc": "Pemisahan tinta belum jelas dan tanpa label" },
+            { "score": 3, "desc": "Sebagian tinta sudah dipisahkan tetapi label belum lengkap" },
+            { "score": 4, "desc": "Tinta sudah dipisahkan dan sebagian besar sudah berlabel" },
+            { "score": 5, "desc": "Semua jenis tinta dipisahkan jelas, diberi label, dan tertata rapi" }
+          ]
+        },
+        {
+          "id": "produksi-ringkas-4",
+          "order": 4,
+          "text": "File desain lama/tidak digunakan sudah diarsipkan",
+          "options": [
+            { "score": 1, "desc": "File lama berantakan dan tidak terkelola" },
+            { "score": 2, "desc": "Sebagian file lama belum dihapus atau diarsipkan" },
+            { "score": 3, "desc": "File lama sudah sebagian diarsipkan namun belum rapi" },
+            { "score": 4, "desc": "File lama sudah diarsipkan dengan cukup baik" },
+            { "score": 5, "desc": "Semua file desain lama sudah diarsipkan rapi dan mudah ditelusuri" }
+          ]
+        },
+        {
+          "id": "produksi-ringkas-5",
+          "order": 5,
+          "text": "Barang pribadi tidak mengganggu area produksi",
+          "options": [
+            { "score": 1, "desc": "Barang pribadi banyak mengganggu area produksi" },
+            { "score": 2, "desc": "Barang pribadi masih cukup banyak di area produksi" },
+            { "score": 3, "desc": "Barang pribadi mulai tertata namun masih ada yang mengganggu" },
+            { "score": 4, "desc": "Barang pribadi sedikit dan tidak mengganggu produksi" },
+            { "score": 5, "desc": "Tidak ada barang pribadi yang mengganggu area produksi" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rapi",
+      "label": "B. RAPI",
+      "sortOrder": 2,
+      "criteria": [
+        {
+          "id": "produksi-rapi-6",
+          "order": 6,
+          "text": "Kartu blank, kartu proses, dan kartu jadi dipisah jelas",
+          "options": [
+            { "score": 1, "desc": "Semua jenis kartu bercampur tanpa pemisahan" },
+            { "score": 2, "desc": "Pemisahan sudah ada namun masih sering tercampur" },
+            { "score": 3, "desc": "Kartu sudah cukup dipisahkan tetapi belum rapi" },
+            { "score": 4, "desc": "Hampir semua kartu sudah dipisahkan dengan jelas" },
+            { "score": 5, "desc": "Semua kartu (blank, proses, jadi) dipisahkan rapi, jelas, dan terkontrol" }
+          ]
+        },
+        {
+          "id": "produksi-rapi-7",
+          "order": 7,
+          "text": "Ribbon/tinta disusun sesuai jenis dan label",
+          "options": [
+            { "score": 1, "desc": "Ribbon/tinta tidak teratur dan tanpa label" },
+            { "score": 2, "desc": "Sebagian ribbon/tinta sudah disusun namun belum sesuai jenis" },
+            { "score": 3, "desc": "Ribbon/tinta cukup tersusun tetapi label belum lengkap" },
+            { "score": 4, "desc": "Ribbon/tinta sudah disusun sesuai jenis dan sebagian besar berlabel" },
+            { "score": 5, "desc": "Semua ribbon/tinta tersusun rapi sesuai jenis dan diberi label jelas" }
+          ]
+        },
+        {
+          "id": "produksi-rapi-8",
+          "order": 8,
+          "text": "Tools (cutter, pinset, cleaning kit) memiliki tempat tetap",
+          "options": [
+            { "score": 1, "desc": "Tools tidak memiliki tempat tetap dan berserakan" },
+            { "score": 2, "desc": "Sebagian tools memiliki tempat namun tidak konsisten" },
+            { "score": 3, "desc": "Tools cukup memiliki tempat tetap tetapi belum rapi" },
+            { "score": 4, "desc": "Tools memiliki tempat tetap dan sebagian besar tertata" },
+            { "score": 5, "desc": "Semua tools memiliki tempat tetap, tertata rapi, dan selalu dikembalikan" }
+          ]
+        },
+        {
+          "id": "produksi-rapi-9",
+          "order": 9,
+          "text": "Label tray/box bahan jelas (Good, Reject, WIP)",
+          "options": [
+            { "score": 1, "desc": "Tidak ada label pada tray/box bahan" },
+            { "score": 2, "desc": "Label ada tetapi tidak jelas atau tidak lengkap" },
+            { "score": 3, "desc": "Sebagian tray/box sudah berlabel namun belum konsisten" },
+            { "score": 4, "desc": "Label tray/box jelas dan hampir semua sudah sesuai kategori" },
+            { "score": 5, "desc": "Semua tray/box (Good, Reject, WIP) berlabel jelas, lengkap, dan mudah dipahami" }
+          ]
+        },
+        {
+          "id": "produksi-rapi-10",
+          "order": 10,
+          "text": "Alur kerja produksi jelas (input → print → QC → packing)",
+          "options": [
+            { "score": 1, "desc": "Alur kerja tidak jelas dan membingungkan" },
+            { "score": 2, "desc": "Alur kerja ada tetapi tidak dipahami dengan baik" },
+            { "score": 3, "desc": "Alur kerja cukup jelas namun belum dijalankan konsisten" },
+            { "score": 4, "desc": "Alur kerja jelas dan sebagian besar sudah dijalankan" },
+            { "score": 5, "desc": "Alur kerja sangat jelas, dipahami semua karyawan, dan dijalankan konsisten" }
+          ]
+        },
+        {
+          "id": "produksi-rapi-11",
+          "order": 11,
+          "text": "Kabel printer dan mesin tertata aman",
+          "options": [
+            { "score": 1, "desc": "Kabel semrawut dan berisiko bahaya" },
+            { "score": 2, "desc": "Kabel masih banyak tidak tertata dengan baik" },
+            { "score": 3, "desc": "Kabel cukup tertata namun masih ada yang berantakan" },
+            { "score": 4, "desc": "Kabel tertata rapi dan aman di sebagian besar area" },
+            { "score": 5, "desc": "Semua kabel tertata rapi, aman, dan dilengkapi pengaman kabel" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resik",
+      "label": "C. RESIK",
+      "sortOrder": 3,
+      "criteria": [
+        {
+          "id": "produksi-resik-12",
+          "order": 12,
+          "text": "Area printer bebas debu & serpihan plastik",
+          "options": [
+            { "score": 1, "desc": "Area printer sangat kotor, penuh debu dan serpihan plastik" },
+            { "score": 2, "desc": "Area printer masih banyak debu dan serpihan plastik" },
+            { "score": 3, "desc": "Area printer cukup bersih namun masih ada sedikit debu/serpihan" },
+            { "score": 4, "desc": "Area printer bersih dengan sedikit kotoran" },
+            { "score": 5, "desc": "Area printer sangat bersih, bebas debu dan serpihan plastik" }
+          ]
+        },
+        {
+          "id": "produksi-resik-13",
+          "order": 13,
+          "text": "Roller printer dibersihkan sesuai jadwal",
+          "options": [
+            { "score": 1, "desc": "Roller tidak pernah dibersihkan" },
+            { "score": 2, "desc": "Roller jarang dibersihkan dan kotor" },
+            { "score": 3, "desc": "Roller dibersihkan sesekali namun tidak konsisten" },
+            { "score": 4, "desc": "Roller dibersihkan sesuai jadwal dan cukup terjaga" },
+            { "score": 5, "desc": "Roller selalu dibersihkan sesuai jadwal dan dalam kondisi optimal" }
+          ]
+        },
+        {
+          "id": "produksi-resik-14",
+          "order": 14,
+          "text": "Lantai bebas potongan kartu / limbah PVC",
+          "options": [
+            { "score": 1, "desc": "Lantai sangat kotor penuh potongan kartu/PVC" },
+            { "score": 2, "desc": "Banyak potongan kartu/PVC di lantai" },
+            { "score": 3, "desc": "Lantai cukup bersih namun masih ada beberapa limbah" },
+            { "score": 4, "desc": "Lantai bersih dengan sedikit sisa limbah" },
+            { "score": 5, "desc": "Lantai sangat bersih, bebas potongan kartu dan limbah PVC" }
+          ]
+        },
+        {
+          "id": "produksi-resik-15",
+          "order": 15,
+          "text": "Meja QC bersih dari sisa hasil cetak",
+          "options": [
+            { "score": 1, "desc": "Meja QC sangat kotor dan penuh sisa cetakan" },
+            { "score": 2, "desc": "Meja QC masih banyak sisa hasil cetak" },
+            { "score": 3, "desc": "Meja QC cukup bersih namun masih ada sedikit sisa" },
+            { "score": 4, "desc": "Meja QC bersih dan hampir tidak ada sisa cetakan" },
+            { "score": 5, "desc": "Meja QC sangat bersih, bebas sisa hasil cetak" }
+          ]
+        },
+        {
+          "id": "produksi-resik-16",
+          "order": 16,
+          "text": "Tempat sampah khusus limbah PVC tidak penuh",
+          "options": [
+            { "score": 1, "desc": "Tempat sampah penuh dan tidak terkelola" },
+            { "score": 2, "desc": "Tempat sampah hampir penuh" },
+            { "score": 3, "desc": "Tempat sampah cukup terisi namun masih layak" },
+            { "score": 4, "desc": "Tempat sampah tidak penuh dan terkontrol" },
+            { "score": 5, "desc": "Tempat sampah selalu terkelola, tidak penuh, dan terjadwal pengosongan" }
+          ]
+        },
+        {
+          "id": "produksi-resik-17",
+          "order": 17,
+          "text": "Tidak ada tumpahan tinta atau noda di area kerja",
+          "options": [
+            { "score": 1, "desc": "Banyak tumpahan tinta/noda di area kerja" },
+            { "score": 2, "desc": "Tumpahan tinta sering ditemukan" },
+            { "score": 3, "desc": "Tumpahan tinta kadang ada namun sudah dibersihkan sebagian" },
+            { "score": 4, "desc": "Hampir tidak ada tumpahan tinta/noda" },
+            { "score": 5, "desc": "Tidak ada tumpahan tinta atau noda, area sangat bersih" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rawat",
+      "label": "D. RAWAT",
+      "sortOrder": 4,
+      "criteria": [
+        {
+          "id": "produksi-rawat-18",
+          "order": 18,
+          "text": "SOP setting printer tersedia dan dipahami operator",
+          "options": [
+            { "score": 1, "desc": "Tidak ada SOP setting printer" },
+            { "score": 2, "desc": "SOP ada tetapi tidak dipahami operator" },
+            { "score": 3, "desc": "SOP cukup tersedia namun pemahaman belum merata" },
+            { "score": 4, "desc": "SOP tersedia dan sebagian besar operator memahaminya" },
+            { "score": 5, "desc": "SOP lengkap, jelas, dan dipahami serta dijalankan semua operator" }
+          ]
+        },
+        {
+          "id": "produksi-rawat-19",
+          "order": 19,
+          "text": "Checklist harian mesin cetak dijalankan",
+          "options": [
+            { "score": 1, "desc": "Tidak ada checklist harian" },
+            { "score": 2, "desc": "Checklist ada tetapi tidak dijalankan" },
+            { "score": 3, "desc": "Checklist dijalankan sesekali" },
+            { "score": 4, "desc": "Checklist dijalankan rutin namun belum konsisten penuh" },
+            { "score": 5, "desc": "Checklist harian selalu dijalankan, lengkap, dan terdokumentasi" }
+          ]
+        },
+        {
+          "id": "produksi-rawat-20",
+          "order": 20,
+          "text": "Standar warna cetak (color calibration) tersedia",
+          "options": [
+            { "score": 1, "desc": "Tidak ada standar warna cetak" },
+            { "score": 2, "desc": "Standar ada tetapi tidak digunakan" },
+            { "score": 3, "desc": "Standar tersedia namun penerapan belum konsisten" },
+            { "score": 4, "desc": "Standar warna digunakan dan cukup terkontrol" },
+            { "score": 5, "desc": "Standar warna cetak jelas, digunakan konsisten, dan terkalibrasi baik" }
+          ]
+        },
+        {
+          "id": "produksi-rawat-21",
+          "order": 21,
+          "text": "Jadwal maintenance printer rutin dilakukan",
+          "options": [
+            { "score": 1, "desc": "Tidak ada jadwal maintenance" },
+            { "score": 2, "desc": "Maintenance jarang dilakukan" },
+            { "score": 3, "desc": "Maintenance dilakukan namun tidak terjadwal" },
+            { "score": 4, "desc": "Maintenance rutin dilakukan sesuai jadwal" },
+            { "score": 5, "desc": "Maintenance rutin, terjadwal, dan terdokumentasi dengan baik" }
+          ]
+        },
+        {
+          "id": "produksi-rawat-22",
+          "order": 22,
+          "text": "Label status mesin (Running, Trouble, Maintenance) digunakan",
+          "options": [
+            { "score": 1, "desc": "Tidak ada label status mesin" },
+            { "score": 2, "desc": "Label ada tetapi tidak digunakan" },
+            { "score": 3, "desc": "Label digunakan sebagian mesin" },
+            { "score": 4, "desc": "Label digunakan hampir di semua mesin" },
+            { "score": 5, "desc": "Semua mesin menggunakan label status dengan jelas dan konsisten" }
+          ]
+        },
+        {
+          "id": "produksi-rawat-23",
+          "order": 23,
+          "text": "Area kerja memiliki layout standar",
+          "options": [
+            { "score": 1, "desc": "Tidak ada layout standar area kerja" },
+            { "score": 2, "desc": "Layout ada tetapi tidak diterapkan" },
+            { "score": 3, "desc": "Layout cukup ada namun belum tertata baik" },
+            { "score": 4, "desc": "Layout standar diterapkan di sebagian besar area" },
+            { "score": 5, "desc": "Layout standar diterapkan penuh, jelas, dan konsisten di seluruh area kerja" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rajin",
+      "label": "E. RAJIN",
+      "sortOrder": 5,
+      "criteria": [
+        {
+          "id": "produksi-rajin-24",
+          "order": 24,
+          "text": "Karyawan menjaga kerapihan setelah bekerja",
+          "options": [
+            { "score": 1, "desc": "Tidak ada upaya menjaga kerapihan setelah bekerja" },
+            { "score": 2, "desc": "Kerapihan jarang dijaga dan sering berantakan" },
+            { "score": 3, "desc": "Kerapihan cukup dijaga namun belum konsisten" },
+            { "score": 4, "desc": "Karyawan umumnya menjaga kerapihan setelah bekerja" },
+            { "score": 5, "desc": "Semua karyawan selalu menjaga kerapihan setelah bekerja tanpa diingatkan" }
+          ]
+        },
+        {
+          "id": "produksi-rajin-25",
+          "order": 25,
+          "text": "Karyawan membuang sampah pada tempatnya",
+          "options": [
+            { "score": 1, "desc": "Banyak karyawan membuang sampah sembarangan" },
+            { "score": 2, "desc": "Masih sering ditemukan sampah tidak pada tempatnya" },
+            { "score": 3, "desc": "Kebiasaan membuang sampah pada tempatnya cukup baik namun belum konsisten" },
+            { "score": 4, "desc": "Sebagian besar karyawan membuang sampah pada tempatnya" },
+            { "score": 5, "desc": "Semua karyawan disiplin membuang sampah pada tempatnya" }
+          ]
+        },
+        {
+          "id": "produksi-rajin-26",
+          "order": 26,
+          "text": "Operator membersihkan area setelah produksi",
+          "options": [
+            { "score": 1, "desc": "Area kerja selalu kotor setelah produksi" },
+            { "score": 2, "desc": "Kebersihan area jarang dijaga" },
+            { "score": 3, "desc": "Area cukup dibersihkan namun tidak konsisten" },
+            { "score": 4, "desc": "Area dibersihkan oleh sebagian besar operator" },
+            { "score": 5, "desc": "Semua operator selalu membersihkan area setelah produksi" }
+          ]
+        },
+        {
+          "id": "produksi-rajin-27",
+          "order": 27,
+          "text": "Tidak ada pencampuran kartu good dan reject",
+          "options": [
+            { "score": 1, "desc": "Kartu good dan reject sering tercampur" },
+            { "score": 2, "desc": "Pencampuran masih sering terjadi" },
+            { "score": 3, "desc": "Pencampuran sudah berkurang namun masih ditemukan" },
+            { "score": 4, "desc": "Hampir tidak ada pencampuran kartu" },
+            { "score": 5, "desc": "Kartu good dan reject selalu dipisahkan dengan jelas" }
+          ]
+        },
+        {
+          "id": "produksi-rajin-28",
+          "order": 28,
+          "text": "Leader memberi contoh disiplin",
+          "options": [
+            { "score": 1, "desc": "Leader tidak memberi contoh disiplin" },
+            { "score": 2, "desc": "Leader jarang menunjukkan disiplin" },
+            { "score": 3, "desc": "Leader cukup memberi contoh namun belum konsisten" },
+            { "score": 4, "desc": "Leader memberi contoh disiplin dengan baik" },
+            { "score": 5, "desc": "Leader menjadi teladan disiplin yang konsisten bagi karyawan" }
+          ]
+        },
+        {
+          "id": "produksi-rajin-29",
+          "order": 29,
+          "text": "Penggunaan APD (sarung tangan, masker) dipatuhi",
+          "options": [
+            { "score": 1, "desc": "APD tidak digunakan sama sekali" },
+            { "score": 2, "desc": "APD jarang digunakan oleh operator" },
+            { "score": 3, "desc": "APD digunakan namun belum konsisten" },
+            { "score": 4, "desc": "APD digunakan oleh sebagian besar operator" },
+            { "score": 5, "desc": "Semua operator selalu menggunakan APD sesuai aturan" }
+          ]
+        }
+      ]
+    }
+  ]
+}

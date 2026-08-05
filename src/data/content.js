@@ -25,13 +25,13 @@ export const eventMeta = {
 
 /** Ruangan peserta lomba dekorasi dan 5R */
 export const roomAreas = [
-  { id: "implementator", name: "Implementator", icon: "fa-gears" },
+  { id: "implementator", name: "CS & Implementator", icon: "fa-gears" },
   {
     id: "hardware-finance",
     name: "Hardware & Finance",
     icon: "fa-microchip",
   },
-  { id: "sales", name: "Sales", icon: "fa-handshake" },
+  { id: "sales", name: "Sales Marketing", icon: "fa-handshake" },
   { id: "it-dalam", name: "IT Dalam", icon: "fa-server" },
   { id: "it-luar", name: "IT Luar", icon: "fa-network-wired" },
 ];

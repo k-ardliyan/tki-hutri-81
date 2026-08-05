@@ -10,7 +10,7 @@ import LogoHutRi81 from "../brand/LogoHutRi81";
 import { gsap, shouldReduceMotion } from "../../lib/gsap";
 
 const NAV = [
-  { id: "beranda", label: "Beranda", path: "/beranda" },
+  { id: "beranda", label: "Beranda", path: "/" },
   { id: "lomba", label: "Lomba", path: "/lomba" },
   { id: "rundown", label: "Rundown", path: "/rundown" },
   { id: "tim", label: "Tim", path: "/tim" },
@@ -27,7 +27,7 @@ export default function SiteHeader() {
   const navRef = useRef<HTMLElement>(null);
 
   const activeId =
-    NAV.find((n) => pathname.startsWith(n.path))?.id ?? "beranda";
+    NAV.find((n) => pathname === n.path || (n.path !== "/" && pathname.startsWith(n.path)))?.id ?? "beranda";
 
   useEffect(() => {
     if (!headerRef.current || shouldReduceMotion()) return undefined;
@@ -114,7 +114,7 @@ export default function SiteHeader() {
         <button
           ref={brandRef}
           type="button"
-          onClick={() => navigate("/beranda")}
+          onClick={() => navigate("/")}
           className="flex min-w-0 cursor-pointer items-center gap-2.5 text-left transition hover:opacity-90 active:scale-[0.98] sm:gap-3"
         >
           <div

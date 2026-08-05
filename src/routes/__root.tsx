@@ -92,10 +92,13 @@ function AppLayout() {
   const panelRef = useRef<HTMLDivElement>(null)
   const didMountRef = useRef(false)
 
-  const isHome = pathname === '/beranda' || pathname === '/'
+  const isHome = pathname === '/'
+  const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/audit') || pathname === '/login'
 
-  // GSAP page transition — animate on every route change
+  // GSAP page transition — animate on every route change.
+  // Skip di area admin: layout (sidebar) harus tetap, hanya content yang ganti.
   useEffect(() => {
+    if (isAdminArea) return
     if (!panelRef.current || shouldReduceMotion()) return
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -124,11 +127,17 @@ function AppLayout() {
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-slate-50 text-slate-800 antialiased">
-      <SiteHeader />
+      {!isAdminArea && <SiteHeader />}
 
-      <main className="mb-auto pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
-        {isHome && <Hero />}
-        <div className="shell py-6 sm:py-8">
+      <main
+        className={`mb-auto ${
+          isAdminArea
+            ? 'pb-0'
+            : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+        }`}
+      >
+        {isHome && !isAdminArea && <Hero />}
+        <div className={isAdminArea ? '' : 'shell py-6 sm:py-8'}>
           <div ref={panelRef}>
             <Suspense fallback={<PageFallback />}>
               <Outlet />
@@ -137,9 +146,8 @@ function AppLayout() {
         </div>
       </main>
 
-      <SiteFooter />
-
-      <BottomNav />
+      {!isAdminArea && <SiteFooter />}
+      {!isAdminArea && <BottomNav />}
     </div>
   )
 }
@@ -151,7 +159,7 @@ function NotFoundComponent() {
         <h1 className="font-heading text-4xl font-bold text-brand-deep sm:text-5xl">404</h1>
         <p className="mt-3 text-slate-600">Halaman tidak ditemukan.</p>
         <a
-          href="/beranda"
+          href="/"
           className="mt-6 rounded-full bg-brand-red px-6 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 active:scale-95"
         >
           Kembali ke Beranda
