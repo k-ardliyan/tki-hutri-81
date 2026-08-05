@@ -1,5 +1,4 @@
-/**
- * Helper Deteksi Fase Acara & Reminder Dinamis HUT RI ke-81 TKI x FTP
+/** Helper Deteksi Fase Acara & Reminder Dinamis HUT RI ke-81 TKI x FTP
  * Jadwal Acara:
  * 1. 3 Agustus 2026: Sosialisasi Lomba
  * 2. 4–7 Agustus 2026: Dekorasi Ruangan bertema Kemerdekaan
@@ -34,7 +33,7 @@ export function getEventPhase(customDate = null) {
 
   const tSosialisasiStart = new Date("2026-08-03T00:00:00").getTime();
   const tDekorasiStart = new Date("2026-08-04T00:00:00").getTime();
-  const t5RStart = new Date("2026-08-08T00:00:00").getTime(); // Penilaian sidak mulai
+  const t5RStart = new Date("2026-08-08T00:00:00").getTime();
   const tPuncakDayStart = new Date("2026-08-13T00:00:00").getTime();
   const tPuncakLiveStart = new Date("2026-08-13T12:45:00").getTime();
   const tPuncakEnd = new Date("2026-08-13T17:00:00").getTime();
@@ -54,21 +53,9 @@ export function getEventPhase(customDate = null) {
       targetLabel: "Menuju Sosialisasi Lomba",
       themeColor: "red",
       reminders: [
-        {
-          icon: "fa-bullhorn",
-          title: "Sosialisasi Lomba",
-          text: "Senin, 3 Agustus 2026 jam 09.00 WIB.",
-        },
-        {
-          icon: "fa-users",
-          title: "Pembentukan Tim",
-          text: "Pastikan anggota tim ruanganmu sudah siap.",
-        },
-        {
-          icon: "fa-book-open",
-          title: "Pelajari Panduan",
-          text: "Baca aturan teknis lomba di menu Lomba.",
-        },
+        { icon: "fa-bullhorn", title: "Sosialisasi Lomba", text: "Senin, 3 Agustus 2026 jam 09.00 WIB." },
+        { icon: "fa-users", title: "Pembentukan Tim", text: "Pastikan anggota tim ruanganmu sudah siap." },
+        { icon: "fa-book-open", title: "Pelajari Panduan", text: "Baca aturan teknis lomba di menu Lomba." },
       ],
       action: { label: "Lihat Jadwal Lengkap", link: "/rundown" },
     };
@@ -86,21 +73,9 @@ export function getEventPhase(customDate = null) {
       targetLabel: "Mulai Masa Dekorasi (Besok)",
       themeColor: "blue",
       reminders: [
-        {
-          icon: "fa-clipboard-list",
-          title: "Aturan Perlombaan",
-          text: "Pahami syarat & teknis 3 cabang lomba tahun ini.",
-        },
-        {
-          icon: "fa-paint-roller",
-          title: "Persiapan Bahan Dekor",
-          text: "Siapkan hiasan aman (foam tape) untuk dekorasi besok.",
-        },
-        {
-          icon: "fa-user-check",
-          title: "Cek Kelompok",
-          text: "Pastikan nama kamu terdaftar di daftar tim.",
-        },
+        { icon: "fa-clipboard-list", title: "Aturan Perlombaan", text: "Pahami syarat & teknis 3 cabang lomba tahun ini." },
+        { icon: "fa-paint-roller", title: "Persiapan Bahan Dekor", text: "Siapkan hiasan aman (foam tape) untuk dekorasi besok." },
+        { icon: "fa-user-check", title: "Cek Kelompok", text: "Pastikan nama kamu terdaftar di daftar tim." },
       ],
       action: { label: "Pelajari Panduan Lomba", link: "/lomba" },
     };
@@ -113,27 +88,14 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-amber-400/20 text-amber-200 border-amber-300/40",
       statusType: "active",
       title: "Lomba Dekorasi Ruangan (4–7 Agustus)",
-      subtitle:
-        "Hias area kerja ruanganmu sekreatif mungkin bertema HUT RI ke-81!",
+      subtitle: "Hias area kerja ruanganmu sekreatif mungkin bertema HUT RI ke-81!",
       targetDate: "2026-08-07T17:00:00",
       targetLabel: "Sisa Waktu Dekorasi Ruangan",
       themeColor: "amber",
       reminders: [
-        {
-          icon: "fa-tape",
-          title: "Perekat Aman",
-          text: "Wajib pakai foam tape. Dilarang keras paku & cat!",
-        },
-        {
-          icon: "fa-video-slash",
-          title: "Bebas Menutupi CCTV",
-          text: "Dekorasi TIDAK boleh menghalangi sudut pandang kamera CCTV.",
-        },
-        {
-          icon: "fa-broom",
-          title: "Jaga Kebersihan (5R)",
-          text: "Bersihkan sisa sampah hiasan setelah selesai menghias.",
-        },
+        { icon: "fa-tape", title: "Perekat Aman", text: "Wajib pakai foam tape. Dilarang keras paku & cat!" },
+        { icon: "fa-video-slash", title: "Bebas Menutupi CCTV", text: "Dekorasi TIDAK boleh menghalangi sudut pandang kamera CCTV." },
+        { icon: "fa-broom", title: "Jaga Kebersihan (5R)", text: "Bersihkan sisa sampah hiasan setelah selesai menghias." },
       ],
       action: { label: "Panduan Lomba Dekorasi", link: "/lomba/dekor-5r" },
     };
@@ -146,27 +108,14 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-emerald-400/20 text-emerald-200 border-emerald-300/40",
       statusType: "active",
       title: "Masa Sidak Penilaian 5R Harian",
-      subtitle:
-        "Juri melakukan penilaian berkala di setiap ruangan pada hari kerja.",
+      subtitle: "Juri melakukan penilaian berkala di setiap ruangan pada hari kerja.",
       targetDate: "2026-08-13T12:45:00",
       targetLabel: "Menuju Hari Puncak Lomba",
       themeColor: "emerald",
       reminders: [
-        {
-          icon: "fa-sparkles",
-          title: "5R Terinci",
-          text: "Ringkas, Rapi, Resik, Rawat, dan Rajin jaga harian.",
-        },
-        {
-          icon: "fa-clipboard-check",
-          title: "Sidak Tanpa Pemberitahuan",
-          text: "Penilaian dilakukan acak saat jam kerja.",
-        },
-        {
-          icon: "fa-plug",
-          title: "Rapikan Kabel & Meja",
-          text: "Gunakan cable tie dan susun dokumen meja dengan rapi.",
-        },
+        { icon: "fa-sparkles", title: "5R Terinci", text: "Ringkas, Rapi, Resik, Rawat, dan Rajin jaga harian." },
+        { icon: "fa-clipboard-check", title: "Sidak Tanpa Pemberitahuan", text: "Penilaian dilakukan acak saat jam kerja." },
+        { icon: "fa-plug", title: "Rapikan Kabel & Meja", text: "Gunakan cable tie dan susun dokumen meja dengan rapi." },
       ],
       action: { label: "Kriteria Penilaian 5R", link: "/lomba/dekor-5r" },
     };
@@ -179,27 +128,14 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-red-500 text-white border-red-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Hari Puncak Lomba Kemerdekaan!",
-      subtitle:
-        "Kamis, 13 Agustus 2026 · Perlombaan Estafet Balon & Air di Halaman TKI.",
+      subtitle: "Kamis, 13 Agustus 2026 · Perlombaan Estafet Balon & Air di Halaman TKI.",
       targetDate: "2026-08-13T12:45:00",
       targetLabel: "Mulai Acara Puncak (12.45 WIB)",
       themeColor: "red",
       reminders: [
-        {
-          icon: "fa-clock",
-          title: "Mulai 12.45 WIB",
-          text: "Kumpul di Halaman TKI tepat waktu.",
-        },
-        {
-          icon: "fa-shirt",
-          title: "Pakaian Siap Basah",
-          text: "Gunakan kostum tim/kaos yang nyaman & siap terkena air.",
-        },
-        {
-          icon: "fa-flag-checkered",
-          title: "Estafet Balon & Air",
-          text: "Siapkan strategi kelompok Putra & Putri terbaikmu!",
-        },
+        { icon: "fa-clock", title: "Mulai 12.45 WIB", text: "Kumpul di Halaman TKI tepat waktu." },
+        { icon: "fa-shirt", title: "Pakaian Siap Basah", text: "Gunakan kostum tim/kaos yang nyaman & siap terkena air." },
+        { icon: "fa-flag-checkered", title: "Estafet Balon & Air", text: "Siapkan strategi kelompok Putra & Putri terbaikmu!" },
       ],
       action: { label: "Lihat Schedule Puncak", link: "/rundown" },
     };
@@ -212,27 +148,14 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-emerald-500 text-white border-emerald-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Perlombaan Utama Sedang Berlangsung!",
-      subtitle:
-        "Estafet Balon Tanpa Tangan & Estafet Air Gelas Bocor di Halaman TKI.",
+      subtitle: "Estafet Balon Tanpa Tangan & Estafet Air Gelas Bocor di Halaman TKI.",
       targetDate: "2026-08-13T17:00:00",
       targetLabel: "Perkiraan Acara Selesai",
       themeColor: "emerald",
       reminders: [
-        {
-          icon: "fa-heart-pulse",
-          title: "Semangat Bertanding!",
-          text: "Jaga sportifitas dan kebersamaan tim.",
-        },
-        {
-          icon: "fa-shield-halved",
-          title: "Utamakan Keselamatan",
-          text: "Hati-hati lantai licin saat estafet air.",
-        },
-        {
-          icon: "fa-bullhorn",
-          title: "Dukung Timmu",
-          text: "Beri sorakan terbaik untuk perwakilan kelompokmu!",
-        },
+        { icon: "fa-heart-pulse", title: "Semangat Bertanding!", text: "Jaga sportifitas dan kebersamaan tim." },
+        { icon: "fa-shield-halved", title: "Utamakan Keselamatan", text: "Hati-hati lantai licin saat estafet air." },
+        { icon: "fa-bullhorn", title: "Dukung Timmu", text: "Beri sorakan terbaik untuk perwakilan kelompokmu!" },
       ],
       action: { label: "Panduan Lomba Lapangan", link: "/lomba" },
     };
@@ -245,27 +168,14 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-purple-500/25 text-purple-100 border-purple-300/40",
       statusType: "active",
       title: "Lomba Lapangan Selesai · Penilaian 5R Masih Berjalan",
-      subtitle:
-        "Terima kasih atas keseruan hari puncak! Penilaian 5R berlanjut hingga 27 Agustus.",
+      subtitle: "Terima kasih atas keseruan hari puncak! Penilaian 5R berlanjut hingga 27 Agustus.",
       targetDate: "2026-08-28T13:00:00",
       targetLabel: "Menuju Pengumuman Pemenang",
       themeColor: "purple",
       reminders: [
-        {
-          icon: "fa-broom",
-          title: "Pertahankan 5R",
-          text: "Juri masih merekap poin 5R di setiap ruangan.",
-        },
-        {
-          icon: "fa-trophy",
-          title: "Pengumuman 28 Agustus",
-          text: "Pengumuman pemenang dilaksanakan Jumat, 28 Agustus.",
-        },
-        {
-          icon: "fa-mosque",
-          title: "Lokasi Pengumuman",
-          text: "Dilaksanakan setelah kajian Jumat di Mushola TKI.",
-        },
+        { icon: "fa-broom", title: "Pertahankan 5R", text: "Juri masih merekap poin 5R di setiap ruangan." },
+        { icon: "fa-trophy", title: "Pengumuman 28 Agustus", text: "Pengumuman pemenang dilaksanakan Jumat, 28 Agustus." },
+        { icon: "fa-mosque", title: "Lokasi Pengumuman", text: "Dilaksanakan setelah kajian Jumat di Mushola TKI." },
       ],
       action: { label: "Cek Daftar Tim", link: "/tim" },
     };
@@ -278,27 +188,14 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-amber-500 text-white border-amber-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Hari Pengumuman Pemenang & Hadiah!",
-      subtitle:
-        "Jumat, 28 Agustus 2026 · Pengumuman dilaksanakan pukul 13.00 WIB (setelah kajian Jumat).",
+      subtitle: "Jumat, 28 Agustus 2026 · Pengumuman dilaksanakan pukul 13.00 WIB (setelah kajian Jumat).",
       targetDate: "2026-08-28T13:00:00",
       targetLabel: "Mulai Pengumuman Juara (13.00 WIB)",
       themeColor: "amber",
       reminders: [
-        {
-          icon: "fa-mosque",
-          title: "Kajian Jumat",
-          text: "Ikuti kajian Jumat terlebih dahulu di Mushola TKI.",
-        },
-        {
-          icon: "fa-gift",
-          title: "Pembagian Hadiah",
-          text: "Penyerahan trofi & hadiah untuk semua pemenang cabang lomba.",
-        },
-        {
-          icon: "fa-camera",
-          title: "Foto Bersama",
-          text: "Sesi dokumentasi bersama seluruh peserta & panitia.",
-        },
+        { icon: "fa-mosque", title: "Kajian Jumat", text: "Ikuti kajian Jumat terlebih dahulu di Mushola TKI." },
+        { icon: "fa-gift", title: "Pembagian Hadiah", text: "Penyerahan trofi & hadiah untuk semua pemenang cabang lomba." },
+        { icon: "fa-camera", title: "Foto Bersama", text: "Sesi dokumentasi bersama seluruh peserta & panitia." },
       ],
       action: { label: "Lihat Detail Rundown", link: "/rundown" },
     };
@@ -311,22 +208,13 @@ export function getEventPhase(customDate = null) {
       badgeColor: "bg-emerald-500 text-white border-emerald-300 animate-pulse shadow-md",
       statusType: "live",
       title: "Pengumuman Pemenang & Pembagian Hadiah!",
-      subtitle:
-        "Sedang berlangsung di Mushola TKI setelah kajian Jumat. Selamat kepada para pemenang!",
+      subtitle: "Sedang berlangsung di Mushola TKI setelah kajian Jumat. Selamat kepada para pemenang!",
       targetDate: "2026-08-28T17:00:00",
       targetLabel: "Penutupan Rangkaian Acara",
       themeColor: "emerald",
       reminders: [
-        {
-          icon: "fa-trophy",
-          title: "Pemberian Trofi",
-          text: "Penyerahan hadiah & gelar juara lomba 5R, Balon, dan Air.",
-        },
-        {
-          icon: "fa-users",
-          title: "Kebersamaan Team",
-          text: "Selamat untuk seluruh tim yang telah berpartisipasi!",
-        },
+        { icon: "fa-trophy", title: "Pemberian Trofi", text: "Penyerahan hadiah & gelar juara lomba 5R, Balon, dan Air." },
+        { icon: "fa-users", title: "Kebersamaan Team", text: "Selamat untuk seluruh tim yang telah berpartisipasi!" },
       ],
       action: { label: "Cek Semua Peserta", link: "/tim" },
     };
@@ -344,16 +232,8 @@ export function getEventPhase(customDate = null) {
     targetLabel: "Acara Selesai",
     themeColor: "slate",
     reminders: [
-      {
-        icon: "fa-heart",
-        title: "Semangat Kemerdekaan",
-        text: "Terus jaga kekompakan & kebersihan 5R di tempat kerja.",
-      },
-      {
-        icon: "fa-flag",
-        title: "Merdeka!",
-        text: "Indonesia Berdaulat, Adil, dan Makmur.",
-      },
+      { icon: "fa-heart", title: "Semangat Kemerdekaan", text: "Terus jaga kekompakan & kebersihan 5R di tempat kerja." },
+      { icon: "fa-flag", title: "Merdeka!", text: "Indonesia Berdaulat, Adil, dan Makmur." },
     ],
     action: { label: "Lihat Semua Tim", link: "/tim" },
   };

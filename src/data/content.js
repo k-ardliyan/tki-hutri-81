@@ -1,11 +1,10 @@
-/**
- * Konten website HUT RI ke-81
+/** Konten website HUT RI ke-81
  * Disusun dari technical_rundown.md, technical_book_peserta.md,
  * dan technical_book_panitia.md.
- *
- * Tipografi: Saira Semi Condensed
- * Tema: "Indonesia Berdaulat, Adil, dan Makmur"
- */
+
+Tipografi: Saira Semi Condensed
+Tema: "Indonesia Berdaulat, Adil, dan Makmur"
+*/
 
 export const eventMeta = {
   title: "HUT RI ke-81",
@@ -14,10 +13,10 @@ export const eventMeta = {
   theme: "Indonesia Berdaulat, Adil, dan Makmur",
   peakDateLabel: "Kamis, 13 Agustus 2026",
   peakTimeLabel: "12.45 WIB",
-  peakTarget: "2026-08-13T12:45:00", // Mulai acara puncak
-  eventEndTarget: "2026-08-13T17:00:00", // Perkiraan acara puncak selesai
-  awardTarget: "2026-08-28T13:00:00", // Pengumuman pemenang setelah kajian Jumat
-  awardEndTarget: "2026-08-28T17:00:00", // Akhir seluruh rangkaian acara
+  peakTarget: "2026-08-13T12:45:00",
+  eventEndTarget: "2026-08-13T17:00:00",
+  awardTarget: "2026-08-28T13:00:00",
+  awardEndTarget: "2026-08-28T17:00:00",
   awardDateLabel: "Jumat, 28 Agustus 2026",
   awardNote: "Setelah kajian Jumat",
   tagline:
