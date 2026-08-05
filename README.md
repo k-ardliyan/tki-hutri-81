@@ -17,7 +17,7 @@ bun install        # install dependencies
 bun run dev        # dev server (SSR + HMR)
 bun run build      # build production (dist/ + .output/ nitro)
 bun run start      # serve production SSR via Nitro (node .output/server/index.mjs)
-bun run typecheck  # tsc --noEmit
+bun run typecheck  # build (generate route tree) + tsc --noEmit
 bun run lint       # oxlint
 bun run db:push    # push schema ke DB (butuh .env DATABASE_URL)
 bun run db:seed    # seed data (butuh .env DATABASE_URL)

@@ -1,18 +1,43 @@
 # dependencies
 node_modules/
 
+# lockfiles — bun.lock di-commit; npm/yarn lock tidak boleh nyasar
+package-lock.json
+yarn.lock
+
 # build output
 dist/
 .tanstack/
 .output/
+.nitro/
+build/
+
+# generated route tree — plugin menulis ulang tiap build (nondeterministik
+# antar environment client/ssr/nitro), jangan di-track
+src/routeTree.gen.ts
+
+# cache
+.cache/
+.turbo/
+.vite/
 
 # env — DATABASE_URL tidak pernah di-commit
 .env
 .env.local
+.env.*.local
+
+# vercel CLI & deploy state
+.vercel/
 
 # drizzle
 drizzle/meta/
 drizzle/*.sql
+
+# test artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # logs
 *.log

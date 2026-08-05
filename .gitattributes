@@ -1,0 +1,13 @@
+# Normalisasi line endings — repo selalu LF, hilangkan warning CRLF di Windows
+* text=auto eol=lf
+
+# Binary assets — jangan disentuh git
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg text
+*.ico binary
+*.woff binary
+*.woff2 binary
