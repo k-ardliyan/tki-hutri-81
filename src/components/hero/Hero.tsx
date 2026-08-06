@@ -68,7 +68,7 @@ export default function Hero() {
   return (
     <section
       ref={rootRef}
-      className="relative overflow-hidden bg-gradient-to-br from-[#73050c] via-[#a00e18] to-[#cc1623] text-white"
+      className="relative overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to text-white"
     >
       {/* Decorative Vector Ribbon & Salatiga Tugu Jam SVG Accent */}
       <div className="pointer-events-none absolute inset-0 z-0 opacity-80">
@@ -97,8 +97,10 @@ export default function Hero() {
           </div>
 
           <div className="hero-animate space-y-1.5 sm:space-y-2">
-            <h1 className="font-heading text-xl sm:text-5xl lg:text-[3.25rem] font-black leading-[1.15] tracking-tight">
-              Peringatan{' '}
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+              Peringatan Kemerdekaan
+            </p>
+            <h1 className="font-heading text-2xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">
               <span className="inline-block align-baseline rounded-xl bg-white px-2 sm:px-3 py-0.5 text-brand-red shadow-lg my-0.5">
                 HUT RI ke-81
               </span>
@@ -113,11 +115,11 @@ export default function Hero() {
             <button
               type="button"
               onClick={() => navigate('/lomba')}
-              className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-extrabold text-[#990a15] shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95 text-center w-full sm:w-auto min-h-[40px] sm:min-h-[44px]"
+              className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-extrabold text-brand-red shadow-xl shadow-black/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 active:scale-95 text-center w-full sm:w-auto min-h-[40px] sm:min-h-[44px]"
             >
-              <i className="fa-solid fa-book-open text-xs text-[#990a15]" />
+              <i className="fa-solid fa-book-open text-xs text-brand-red" />
               <span>Lihat panduan lomba</span>
-              <i className="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-1 text-[#990a15]" />
+              <i className="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-1 text-brand-red" />
             </button>
             <button
               type="button"

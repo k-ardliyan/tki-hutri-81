@@ -108,7 +108,7 @@ export default function AppShell({
   }
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-slate-50 lg:flex-row">
+    <div className="flex min-h-[100dvh] flex-col bg-canvas lg:flex-row">
       {/* ── Desktop sidebar ── */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-56 lg:flex-col lg:border-r lg:border-slate-200 lg:bg-white">
         <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-5">

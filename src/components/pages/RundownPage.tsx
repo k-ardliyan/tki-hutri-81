@@ -96,7 +96,7 @@ const calendarEvents = [
     title: 'Lomba dekorasi ruangan',
     start: '2026-08-04',
     end: '2026-08-07',
-    note: 'Selasa–Jumat',
+    note: 'Selasa-Jumat',
   },
   {
     id: 'nilai',
@@ -113,7 +113,7 @@ const calendarEvents = [
     title: 'Hari puncak lapangan',
     start: '2026-08-13',
     end: '2026-08-13',
-    note: 'Kamis · 12.45–17.00 WIB',
+    note: 'Kamis · 12.45-17.00 WIB',
   },
   {
     id: 'hadiah',
@@ -445,7 +445,7 @@ function PeakDayModal({ open, onClose, items }: {
               <h3 id="peak-modal-title" className="font-heading text-xl font-extrabold sm:text-2xl">
                 Rundown hari puncak
               </h3>
-              <p className="mt-1 text-xs text-white/80">12.45–17.00 WIB · Halaman TKI</p>
+              <p className="mt-1 text-xs text-white/80">12.45-17.00 WIB · Halaman TKI</p>
             </div>
             <button
               type="button"
@@ -480,7 +480,7 @@ function PeakDayModal({ open, onClose, items }: {
           <button
             type="button"
             onClick={requestClose}
-            className="w-full rounded-2xl bg-slate-900 py-3 text-sm font-bold text-white"
+            className="w-full rounded-2xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
           >
             Tutup
           </button>
@@ -582,10 +582,10 @@ export default function RundownPage() {
 
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
         <p className="section-kicker">Jadwal Rangkaian Acara</p>
-        <h2 className="mt-2 font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+        <h2 className="mt-2 font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
           Kalender HUT RI ke-81
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
@@ -602,7 +602,7 @@ export default function RundownPage() {
             onMouseLeave={clearHover}
             onFocus={() => setHoverPhase(key)}
             onBlur={clearHover}
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 min-h-[36px] text-xs font-bold transition ${
               hoverPhase === key ? `${c.chip} ring-2 ${c.ring}` : c.chip
             }`}
           >
@@ -620,13 +620,13 @@ export default function RundownPage() {
             </p>
           </div>
 
-          <div className="relative px-2 py-3 sm:px-3 sm:py-4">
+          <div className="relative flex flex-1 flex-col px-2 py-3 sm:px-3 sm:py-4">
             <div className="mb-1 grid grid-cols-7 gap-0">
               {WEEKDAYS.map((w) => (
                 <div
                   key={w}
                   className={`py-1 text-center text-[10px] font-bold uppercase tracking-wide ${
-                    w === 'Min' ? 'text-brand-red' : 'text-slate-400'
+                    w === 'Min' ? 'text-brand-red' : 'text-slate-500'
                   }`}
                 >
                   {w}
@@ -634,7 +634,7 @@ export default function RundownPage() {
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-y-1">
+            <div className="grid flex-1 grid-cols-7 grid-rows-[repeat(6,minmax(0,1fr))] gap-y-1">
               {grid.map((cell, idx) => {
                 if (!cell) {
                   return <div key={`empty-${idx}`} className="min-h-[52px] sm:min-h-[58px]" />
@@ -693,7 +693,7 @@ export default function RundownPage() {
                               ? primaryColor.text
                               : cell.events.length
                                 ? 'text-slate-800'
-                                : 'text-slate-400'
+                                : 'text-slate-500'
                         }`}
                       >
                         {cell.day}
@@ -723,7 +723,7 @@ export default function RundownPage() {
                       </div>
 
                       {extraEvents.length > 0 && (
-                        <span className="absolute right-1 top-1 rounded bg-slate-900/75 px-1 text-[8px] font-bold text-white">
+                        <span className="absolute right-1 top-1 flex min-w-[16px] items-center justify-center rounded-full bg-slate-900/75 px-1 text-[10px] font-bold text-white">
                           +{extraEvents.length}
                         </span>
                       )}
@@ -742,7 +742,7 @@ export default function RundownPage() {
               >
                 <div className="mb-1.5 flex items-center justify-between gap-2 px-1.5 pt-1">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                       {selectedDayLabel}
                     </p>
                     <p className="text-[11px] text-slate-500">
@@ -752,7 +752,7 @@ export default function RundownPage() {
                   <button
                     type="button"
                     onClick={closePopover}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-600"
                     aria-label="Tutup"
                   >
                     <i className="fa-solid fa-xmark text-xs" />
@@ -779,7 +779,7 @@ export default function RundownPage() {
                             <p className="text-[10px] text-slate-500">
                               {ev.start === ev.end
                                 ? formatShort(ev.start)
-                                : `${formatShort(ev.start)} – ${formatShort(ev.end)}`}
+                                : `${formatShort(ev.start)} - ${formatShort(ev.end)}`}
                               {ev.note ? ` · ${ev.note}` : ''}
                             </p>
                           </div>
@@ -792,7 +792,7 @@ export default function RundownPage() {
             )}
           </div>
 
-          <div className="min-h-[88px] border-t border-slate-100 bg-slate-50/90 px-4 py-3 sm:min-h-[96px] sm:px-5">
+          <div className="rounded-b-3xl border-t border-slate-100 bg-slate-50/90 px-4 py-3 sm:px-5">
             {activeEvent ? (
               <div className="flex h-full items-start gap-3">
                 <span
@@ -814,7 +814,7 @@ export default function RundownPage() {
                   <p className="line-clamp-2 text-xs text-slate-500">
                     {activeEvent.start === activeEvent.end
                       ? formatLong(activeEvent.start)
-                      : `${formatLong(activeEvent.start)} – ${formatLong(activeEvent.end)}`}
+                      : `${formatLong(activeEvent.start)} - ${formatLong(activeEvent.end)}`}
                     {activeEvent.note ? ` · ${activeEvent.note}` : ''}
                   </p>
                 </div>
@@ -840,7 +840,7 @@ export default function RundownPage() {
                   <i className="fa-solid fa-hand-pointer text-xs" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                     Petunjuk Navigasi
                   </p>
                   <p className="text-sm font-semibold text-slate-700">
@@ -857,7 +857,7 @@ export default function RundownPage() {
 
         {/* Agenda bertanda — primary detail surface (no separate phase list) */}
         <section className="surface-card px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Daftar Agenda Kegiatan</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Daftar Agenda Kegiatan</p>
           <ul className="mt-3 space-y-2.5">
             {calendarEvents.map((ev) => {
               const c = phaseColors[ev.phase]
@@ -886,10 +886,10 @@ export default function RundownPage() {
                           >
                             {c.label}
                           </span>
-                          <span className="text-[10px] font-semibold text-slate-400">
+                          <span className="text-[10px] font-semibold text-slate-500">
                             {ev.start === ev.end
                               ? formatShort(ev.start)
-                              : `${formatShort(ev.start)}–${formatShort(ev.end)}`}
+                              : `${formatShort(ev.start)}-${formatShort(ev.end)}`}
                           </span>
                         </div>
                         <p className="mt-1 text-sm font-bold text-slate-900">{ev.title}</p>

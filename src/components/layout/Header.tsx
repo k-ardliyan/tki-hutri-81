@@ -127,7 +127,7 @@ export default function SiteHeader() {
               <LogoTki className="h-3.5 sm:h-4 w-auto shrink-0" animate />
               <svg
                 viewBox="0 0 16 16"
-                className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 text-slate-400 stroke-current"
+                className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 text-slate-500 stroke-current"
                 fill="none"
                 strokeWidth="1.2"
                 strokeLinecap="round"

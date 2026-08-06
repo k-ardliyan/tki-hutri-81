@@ -49,3 +49,7 @@ bun-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# local planning/artifacts — tidak di-commit
+.hermes/
+.impeccable/

@@ -50,8 +50,8 @@ const TIMELINE = [
     id: "dekor",
     icon: "fa-solid fa-paint-roller",
     title: "Dekor",
-    date: "4–7 Ags",
-    day: "Selasa–Jumat",
+    date: "4-7 Ags",
+    day: "Selasa-Jumat",
     desc: "Bikin dekorasi ruangan bertema kemerdekaan. Tetap jaga 5R.",
   },
   {
@@ -153,7 +153,7 @@ export default function HomePage() {
   }, [timelineVisible]);
 
   return (
-    <div ref={rootRef} className="space-y-8 sm:space-y-10">
+    <div ref={rootRef} className="space-y-6 sm:space-y-8">
       {/* 1. Key Stats Bar — Single Merged Card Connected to Hero */}
       <section className="-mt-10 sm:-mt-12 relative z-20">
         <div className="stat-card isolate overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-950/10 [transform:translateZ(0)]">
@@ -186,11 +186,11 @@ export default function HomePage() {
       </section>
 
       {/* 2. Ringkasan Acara Section */}
-      <section className="overview-anim overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-sm">
+      <section className="overview-anim surface-card overflow-hidden">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-4 p-6 sm:p-8">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
+              <span className="section-kicker">
                 RINGKASAN
               </span>
               <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
@@ -223,7 +223,7 @@ export default function HomePage() {
                 onClick={() => navigate("/rundown")}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <i className="fa-solid fa-calendar text-[11px] text-slate-400" />
+                <i className="fa-solid fa-calendar text-[11px] text-slate-500" />
                 <span>Lihat rundown</span>
               </button>
               <button
@@ -231,7 +231,7 @@ export default function HomePage() {
                 onClick={() => navigate("/tim")}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <i className="fa-solid fa-user text-[11px] text-slate-400" />
+                <i className="fa-solid fa-user text-[11px] text-slate-500" />
                 <span>Cari peserta</span>
               </button>
             </div>
@@ -276,13 +276,7 @@ export default function HomePage() {
       <section ref={lombaSectionRef} className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-                LOMBA
-              </span>
-              <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
-            </div>
-            <h3 className="mt-1 font-heading text-2xl font-black text-slate-900 sm:text-3xl">
+            <h3 className="font-heading text-2xl font-black text-slate-900 sm:text-3xl">
               Tiga lomba tahun ini
             </h3>
           </div>
@@ -307,7 +301,7 @@ export default function HomePage() {
                 onClick={() => navigate("/lomba/" + c.id)}
                 className="lomba-card group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-1 hover:border-red-200 hover:shadow-md flex flex-col justify-between"
               >
-                {/* Image Header with Badges */}
+                {/* Image Header */}
                 <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-rose-50">
                   {img ? (
                     <LazyImage
@@ -324,23 +318,19 @@ export default function HomePage() {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-
-                  {/* Top-Left Number Circle Badge */}
-                  <div className="absolute top-3 left-3 flex h-8 w-8 items-center justify-center rounded-full bg-brand-red font-heading text-xs font-black text-white shadow-md shadow-red-600/30 ring-2 ring-white">
-                    {numBadge}
-                  </div>
-
-                  {/* Bottom-Right Category Badge */}
-                  <div className="absolute bottom-3 right-3">
-                    <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-extrabold text-slate-800 shadow-sm backdrop-blur-md">
-                      {c.short}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Content */}
                 <div className="space-y-2.5 p-5 flex-1 flex flex-col justify-between">
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-xs font-black text-brand-red">
+                        Lomba {numBadge}
+                      </span>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+                        {c.short}
+                      </span>
+                    </div>
                     <h4 className="font-heading text-base font-bold text-slate-900 group-hover:text-brand-red sm:text-lg transition-colors">
                       {c.title}
                     </h4>
@@ -360,10 +350,10 @@ export default function HomePage() {
       </section>
 
       {/* 4. Jadwal Penting Section (Horizontal Timeline) — IO-triggered */}
-      <section ref={timelineSectionRef} className="space-y-5 rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+      <section ref={timelineSectionRef} className="surface-card space-y-5 p-6 sm:p-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
+            <span className="section-kicker">
               JADWAL PENTING
             </span>
             <span className="h-0.5 w-8 bg-slate-300 rounded-full" />
@@ -418,8 +408,9 @@ export default function HomePage() {
                   {/* Details */}
                   <div className="space-y-1">
                     {isStepActive && (
-                      <span className="inline-block rounded-full bg-brand-red px-2.5 py-0.5 text-[10px] font-black uppercase text-white shadow-sm mb-1">
-                        ● Aktif Sekarang
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-red px-2.5 py-0.5 text-[10px] font-black uppercase text-white shadow-sm mb-1">
+                        <i className="fa-solid fa-circle text-[6px]" />
+                        Aktif Sekarang
                       </span>
                     )}
                     <p

@@ -22,7 +22,7 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
+        content: 'width=device-width, initial-scale=1.0',
       },
       { name: 'theme-color', content: '#c62828' },
       { title: 'HUT RI ke-81 - PT TKI x PT FTP' },
@@ -36,8 +36,8 @@ export const Route = createRootRoute({
       { name: 'author', content: 'PT TKI x PT FTP' },
       // Open Graph / Social Media Sharing
       { property: 'og:type', content: 'website' },
-      { property: 'og:site_name', content: 'HUT RI ke-81 — PT TKI x PT FTP' },
-      { property: 'og:title', content: 'Peringatan HUT RI ke-81 — PT TKI x PT FTP' },
+      { property: 'og:site_name', content: 'HUT RI ke-81 - PT TKI x PT FTP' },
+      { property: 'og:title', content: 'Peringatan HUT RI ke-81 - PT TKI x PT FTP' },
       {
         property: 'og:description',
         content: 'Portal Resmi Kegiatan, Panduan Lomba & Budaya 5R HUT RI ke-81 PT TKI x PT FTP Salatiga. Rayakan kemerdekaan bersama!',
@@ -50,7 +50,7 @@ export const Route = createRootRoute({
       { property: 'og:locale', content: 'id_ID' },
       // Twitter Card
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: 'Peringatan HUT RI ke-81 — PT TKI x PT FTP' },
+      { name: 'twitter:title', content: 'Peringatan HUT RI ke-81 - PT TKI x PT FTP' },
       {
         name: 'twitter:description',
         content: 'Portal Resmi Kegiatan, Panduan Lomba & Budaya 5R HUT RI ke-81 PT TKI x PT FTP Salatiga. Rayakan kemerdekaan bersama!',
@@ -126,7 +126,7 @@ function AppLayout() {
   }, [pathname])
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-clip bg-slate-50 text-slate-800 antialiased">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-canvas text-slate-800 antialiased">
       {!isAdminArea && <SiteHeader />}
 
       <main

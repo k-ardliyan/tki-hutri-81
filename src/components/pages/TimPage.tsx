@@ -78,7 +78,7 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
           </p>
         </div>
         <i
-          className={`fa-solid fa-chevron-down text-slate-400 transition ${
+          className={`fa-solid fa-chevron-down text-slate-500 transition ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -195,12 +195,12 @@ export default function TimPage() {
   );
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="section-kicker">Peserta Lomba</p>
-            <h2 className="mt-1 font-heading text-2xl font-extrabold text-slate-900 sm:text-3xl">
+            <h2 className="mt-1 font-heading text-2xl font-black text-slate-900 sm:text-3xl">
               Daftar Tim & Anggota
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
@@ -208,18 +208,19 @@ export default function TimPage() {
             </p>
           </div>
           <div className="relative w-full max-w-md">
-            <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" />
+            <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari nama peserta atau tim..."
+              aria-label="Cari nama peserta atau tim"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-9 pr-4 text-base sm:text-sm outline-none ring-brand-red transition focus:bg-white focus:ring-2"
             />
             {term && (
               <button
                 type="button"
                 onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 hover:text-slate-600"
               >
                 Hapus
               </button>
@@ -269,7 +270,7 @@ export default function TimPage() {
           <CategorySection
             kategori="putra"
             label="Putra"
-            lombaDesc="8 tim"
+            lombaDesc="Estafet Balon & Air"
             totalAnggota={totalAnggotaPutra}
             groups={putraGroups}
             term={term}
@@ -277,7 +278,7 @@ export default function TimPage() {
           <CategorySection
             kategori="putri"
             label="Putri"
-            lombaDesc="5 tim"
+            lombaDesc="Estafet Balon & Air"
             totalAnggota={totalAnggotaPutri}
             groups={putriGroups}
             term={term}

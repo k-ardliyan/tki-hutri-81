@@ -87,7 +87,7 @@ export function getEventPhase(customDate = null) {
       badgeLabel: "SEDANG BERLANGSUNG: MASA DEKORASI",
       badgeColor: "bg-amber-400/20 text-amber-200 border-amber-300/40",
       statusType: "active",
-      title: "Lomba Dekorasi Ruangan (4–7 Agustus)",
+      title: "Lomba Dekorasi Ruangan (4-7 Agustus)",
       subtitle: "Hias area kerja ruanganmu sekreatif mungkin bertema HUT RI ke-81!",
       targetDate: "2026-08-07T17:00:00",
       targetLabel: "Sisa Waktu Dekorasi Ruangan",

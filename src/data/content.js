@@ -45,13 +45,13 @@ export const keyDates = [
   },
   {
     id: "dekor",
-    when: "4–7 Agustus 2026",
+    when: "4-7 Agustus 2026",
     title: "Dekorasi ruangan",
     detail: "Hias ruangan di area masing-masing, dari Selasa hingga Jumat.",
   },
   {
     id: "nilai",
-    when: "10–27 Agustus 2026",
+    when: "10-27 Agustus 2026",
     title: "Penilaian 5R",
     detail: "Penilaian dilakukan melalui sidak pada hari kerja.",
   },
@@ -86,7 +86,7 @@ export const rundown = [
     phase: "Dekorasi Ruangan",
     items: [
       {
-        time: "Selasa–Jumat, 4–7 Agustus",
+        time: "Selasa-Jumat, 4-7 Agustus",
         title: "Pemasangan dekorasi",
         note: "Dekorasi dipasang menggunakan foam tape. Paku dan cat dinding tidak diperbolehkan. Dekorasi harus dipasang di tempat yang tidak menghalangi pandangan CCTV.",
       },
@@ -97,7 +97,7 @@ export const rundown = [
     phase: "Penilaian 5R",
     items: [
       {
-        time: "10–27 Agustus · hari kerja",
+        time: "10-27 Agustus · hari kerja",
         title: "Sidak dan penilaian 5R",
         note: "Juri menilai penerapan Ringkas, Rapi, Resik, Rawat, dan Rajin di setiap ruangan.",
       },
@@ -109,22 +109,22 @@ export const rundown = [
     highlight: true,
     items: [
       {
-        time: "12.45–13.05",
+        time: "12.45-13.05",
         title: "Sambutan dan doa",
         note: "Acara dibuka dengan sambutan CEO dan Ketua Panitia, lalu dilanjutkan dengan doa.",
       },
       {
-        time: "13.05–15.00",
+        time: "13.05-15.00",
         title: "Estafet Balon Tanpa Tangan",
         note: "Babak penyisihan dan final berlangsung terpisah untuk kategori Putra dan Putri.",
       },
       {
-        time: "15.00–15.30",
+        time: "15.00-15.30",
         title: "Istirahat dan salat",
         note: "Waktu istirahat dan salat Asar sekaligus persiapan area untuk lomba berikutnya.",
       },
       {
-        time: "15.30–17.00",
+        time: "15.30-17.00",
         title: "Estafet Air Gelas Bocor",
         note: "Setiap sesi berlangsung selama 3 menit. Pemenang ditentukan dari volume air terbanyak.",
       },
@@ -166,14 +166,14 @@ export const competitions = [
       {
         step: 2,
         title: "Pemasangan Dekorasi",
-        time: "4–7 Agustus",
+        time: "4-7 Agustus",
         desc: "Proses menghias area kerja masing-masing menggunakan bahan yang aman dan tidak menutupi kamera CCTV.",
         icon: "fa-paint-roller",
       },
       {
         step: 3,
         title: "Penilaian 5R & Sidak",
-        time: "10–27 Agustus",
+        time: "10-27 Agustus",
         desc: "Penilaian berkala budaya 5R (Ringkas, Rapi, Resik, Rawat, Rajin).",
         icon: "fa-clipboard-check",
       },
@@ -220,11 +220,11 @@ export const competitions = [
           text: "Jelaskan aturan teknis, larangan menggunakan paku, cat, serta penempatan dekorasi di posisi yang tidak menghalangi CCTV.",
         },
         {
-          title: "Pendampingan · 4–7 Agustus",
+          title: "Pendampingan · 4-7 Agustus",
           text: "Dampingi proses dekorasi dan pastikan pemasangan tidak menutupi pandangan kamera CCTV serta menggunakan bahan yang aman.",
         },
         {
-          title: "Penilaian · 10–27 Agustus",
+          title: "Penilaian · 10-27 Agustus",
           text: "Lakukan penilaian 5R pada hari kerja dan catat setiap pelanggaran sebagai dasar pengurangan poin atau diskualifikasi.",
         },
       ],
@@ -272,7 +272,7 @@ export const competitions = [
         step: 4,
         title: "Babak Final Top 3",
         time: "Penentuan Juara",
-        desc: "Tiga tim dengan catatan waktu tercepat melaju ke babak final memperebutkan juara 1–3.",
+        desc: "Tiga tim dengan catatan waktu tercepat melaju ke babak final memperebutkan juara 1-3.",
         icon: "fa-medal",
       },
     ],

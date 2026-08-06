@@ -9,13 +9,8 @@ const PARTICLES = [
   { top: '15%', left: '7%', size: 'w-2 h-2', bg: 'bg-amber-300/45', blur: 'blur-[0.5px]' },
   { top: '30%', left: '20%', size: 'w-1.5 h-1.5', bg: 'bg-rose-300/60', blur: '' },
   { top: '68%', left: '12%', size: 'w-2.5 h-2.5', bg: 'bg-white/40', blur: 'blur-[1px]' },
-  { top: '82%', left: '26%', size: 'w-1 h-1', bg: 'bg-amber-400/70', blur: '' },
   { top: '20%', left: '46%', size: 'w-2 h-2', bg: 'bg-amber-200/50', blur: 'blur-[0.5px]' },
-  { top: '72%', left: '58%', size: 'w-1.5 h-1.5', bg: 'bg-white/50', blur: '' },
-  { top: '28%', left: '74%', size: 'w-2 h-2', bg: 'bg-rose-200/50', blur: 'blur-[0.5px]' },
-  { top: '16%', left: '86%', size: 'w-2.5 h-2.5', bg: 'bg-amber-300/45', blur: 'blur-[1px]' },
   { top: '78%', left: '82%', size: 'w-1.5 h-1.5', bg: 'bg-amber-400/55', blur: '' },
-  { top: '48%', left: '92%', size: 'w-2 h-2', bg: 'bg-white/45', blur: '' },
 ];
 
 export default function SiteFooter() {
@@ -61,7 +56,7 @@ export default function SiteFooter() {
   return (
     <footer
       ref={rootRef}
-      className="relative overflow-hidden bg-gradient-to-br from-[#59040a] via-[#850a12] to-[#6e070e] text-white"
+      className="relative overflow-hidden bg-gradient-to-br from-footer-from via-footer-via to-footer-to text-white"
     >
       {/* Background Radial Glow */}
       <div className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
@@ -77,21 +72,10 @@ export default function SiteFooter() {
           />
         ))}
 
-        {/* Decorative Sparkle Stars */}
+        {/* Decorative Sparkle Star */}
         <span
           className="ft-particle absolute top-8 left-[18%] text-[10px] text-amber-300/40 select-none"
           style={{ transform: 'rotate(12deg)' }}
-        >
-          ✦
-        </span>
-        <span
-          className="ft-particle absolute bottom-12 left-[42%] text-xs text-white/35 select-none"
-        >
-          ✦
-        </span>
-        <span
-          className="ft-particle absolute top-10 right-[22%] text-xs text-amber-200/45 select-none"
-          style={{ transform: 'rotate(-15deg)' }}
         >
           ✦
         </span>

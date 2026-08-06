@@ -133,9 +133,9 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
             type="button"
             onClick={() => setIsModalOpen(true)}
             aria-expanded={isModalOpen}
-            className="group min-h-[40px] sm:min-h-[44px] inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-400 px-3 py-2 sm:px-4 sm:py-2.5 text-[11px] sm:text-xs font-extrabold text-slate-950 shadow-lg shadow-amber-400/20 transition hover:bg-amber-300 active:scale-95 text-center"
+            className="group min-h-[40px] sm:min-h-[44px] inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-red px-3 py-2 sm:px-4 sm:py-2.5 text-[11px] sm:text-xs font-extrabold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700 active:scale-95 text-center"
           >
-            <i className="fa-solid fa-bell text-slate-950 text-xs" />
+            <i className="fa-solid fa-bell text-white text-xs" />
             <span>Lihat Pengingat ({phaseData.reminders.length})</span>
           </button>
 
@@ -295,7 +295,7 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
                         handleCloseModal()
                         setTimeout(() => navigate(phaseData.action.link), 280)
                       }}
-                      className="flex-1 min-h-[44px] rounded-xl bg-amber-400 px-4 py-3 text-xs sm:text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-400/20 transition hover:bg-amber-300 active:scale-95 text-center"
+                      className="flex-1 min-h-[44px] rounded-xl bg-brand-red px-4 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700 active:scale-95 text-center"
                     >
                       {phaseData.action.label}
                     </button>

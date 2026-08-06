@@ -64,7 +64,7 @@ function BranchChips({ competitions, activeId, onSelect, compact = false }: { co
             />
             <div className="min-w-0">
               {!compact && (
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                   {c.number}
                 </p>
               )}
@@ -161,7 +161,7 @@ function WorkflowDesktop({ steps, t }: { steps: WorkflowStep[]; t: { rail: strin
           {steps.map((w: WorkflowStep) => (
             <li key={w.step} className="flex min-w-0 flex-col">
               <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3.5 text-center shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                   Langkah {w.step}
                 </p>
                 <p className="mt-1 text-sm font-bold leading-snug text-slate-900">
@@ -356,7 +356,7 @@ function StickyBranchBar({
               className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
             />
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 Ganti cabang · {active.number}
               </p>
               <p className="truncate text-sm font-bold text-slate-900">
@@ -480,7 +480,7 @@ export default function LombaPage() {
   };
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       <StickyBranchBar
         competitions={competitions}
         open={stickyOn}
@@ -493,7 +493,7 @@ export default function LombaPage() {
 
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
         <p className="section-kicker">Panduan lomba</p>
-        <h2 className="mt-2 font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+        <h2 className="mt-2 font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
           Tiga lomba tahun ini
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
@@ -511,7 +511,7 @@ export default function LombaPage() {
 
       {/* Original branch picker — observed for sticky */}
       <section ref={pickerRef} className="space-y-2">
-        <p className="px-1 text-xs font-bold uppercase tracking-wide text-slate-400">
+        <p className="px-1 text-xs font-bold uppercase tracking-wide text-slate-500">
           Pilih cabang
         </p>
         <BranchChips competitions={competitions} activeId={activeId} onSelect={selectBranch} />
@@ -533,14 +533,9 @@ export default function LombaPage() {
             className={`absolute inset-0 bg-gradient-to-t ${t.head} opacity-85`}
           />
           <div className="relative flex h-full min-h-[150px] flex-col justify-end gap-2 px-4 py-5 text-white sm:min-h-[200px] sm:px-7 sm:py-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
-                Lomba {active.number}
-              </span>
-              <span className="rounded-full bg-black/20 px-2.5 py-0.5 text-[10px] font-semibold backdrop-blur">
-                {active.category}
-              </span>
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+              Lomba {active.number} · {active.category}
+            </p>
             <h3 className="font-heading text-xl font-extrabold leading-tight sm:text-3xl">
               {active.title}
             </h3>
@@ -553,7 +548,7 @@ export default function LombaPage() {
         <div className="space-y-6 px-4 py-5 sm:px-7 sm:py-7">
           {active.rooms && active.rooms.length > 0 && (
             <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-400">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
                 Ruangan yang dinilai
               </p>
               <p className="mb-3 text-xs text-slate-500">
@@ -597,7 +592,7 @@ export default function LombaPage() {
           {/* Audience toggle — hanya tampil di mode panitia */}
           {isPanitia && (
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
                 Tampilkan untuk
               </p>
               <div className="rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
@@ -637,7 +632,7 @@ export default function LombaPage() {
                         <span className="text-sm font-bold">{opt.label}</span>
                       </div>
                       <p
-                        className={`mt-1 text-[10px] font-medium ${on ? "text-white/80" : "text-slate-400"}`}
+                        className={`mt-1 text-[10px] font-medium ${on ? "text-white/80" : "text-slate-500"}`}
                       >
                         {opt.sub}
                       </p>
@@ -670,7 +665,7 @@ export default function LombaPage() {
                   />
                 </span>
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
                     {effectiveAudience === "peserta" ? "Panduan Peserta" : "Instruksi Panitia"}
                   </p>
                   <h4 className="font-heading text-lg font-black text-slate-900">
@@ -683,7 +678,7 @@ export default function LombaPage() {
             {/* Ketentuan Utama / Points */}
             {role.points?.length > 0 && (
               <div>
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   {effectiveAudience === "peserta" ? "Ketentuan & Aturan Khusus" : "Tugas & Tanggung Jawab"}
                 </p>
                 <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -710,7 +705,7 @@ export default function LombaPage() {
               <div className="mt-5 rounded-2xl border border-amber-200/80 bg-amber-50/60 p-4">
                 <div className="mb-2.5 flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500 text-white text-xs shadow-sm">
-                    💡
+                    <i className="fa-solid fa-lightbulb" />
                   </span>
                   <p className="text-xs font-black uppercase tracking-wider text-amber-900">
                     Tips & Trik Bertanding
@@ -735,7 +730,7 @@ export default function LombaPage() {
               <div className="mt-5 space-y-4">
                 {role.tools?.length > 0 && (
                   <div>
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                       Perlengkapan Wajib Panitia
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -754,7 +749,7 @@ export default function LombaPage() {
 
                 {role.checklist?.length > 0 && (
                   <div className="rounded-2xl border border-sky-100 bg-white/90 p-3.5 shadow-2xs">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                       Checklist Pengawasan Panitia
                     </p>
                     <ul className="grid gap-2 sm:grid-cols-3 text-xs text-slate-700">

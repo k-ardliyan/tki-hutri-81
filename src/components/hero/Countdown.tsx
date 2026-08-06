@@ -31,7 +31,7 @@ function Cell({ label, value }: { label: string; value: string | number }) {
       >
         {value}
       </div>
-      <div className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+      <div className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
         {label}
       </div>
     </div>
@@ -90,7 +90,7 @@ export default function Countdown({
           <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-600" />
         </div>
         <h4 className="font-heading text-xl font-black text-emerald-900 sm:text-2xl">
-          Acara Sedang Berlangsung! 🎉
+          Acara Sedang Berlangsung!
         </h4>
         <p className="mt-1 text-xs font-semibold text-emerald-700">
           Hari Puncak Lomba Kemerdekaan HUT RI ke-81 sedang dilaksanakan. Selamat bertanding!
@@ -102,7 +102,9 @@ export default function Countdown({
   if (phase === 'FINISHED') {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-amber-200 bg-amber-50/80 p-6 text-center shadow-inner">
-        <div className="mb-2 text-3xl">🇮🇩 ✨</div>
+        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+          <i className="fa-solid fa-flag-checkered text-xl" />
+        </div>
         <h4 className="font-heading text-xl font-black text-amber-900 sm:text-2xl">
           Rangkaian Acara Telah Selesai
         </h4>
