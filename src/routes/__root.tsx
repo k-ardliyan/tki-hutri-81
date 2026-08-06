@@ -93,7 +93,7 @@ function AppLayout() {
   const didMountRef = useRef(false)
 
   const isHome = pathname === '/'
-  const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/audit') || pathname === '/login'
+  const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/audit') || pathname.startsWith('/petugas') || pathname === '/login'
 
   // GSAP page transition — animate on every route change.
   // Skip di area admin: layout (sidebar) harus tetap, hanya content yang ganti.

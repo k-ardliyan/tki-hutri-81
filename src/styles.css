@@ -256,3 +256,27 @@
 .animate-scale-in {
   animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* ── Scanner QR: video center, ratio asli (contain, bukan cover) ── */
+#snack-qr-reader video {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+#snack-qr-reader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Region scan box — center overlay */
+#snack-qr-reader .qr-region-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

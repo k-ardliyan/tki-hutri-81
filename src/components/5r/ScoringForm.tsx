@@ -13,7 +13,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FiveRSubmission } from '../../data/5r'
 import { getFiveRForm } from '../../data/5r'
 import { saveSubmission } from '../../server/functions/5r'
-import { STORAGE_KEY, loadSubmissions } from '../pages/Hasil5RPage'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 import { setFormDirty } from '../../lib/unsavedGuard'
 
@@ -255,10 +254,6 @@ export default function ScoringForm({
       createdAt: now,
       updatedAt: now,
     }
-
-    const existing = loadSubmissions()
-    existing.push(submission)
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
 
     const res = await saveSubmission({ data: submission }).catch(() => ({
       ok: false,

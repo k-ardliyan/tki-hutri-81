@@ -1,13 +1,10 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import { getSession } from '../server/functions/5r'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { requireRole } from '../lib/routeGuard'
 import AuditShell from '../components/layout/AuditShell'
 
 export const Route = createFileRoute('/audit')({
   beforeLoad: async () => {
-    const { role } = await getSession()
-    if (!role) {
-      throw redirect({ to: '/login' })
-    }
+    await requireRole(['audit', 'admin', 'superadmin'])
   },
   component: AuditLayout,
 })

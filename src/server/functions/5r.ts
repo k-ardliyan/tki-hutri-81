@@ -1,23 +1,19 @@
 /**
- * Server functions — 5R audit: forms, rooms, submissions, role-based auth.
+ * Server functions — 5R audit: forms, rooms, submissions.
  *
- * Two roles:
- * - panitia (admin): full access (isi, hasil, delete)
- * - audit (non-admin): read-only (view results, room status)
- *
- * Auth: login username/password per role, cookie HttpOnly `tki5r_role`.
+ * Auth pindah ke src/server/functions/auth.ts (DB users + cookie session).
+ * Forms/rooms = static JSON (src/data/5r). Submissions = DB (five_r_submissions).
  */
 import { createServerFn } from '@tanstack/react-start'
-import { getCookie, setCookie } from '@tanstack/react-start/server'
+import { eq, desc } from 'drizzle-orm'
 import { fiveRForms, fiveRRooms, getFiveRForm, getFiveRRoom } from '../../data/5r'
 import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r'
-
-const ROLE_COOKIE = 'tki5r_role'
-export type UserRole = 'panitia' | 'audit'
+import { assertDb } from '../db'
+import { fiveRSubmissions } from '../db/schema'
 
 export interface FiveRSubmissionStored extends FiveRSubmission {}
 
-// ─── Data (JSON) ───
+// ─── Data (JSON statis) ───
 
 export const getForms = createServerFn({ method: 'GET' }).handler(async (): Promise<FiveRForm[]> => {
   return fiveRForms
@@ -27,66 +23,30 @@ export const getRooms = createServerFn({ method: 'GET' }).handler(async (): Prom
   return fiveRRooms
 })
 
-// ─── Auth ───
+// ─── Submissions (DB) ───
 
-/** Get current session role. Returns role or null. */
-export const getSession = createServerFn({ method: 'GET' }).handler(async (): Promise<{ role: UserRole | null }> => {
-  const role = getCookie(ROLE_COOKIE)
-  if (role === 'panitia' || role === 'audit') return { role }
-  return { role: null }
+/** List semua submission, terbaru dulu. */
+export const getSubmissions = createServerFn({ method: 'GET' }).handler(async (): Promise<FiveRSubmissionStored[]> => {
+  const db = assertDb()
+  const rows = await db.select().from(fiveRSubmissions).orderBy(desc(fiveRSubmissions.createdAt))
+  return rows.map((r) => ({
+    id: r.id,
+    roomId: r.roomId,
+    formId: r.formId,
+    auditor: r.auditor,
+    answers: r.answers as Record<string, number>,
+    notes: r.notes as Record<string, string>,
+    submittedAt: r.submittedAt.toISOString(),
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+    createdBy: r.createdBy ?? null,
+  }))
 })
 
-/** Login with credentials — auto-detect role from env. Sets cookie on success. */
-export const login = createServerFn({ method: 'POST' })
-  .validator((d: { username: string; password: string }) => d)
-  .handler(async ({ data }): Promise<{ ok: boolean; role?: UserRole; error?: string }> => {
-    const { username, password } = data
-
-    const panitia = {
-      user: process.env.PANITIA_USER ?? 'admin',
-      pass: process.env.PANITIA_PASS ?? 'admin123',
-    }
-    const audit = {
-      user: process.env.AUDIT_USER ?? 'audit',
-      pass: process.env.AUDIT_PASS ?? 'audit123',
-    }
-
-    if (username === panitia.user && password === panitia.pass) {
-      setCookie(ROLE_COOKIE, 'panitia', {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      })
-      return { ok: true, role: 'panitia' }
-    }
-    if (username === audit.user && password === audit.pass) {
-      setCookie(ROLE_COOKIE, 'audit', {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      })
-      return { ok: true, role: 'audit' }
-    }
-    return { ok: false, error: 'Username atau password salah' }
-  })
-
-export const logout = createServerFn({ method: 'POST' }).handler(async () => {
-  setCookie(ROLE_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 })
-  return { ok: true }
-})
-
-// ─── Submission (stub — localStorage di client; DB nanti) ───
-
-/**
- * Validasi + simpan submission.
- * Saat ini: validasi struktur & skor; storage dilakukan client-side.
- * Saat DB ready: tulis ke tabel five_r_submissions.
- */
+/** Validasi + simpan submission ke DB. */
 export const saveSubmission = createServerFn({ method: 'POST' })
   .validator((d: FiveRSubmission) => d)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ ok: boolean; id?: string; error?: string }> => {
     const form = getFiveRForm(data.formId)
     const room = getFiveRRoom(data.roomId)
     if (!form) return { ok: false, error: `Form tidak dikenal: ${data.formId}` }
@@ -101,6 +61,36 @@ export const saveSubmission = createServerFn({ method: 'POST' })
         }
       }
     }
-    // TODO(DB): INSERT INTO five_r_submissions ... return id
-    return { ok: true, id: data.id, message: 'Tersimpan (sementara di browser)' }
+
+    // Get username from session (server-side, never trust client)
+    const { getSession } = await import('./auth')
+    const session = await getSession()
+    const createdBy = session.username ?? null
+
+    const db = assertDb()
+    await db
+      .insert(fiveRSubmissions)
+      .values({
+        id: data.id,
+        roomId: data.roomId,
+        formId: data.formId,
+        auditor: data.auditor,
+        answers: data.answers,
+        notes: data.notes,
+        submittedAt: new Date(data.submittedAt),
+        createdAt: new Date(data.createdAt),
+        updatedAt: new Date(data.updatedAt),
+        createdBy,
+      })
+      .onConflictDoNothing()
+    return { ok: true, id: data.id }
+  })
+
+/** Hapus submission by id. */
+export const deleteSubmission = createServerFn({ method: 'POST' })
+  .validator((d: { id: string }) => d)
+  .handler(async ({ data }): Promise<{ ok: boolean }> => {
+    const db = assertDb()
+    await db.delete(fiveRSubmissions).where(eq(fiveRSubmissions.id, data.id))
+    return { ok: true }
   })

@@ -1,0 +1,612 @@
+[
+  {
+    "nama": "Arief Raihan Syauqie",
+    "nip": "",
+    "divisi": ""
+  },
+  {
+    "nama": "AKBAR ADJI PRADANA",
+    "nip": "250173",
+    "divisi": "CENTRAL SALES AREA"
+  },
+  {
+    "nama": "DIAN KURNIA WIDYA BUANA",
+    "nip": "250158",
+    "divisi": "CENTRAL SALES AREA"
+  },
+  {
+    "nama": "MUHAMAD AZIM MUSTAJIB",
+    "nip": "230120",
+    "divisi": "CENTRAL SALES AREA"
+  },
+  {
+    "nama": "MUHAMMAD KASTONI",
+    "nip": "220085",
+    "divisi": "CENTRAL SALES AREA"
+  },
+  {
+    "nama": "PANDITA ARDININGRUM ARIFIANTO",
+    "nip": "240140",
+    "divisi": "CENTRAL SALES AREA"
+  },
+  {
+    "nama": "ANNISA FEBRIANI",
+    "nip": "240144",
+    "divisi": "Closepay"
+  },
+  {
+    "nama": "FAJAR UTAMA",
+    "nip": "250155",
+    "divisi": "Closepay"
+  },
+  {
+    "nama": "ILHAM DWI ATMOJO",
+    "nip": "240152",
+    "divisi": "Closepay"
+  },
+  {
+    "nama": "TAUFIK RAHMAD HIDAYANTO",
+    "nip": "220115",
+    "divisi": "Closepay"
+  },
+  {
+    "nama": "DIAH AYU WULANDARI",
+    "nip": "210053",
+    "divisi": "CUSTOMER SERVICE"
+  },
+  {
+    "nama": "IDZA NUR HAIDA",
+    "nip": "200035",
+    "divisi": "CUSTOMER SERVICE"
+  },
+  {
+    "nama": "RISDA NINGRUM",
+    "nip": "24042026",
+    "divisi": "CUSTOMER SERVICE"
+  },
+  {
+    "nama": "SERLY HARTINA",
+    "nip": "210054",
+    "divisi": "CUSTOMER SERVICE"
+  },
+  {
+    "nama": "ARIF ARINTO",
+    "nip": "180001",
+    "divisi": "DIVISI OPERASIONAL"
+  },
+  {
+    "nama": "BRAMA DIWANGKARA",
+    "nip": "0010122",
+    "divisi": "DIVISI OPERASIONAL"
+  },
+  {
+    "nama": "DAFFA EXA FAWWAZ",
+    "nip": "260184",
+    "divisi": "EASTERN SALES AREA"
+  },
+  {
+    "nama": "IKA ROSIDAH",
+    "nip": "220100",
+    "divisi": "EASTERN SALES AREA"
+  },
+  {
+    "nama": "IKMAL KHOLIS",
+    "nip": "220099",
+    "divisi": "EASTERN SALES AREA"
+  },
+  {
+    "nama": "IRWAN SA'BAN",
+    "nip": "210066",
+    "divisi": "EASTERN SALES AREA"
+  },
+  {
+    "nama": "MOCHAMAD YUSUF QARDAFI",
+    "nip": "230134",
+    "divisi": "EASTERN SALES AREA"
+  },
+  {
+    "nama": "LIA DWI NINGRUM",
+    "nip": "250162",
+    "divisi": "FINANCE"
+  },
+  {
+    "nama": "LUTFAH FADILAH",
+    "nip": "260183",
+    "divisi": "FINANCE"
+  },
+  {
+    "nama": "RADEN RORO DWI IRAWATI",
+    "nip": "190013",
+    "divisi": "FINANCE"
+  },
+  {
+    "nama": "SITI KHUMAIROH",
+    "nip": "230119",
+    "divisi": "FINANCE"
+  },
+  {
+    "nama": "VINA PUTRI NEMIRAMAS",
+    "nip": "200036",
+    "divisi": "FINANCE"
+  },
+  {
+    "nama": "ANDREA PRAHITA JANARDANA",
+    "nip": "0070122",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "FARRAS AFIFNI ZAKKI",
+    "nip": "220111",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "RAFIU SIDQI",
+    "nip": "250161",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "SINDU KISNA INDRACAHYA",
+    "nip": "0020122",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "TEGAR SANUBARI",
+    "nip": "220116",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "UMI KHOIRIYAH",
+    "nip": "0040122",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "YENI SOLIKAH",
+    "nip": "230132",
+    "divisi": "FTP"
+  },
+  {
+    "nama": "AISYAH NIMAS ADARA",
+    "nip": "190015",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "HAPSARI WAHYU WIDYANINGRUM",
+    "nip": "230122",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "IRFAN KURNIA",
+    "nip": "220096",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "KRISTRIYANTO",
+    "nip": "220101",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "MUHAMAD ALI MUSTOFA",
+    "nip": "220103",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "OGAN OKTAVIANTO",
+    "nip": "190017",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "ULINUHA DANI FADLAN",
+    "nip": "210064",
+    "divisi": "HARDWARE"
+  },
+  {
+    "nama": "Ferry Adi Setyawan",
+    "nip": "250165",
+    "divisi": "HR"
+  },
+  {
+    "nama": "ALFIAN DIMAS SAPUTRA",
+    "nip": "210042",
+    "divisi": "HRCONTENT"
+  },
+  {
+    "nama": "ZAENUDIN IFKHAR NUGROHO",
+    "nip": "220087",
+    "divisi": "HRCONTENT"
+  },
+  {
+    "nama": "LULA LEUL MAWAHIB",
+    "nip": "220112",
+    "divisi": "HRGA"
+  },
+  {
+    "nama": "M. MIFTAKUL MA'RUF",
+    "nip": "250159",
+    "divisi": "HRGA"
+  },
+  {
+    "nama": "ROHMAD ABDUL SYAKUR",
+    "nip": "240153",
+    "divisi": "HRGA"
+  },
+  {
+    "nama": "AFIFAH WIDYASTUTI",
+    "nip": "240143",
+    "divisi": "HRLEGAL"
+  },
+  {
+    "nama": "IPOK DIVA NAIN",
+    "nip": "250170",
+    "divisi": "HRLEGAL"
+  },
+  {
+    "nama": "ADI ARISMAN",
+    "nip": "220109",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "AMELIA FRISKA PERTIWI",
+    "nip": "230133",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "DEDY HIMAWAN SETYADI",
+    "nip": "210076",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "ERVINA FAUZIAH",
+    "nip": "220117",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "INUNG PRATAMA",
+    "nip": "260182",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "KURNIA SARI",
+    "nip": "200034",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "MEI AMBARWATI",
+    "nip": "200026",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "RIFANDI DWI SULISTIYO",
+    "nip": "210067",
+    "divisi": "IMPLEMENTATOR"
+  },
+  {
+    "nama": "ARMITHA SEKAR PRASTITA",
+    "nip": "24042025",
+    "divisi": "MARKETING"
+  },
+  {
+    "nama": "DIAN NUR WIDYANINGRUM",
+    "nip": "200027",
+    "divisi": "MARKETING"
+  },
+  {
+    "nama": "INDAH ISTIQLALLIA",
+    "nip": "250171",
+    "divisi": "MARKETING"
+  },
+  {
+    "nama": "Monna Marissa",
+    "nip": "",
+    "divisi": "OPERASIONAL"
+  },
+  {
+    "nama": "ADINDA TIFANI KARUNIA",
+    "nip": "PKL260047",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "AHMAD AZIZY AFIFUDIN",
+    "nip": "PKL260048",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "ARGAT MULANG JAYA",
+    "nip": "PKL260036",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "ARIF FITRIAN VAHRI ABDULLAH",
+    "nip": "PKL250001",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "ATSNA MAULIDA QUROTIL 'AINI",
+    "nip": "PKL260049",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "AUDIA AL FARIZA",
+    "nip": "PKL260050",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "AZZAHRA PUTRI DESTITA",
+    "nip": "PKL260051",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "BARRA RIZKY WIDIYANTO",
+    "nip": "PKL260052",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "BILAL HAMZAH ARDIANSYAH",
+    "nip": "PKL260053",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "CITA CHOTMILLATI",
+    "nip": "PKL260054",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "DANIAL MAULIDIA",
+    "nip": "PKL260055",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "KAHNA AYATIN NUJMI",
+    "nip": "PKL260056",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "KARINA DEA ROSA",
+    "nip": "PKL260040",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "MAHATMA RAFI NAYAKA",
+    "nip": "PKL260057",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "MEILAIN DWI RISANTI",
+    "nip": "PKL250017",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "MUHAMAD DAVA ALGHAZALI",
+    "nip": "PKL260058",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "MUHAMMAD ALDY WIBISONO",
+    "nip": "PKL260059",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "MUHAMMAD RIDWAN ADZAHABI",
+    "nip": "PKL260060",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "ORLANDO KENZO LIONEL PUTRA",
+    "nip": "PKL260061",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "RAMA SATYO SASONGKO",
+    "nip": "PKL260062",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "SERLI WULAN SAFITRI",
+    "nip": "PKL260063",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "TALITHA ARISTAWATI",
+    "nip": "PKL260064",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "YURID WILDAN TAGHSYA",
+    "nip": "PKL260046",
+    "divisi": "PKL"
+  },
+  {
+    "nama": "AZIZAH WISMANINGSIH",
+    "nip": "210055",
+    "divisi": "PRODUK"
+  },
+  {
+    "nama": "WUNTAT WIRANTO",
+    "nip": "190009",
+    "divisi": "PRODUK"
+  },
+  {
+    "nama": "AGUNG PUTRO SETIAWAN",
+    "nip": "190004",
+    "divisi": "SALES & MARKETING"
+  },
+  {
+    "nama": "AGUNG BURHANUDIN YUSUF",
+    "nip": "180006",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "AJI SETIAWAN",
+    "nip": "230126",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "AMRI IQRO SAMUDRA AL FATIHAH",
+    "nip": "240142",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "APRELA AGIF SOFYAN",
+    "nip": "250176",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "ARIK RIKO PRASETYA",
+    "nip": "250156",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "ASYELLA VERATIA AZAHRA PUTRI QODRI",
+    "nip": "250169",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "IBRAHIM",
+    "nip": "250174",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "ILHAM IZDHIHAR",
+    "nip": "230125",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "INDRA KURNIAWAN",
+    "nip": "190011",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "JOKO MAKRUF",
+    "nip": "180005",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "MARTISA RINA RAHAYU",
+    "nip": "24042027",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "MOH.IRVAN ANDRIANSYAH",
+    "nip": "260178",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "MUHAMAD JUMADIL AKBAR",
+    "nip": "250167",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "NUUR ZAKKI ZAMANI PAMUNGKAS",
+    "nip": "220107",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "PHEPBI MUHAMMAD",
+    "nip": "200028",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "SANDRIKA",
+    "nip": "240151",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "TEGUH WAHYU SAPUTRO",
+    "nip": "250166",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "WARTO NUR PRASETYO",
+    "nip": "190010",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "YAZID IHSAN",
+    "nip": "240150",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "YOGO ARI NUGROHO",
+    "nip": "210063",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "YUDI KURNIAWAN",
+    "nip": "180002",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "ZULKARNAIN MIRANDA",
+    "nip": "230129",
+    "divisi": "TEKNOLOGI"
+  },
+  {
+    "nama": "KHOLIFATUL ARDLIYAN",
+    "nip": "240147",
+    "divisi": "TEKNOLOGI ERP"
+  },
+  {
+    "nama": "MUHAMMAD BUDIANA EKA FARUQI",
+    "nip": "250168",
+    "divisi": "TEKNOLOGI ERP"
+  },
+  {
+    "nama": "MUHAMMAD SETIADI PRATAMA",
+    "nip": "240148",
+    "divisi": "TEKNOLOGI ERP"
+  },
+  {
+    "nama": "NUR WAHYUDI",
+    "nip": "210051",
+    "divisi": "TEKNOLOGI ERP"
+  },
+  {
+    "nama": "VIKA ALPIANA",
+    "nip": "240146",
+    "divisi": "TEKNOLOGI ERP"
+  },
+  {
+    "nama": "ZAINAL ABIDIN",
+    "nip": "250160",
+    "divisi": "TEKNOLOGI ERP"
+  },
+  {
+    "nama": "Aliciea Bunga Septania",
+    "nip": "",
+    "divisi": "TKI Cafe"
+  },
+  {
+    "nama": "Ella",
+    "nip": "",
+    "divisi": "TKI Cafe"
+  },
+  {
+    "nama": "Istiana",
+    "nip": "",
+    "divisi": "TKI Cafe"
+  },
+  {
+    "nama": "ADI  MAS RIZAL FADILLAH",
+    "nip": "220098",
+    "divisi": "WESTERN SALES AREA"
+  },
+  {
+    "nama": "BERYL GALIH ARDHIANSYAH",
+    "nip": "210047",
+    "divisi": "WESTERN SALES AREA"
+  },
+  {
+    "nama": "INTAN NARULITA BUDYAWAN",
+    "nip": "220086",
+    "divisi": "WESTERN SALES AREA"
+  },
+  {
+    "nama": "NABIIL HILMI MAKAARIM",
+    "nip": "250172",
+    "divisi": "WESTERN SALES AREA"
+  },
+  {
+    "nama": "NUR UDIN SYAHRONI",
+    "nip": "260181",
+    "divisi": "WESTERN SALES AREA"
+  }
+]

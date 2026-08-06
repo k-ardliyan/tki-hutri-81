@@ -1,62 +1,52 @@
 /**
  * Hasil5RPage — halaman publik (read-only) hasil penilaian 5R.
  *
+ * Data dari DB (getSubmissions) — bukan localStorage.
  * Design improvements:
  * - Ranking badges: gold/silver/bronze for top 3
  * - Color-coded scores: green > 80, amber 60-80, red < 60
  * - Category progress bars with semantic colors
  * - Better visual hierarchy
  */
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLoaderData } from '@tanstack/react-router'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
 
-export const STORAGE_KEY = 'tki5r:submissions'
+export const STORAGE_KEY = 'tki5r:submissions' // legacy localStorage key (tidak dipakai lagi untuk baca)
 
 export function loadSubmissions(): FiveRSubmission[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as FiveRSubmission[]
-    return parsed.map((s) => ({
-      ...s,
-      createdAt: s.createdAt ?? s.submittedAt,
-      updatedAt: s.updatedAt ?? s.submittedAt,
-    }))
-  } catch {
-    return []
-  }
+  // Legacy: localStorage tidak lagi jadi sumber data — kosong agar UI pakai server.
+  return []
 }
 
 export default function Hasil5RPage() {
-  const { rooms, forms } = useLoaderData({ from: '/5r' })
-  const [submissions, setSubmissions] = useState<FiveRSubmission[]>([])
-
-  useEffect(() => {
-    setSubmissions(loadSubmissions())
-  }, [])
+  const { rooms, forms, submissions } = useLoaderData({ from: '/5r' }) as {
+    rooms: import('../../data/5r').FiveRRoom[]
+    forms: import('../../data/5r').FiveRForm[]
+    submissions: FiveRSubmission[]
+  }
+  const [subs] = useState<FiveRSubmission[]>(submissions)
 
   const formMap = new Map<string, FiveRForm>(forms.map((f) => [f.id, f]))
 
   const roomScores = rooms
     .map((room) => {
-      const subs = submissions.filter((s) => s.roomId === room.id)
-      const scores = subs
+      const roomSubs = subs.filter((s) => s.roomId === room.id)
+      const scores = roomSubs
         .map((s) => {
           const form = formMap.get(s.formId)
           return form ? scoreSubmission(form, s) : null
         })
         .filter((x): x is NonNullable<typeof x> => x !== null)
-      const last = subs.length > 0
-        ? subs.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+      const last = roomSubs.length > 0
+        ? roomSubs.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
         : null
-      return { room, count: subs.length, final: aggregateRoom(scores), scores, last }
+      return { room, count: roomSubs.length, final: aggregateRoom(scores), scores, last }
     })
     .sort((a, b) => b.final - a.final)
 
-  const hasData = submissions.length > 0
+  const hasData = subs.length > 0
 
   return (
     <div className="space-y-5 sm:space-y-6">

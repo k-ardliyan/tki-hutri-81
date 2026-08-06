@@ -1,18 +1,24 @@
 /**
- * LoginPage — satu form. Role terdeteksi otomatis dari kredensial.
+ * LoginPage — satu form. Role terdeteksi otomatis dari kredensial (DB users).
  *
- * Cocok PANITIA_* → /panitia-area; cocok AUDIT_* → /audit-area.
+ * Cocok superadmin/admin → /admin; petugas → /petugas; audit → /audit.
  * Tidak ada tab selector — deteksi murni server-side.
  */
 import { useState } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import { getSession, login } from '../server/functions/5r'
+import { getSession, login } from '../server/functions/auth'
+import type { UserRole } from '../lib/auth'
+
+function homeForRole(role: UserRole): string {
+  if (role === 'petugas') return '/petugas'
+  if (role === 'audit') return '/audit'
+  return '/admin'
+}
 
 export const Route = createFileRoute('/login')({
   loader: async () => {
     const { role } = await getSession()
-    if (role === 'panitia') throw redirect({ to: '/admin' })
-    if (role === 'audit') throw redirect({ to: '/audit' })
+    if (role) throw redirect({ to: homeForRole(role) })
     return {}
   },
   component: LoginPage,
@@ -31,8 +37,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await login({ data: { username, password } })
-      if (res.ok) {
-        navigate({ to: res.role === 'panitia' ? '/admin' : '/audit' })
+      if (res.ok && res.role) {
+        navigate({ to: homeForRole(res.role) })
       } else {
         setError(res.error ?? 'Login gagal')
       }
@@ -66,7 +72,7 @@ export default function LoginPage() {
               autoComplete="username"
               required
               className="w-full rounded-[var(--radius-md)] border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 transition placeholder:text-slate-300 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 focus:outline-none"
-              placeholder="admin / audit"
+              placeholder="Username"
             />
           </div>
 

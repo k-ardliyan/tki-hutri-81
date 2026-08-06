@@ -1,6 +1,6 @@
 /**
  * Drizzle ORM schema — HUT RI ke-81 TKI x FTP
- * PostgreSQL (Aiven) — 11 tabel
+ * PostgreSQL (Aiven) — 15 tabel (11 existing + employees + users + snack_sessions + redemptions + five_r_submissions)
  *
  * Konvensi:
  * - snake_case naming
@@ -8,6 +8,12 @@
  * - text (bukan varchar) untuk konten
  * - jsonb untuk data nested (workflow, reminders, sections)
  * - cascade delete untuk relasi parent→child
+ *
+ * Model employee-centric:
+ * - employees = master semua karyawan (nama, nip, divisi, is_snack_eligible)
+ * - teams/team_members = junction: 1 employee → 1 tim (employee_id FK)
+ * - users = auth DB (role: superadmin/admin/petugas/audit)
+ * - snack_sessions + redemptions = anti-dup UNIQUE(employee_id, session_id)
  */
 import {
   pgTable,
@@ -102,19 +108,27 @@ export const competitionSections = pgTable('competition_sections', {
   sortOrder: integer('sort_order').notNull(),
 })
 
-// ─── Teams (13 baris — 8 putra, 5 putri) ───
-export const teams = pgTable(
-  'teams',
-  {
-    id: serial('id').primaryKey(),
-    kategori: text('kategori').$type<'putra' | 'putri'>().notNull(),
-    nomor: integer('nomor').notNull(),
-    nama: text('nama').notNull(),
-  },
-  (t) => [unique('teams_kategori_nomor').on(t.kategori, t.nomor)],
-)
+// ─── Employees (122 baris — master semua karyawan) ───
+export const employees = pgTable('employees', {
+  id: serial('id').primaryKey(),
+  nama: text('nama').notNull(),
+  nip: text('nip').unique(),
+  divisi: text('divisi'),
+  isSnackEligible: boolean('is_snack_eligible').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
 
-// ─── Team Members (73 baris) ───
+// ─── Teams (14 baris — 8 putra, 5 putri, 1 panitia) ───
+export const teams = pgTable('teams', {
+  id: serial('id').primaryKey(),
+  kategori: text('kategori').$type<'putra' | 'putri' | 'panitia'>().notNull(),
+  nomor: integer('nomor'), // panitia → NULL
+  nama: text('nama').notNull(),
+  kode: text('kode').unique(), // "PUTRA-1", "PUTRI-3", "PANITIA" → isi QR gelang
+})
+
+// ─── Team Members (93 baris — junction: 1 employee → 1 tim) ───
 export const teamMembers = pgTable(
   'team_members',
   {
@@ -122,10 +136,12 @@ export const teamMembers = pgTable(
     teamId: integer('team_id')
       .references(() => teams.id, { onDelete: 'cascade' })
       .notNull(),
-    nama: text('nama').notNull(),
+    employeeId: integer('employee_id')
+      .references(() => employees.id, { onDelete: 'cascade' })
+      .notNull(),
     sortOrder: integer('sort_order').notNull(),
   },
-  (t) => [unique('team_members_team_sort').on(t.teamId, t.sortOrder)],
+  (t) => [unique('team_members_team_employee').on(t.teamId, t.employeeId)],
 )
 
 // ─── Landing Highlights (4 baris) ───
@@ -153,6 +169,57 @@ export const eventPhases = pgTable('event_phases', {
   actionLabel: text('action_label').notNull(),
   actionLink: text('action_link').notNull(),
   sortOrder: integer('sort_order').notNull(),
+})
+
+// ─── Users (auth DB — role: superadmin/admin/petugas/audit) ───
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  employeeId: integer('employee_id').references(() => employees.id, { onDelete: 'set null' }),
+  username: text('username').unique().notNull(),
+  passwordHash: text('password_hash').notNull(),
+  role: text('role').$type<'superadmin' | 'admin' | 'petugas' | 'audit'>().notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// ─── Snack Sessions (sesi snack, kuota di-set admin) ───
+export const snackSessions = pgTable('snack_sessions', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  quota: integer('quota').default(0).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// ─── Redemptions (per-individu, anti-dup UNIQUE(employee_id, session_id)) ───
+export const redemptions = pgTable(
+  'redemptions',
+  {
+    id: serial('id').primaryKey(),
+    employeeId: integer('employee_id')
+      .references(() => employees.id, { onDelete: 'cascade' })
+      .notNull(),
+    sessionId: integer('session_id')
+      .references(() => snackSessions.id, { onDelete: 'cascade' })
+      .notNull(),
+    claimedBy: text('claimed_by').notNull(),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('redemptions_employee_session').on(t.employeeId, t.sessionId)],
+)
+
+// ─── Five R Submissions (5R audit — migrasi dari localStorage) ───
+export const fiveRSubmissions = pgTable('five_r_submissions', {
+  id: text('id').primaryKey(), // uuid dari client
+  roomId: text('room_id').notNull(),
+  formId: text('form_id').notNull(),
+  auditor: text('auditor').notNull(),
+  answers: jsonb('answers').notNull(),
+  notes: jsonb('notes').notNull(),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  createdBy: text('created_by'), // username dari session login
 })
 
 // ─── TS Types for JSONB columns ───

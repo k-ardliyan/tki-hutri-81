@@ -1,17 +1,18 @@
 /**
  * AppShell — shell generik untuk area internal (admin/audit).
  *
- * Mobile (< lg): header + bottom tab bar.
+ * Mobile (< lg): header + bottom tab bar (max 5 items + "Lainnya" sheet).
  * Desktop (lg+): left sidebar + content.
  *
  * Props:
  * - nav: daftar menu {id, label, icon, path}
  * - title: judul brand di header/sidebar
  * - subtitle: teks kecil di bawah title
+ * - primaryNav: id yang tampil di bottom bar (default: semua, max 5)
  */
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
-import { logout } from '../../server/functions/5r'
+import { logout } from '../../server/functions/auth'
 import { isFormDirty, setFormDirty } from '../../lib/unsavedGuard'
 
 export interface ShellNavItem {
@@ -21,21 +22,38 @@ export interface ShellNavItem {
   path: string
 }
 
+const MAX_BOTTOM_ITEMS = 5
+
 export default function AppShell({
   nav,
   title,
   subtitle = 'HUT RI ke-81',
+  primaryNav,
   children,
 }: {
   nav: ShellNavItem[]
   title: string
   subtitle?: string
+  primaryNav?: string[]
   children: React.ReactNode
 }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
 
-  const active = nav.find((n) => pathname === n.path || (n.path !== nav[0].path && pathname.startsWith(n.path)))?.id ?? nav[0].id
+  // Aktif = item dengan path prefix terpanjang yang match pathname
+  // (hindari /admin/snack menelan /admin/snack/gelang atau /admin/snack/sessions)
+  const active =
+    nav
+      .filter((n) => pathname === n.path || pathname.startsWith(`${n.path}/`) || (n.path !== nav[0].path && pathname.startsWith(n.path)))
+      .sort((a, b) => b.path.length - a.path.length)[0]?.id ?? nav[0].id
+
+  // Determine which items go in bottom bar vs "Lainnya" sheet
+  const primaryIds = primaryNav ?? nav.map((n) => n.id)
+  const bottomItems = nav.filter((n) => primaryIds.includes(n.id)).slice(0, MAX_BOTTOM_ITEMS)
+  const overflowItems = nav.filter((n) => !bottomItems.includes(n))
+  const showOverflow = overflowItems.length > 0
+
+  const [showSheet, setShowSheet] = useState(false)
 
   const handleLogout = async () => {
     if (isFormDirty()) {
@@ -47,19 +65,17 @@ export default function AppShell({
     navigate({ to: '/login' })
   }
 
-  // ── Unsaved-form guard (modal konfirmasi saat keluar halaman isi) ──
+  // ── Unsaved-form guard ──
   const router = useRouter()
   const [showLeave, setShowLeave] = useState(false)
   const allowNavRef = useRef(false)
   const showLeaveRef = useRef(false)
   const pendingRef = useRef<{ to: string; logout?: boolean } | null>(null)
 
-  // Back/forward browser: simpan target, tahan navigasi + munculkan dialog
   useEffect(() => {
     return router.subscribe('onBeforeNavigate', (e) => {
       if (isFormDirty() && !allowNavRef.current && !showLeaveRef.current) {
         showLeaveRef.current = true
-        // simpan tujuan navigasi dari event agar confirm bisa navigate ke sana
         const targetHref: string = (e as any).toLocation?.href
         pendingRef.current = targetHref ? { to: targetHref } : null
         setShowLeave(true)
@@ -79,32 +95,16 @@ export default function AppShell({
       setShowLeave(true)
       return
     }
-    if (opts?.logout) {
-      void handleLogout()
-      return
-    }
+    if (opts?.logout) { void handleLogout(); return }
     navigate({ to })
   }
 
-  const cancelLeave = () => {
-    pendingRef.current = null
-    showLeaveRef.current = false
-    setShowLeave(false)
-  }
-
+  const cancelLeave = () => { pendingRef.current = null; showLeaveRef.current = false; setShowLeave(false) }
   const confirmLeave = () => {
-    setFormDirty(false)
-    showLeaveRef.current = false
-    setShowLeave(false)
-    const pending = pendingRef.current
-    pendingRef.current = null
-    if (pending?.logout) {
-      void logout().then(() => navigate({ to: pending.to }))
-    } else if (pending) {
-      // pending.to bisa berupa href penuh (dari onBeforeNavigate) atau path
-      navigate(pending.to.startsWith('http') || pending.to.includes('?') ? { href: pending.to } : { to: pending.to })
-    }
-    // pending == null (edge) → user tinggal tekan lagi, sekarang bersih
+    setFormDirty(false); showLeaveRef.current = false; setShowLeave(false)
+    const pending = pendingRef.current; pendingRef.current = null
+    if (pending?.logout) { void logout().then(() => navigate({ to: pending.to })) }
+    else if (pending) { navigate(pending.to.startsWith('http') || pending.to.includes('?') ? { href: pending.to } : { to: pending.to }) }
   }
 
   return (
@@ -129,11 +129,7 @@ export default function AppShell({
                 key={item.id}
                 type="button"
                 onClick={() => requestNav(item.path)}
-                className={`flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-semibold transition ${
-                  isActive
-                    ? 'bg-brand-red text-white'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                }`}
+                className={`flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-brand-red text-white' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <i className={`fa-solid ${item.icon} w-5 text-center text-xs`} />
                 {item.label}
@@ -143,20 +139,11 @@ export default function AppShell({
         </nav>
 
         <div className="space-y-1 border-t border-slate-200 px-3 py-3">
-          <a
-            href="/"
-            className="flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-sm font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
-          >
-            <i className="fa-solid fa-arrow-left w-5 text-center text-xs" />
-            Situs
+          <a href="/" className="flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-sm font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600">
+            <i className="fa-solid fa-arrow-left w-5 text-center text-xs" />Situs
           </a>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50"
-          >
-            <i className="fa-solid fa-right-from-bracket w-5 text-center text-xs" />
-            Keluar
+          <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50">
+            <i className="fa-solid fa-right-from-bracket w-5 text-center text-xs" />Keluar
           </button>
         </div>
       </aside>
@@ -172,13 +159,7 @@ export default function AppShell({
             <p className="text-[10px] text-slate-400">{subtitle}</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200"
-        >
-          Keluar
-        </button>
+        <button type="button" onClick={handleLogout} className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200">Keluar</button>
       </header>
 
       {/* ── Content ── */}
@@ -187,69 +168,90 @@ export default function AppShell({
       {/* ── Mobile bottom tab bar ── */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-xl lg:hidden">
         <div className="flex">
-          {nav.map((item) => {
+          {bottomItems.map((item) => {
             const isActive = active === item.id
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => requestNav(item.path)}
-                className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${
-                  isActive ? 'text-brand-red' : 'text-slate-400'
-                }`}
+                className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${isActive ? 'text-brand-red' : 'text-slate-400'}`}
               >
-                {isActive && (
-                  <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-brand-red" />
-                )}
+                {isActive && <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-brand-red" />}
                 <i className={`fa-solid ${item.icon} text-sm`} />
                 <span>{item.label}</span>
               </button>
             )
           })}
+          {/* "Lainnya" overflow button */}
+          {showOverflow && (
+            <button
+              type="button"
+              onClick={() => setShowSheet(true)}
+              className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${overflowItems.some((n) => n.id === active) ? 'text-brand-red' : 'text-slate-400'}`}
+            >
+              {overflowItems.some((n) => n.id === active) && <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-brand-red" />}
+              <i className="fa-solid fa-ellipsis text-sm" />
+              <span>Lainnya</span>
+            </button>
+          )}
         </div>
       </nav>
 
-      {/* ── Leave-form confirmation dialog ── */}
-      {showLeave && (
+      {/* ── Bottom sheet: menu lainnya ── */}
+      {showSheet && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="leave-dialog-title"
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          onMouseDown={() => cancelLeave()}
+          className="fixed inset-0 z-[70] bg-slate-900/40 backdrop-blur-sm lg:hidden"
+          onClick={() => setShowSheet(false)}
         >
           <div
-            className="w-full max-w-sm rounded-[var(--radius-lg)] bg-white p-5 shadow-2xl"
-            onMouseDown={(e) => e.stopPropagation()}
+            className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
+            {/* Drag indicator */}
+            <div className="flex justify-center py-2"><div className="h-1 w-10 rounded-full bg-slate-200" /></div>
+            <div className="px-4 pb-4">
+              <p className="mb-3 text-xs font-bold text-slate-500">Menu Lainnya</p>
+              <div className="space-y-1">
+                {overflowItems.map((item) => {
+                  const isActive = active === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => { setShowSheet(false); requestNav(item.path) }}
+                      className={`flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-3 text-left transition ${isActive ? 'bg-brand-red text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <i className={`fa-solid ${item.icon} w-5 text-center text-sm`} />
+                      <span className="text-sm font-semibold">{item.label}</span>
+                      {isActive && <i className="fa-solid fa-check ml-auto text-xs" />}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Leave-form confirmation dialog ── */}
+      {showLeave && (
+        <div role="dialog" aria-modal="true" aria-labelledby="leave-dialog-title"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          onMouseDown={() => cancelLeave()}>
+          <div className="w-full max-w-sm rounded-[var(--radius-lg)] bg-white p-5 shadow-2xl" onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <i className="fa-solid fa-triangle-exclamation" />
               </div>
               <div>
-                <h3 id="leave-dialog-title" className="text-base font-extrabold tracking-tight text-slate-900">
-                  Keluar dari form?
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Isian tersimpan otomatis sebagai draft. Kamu bisa lanjut mengisi kapan saja.
-                </p>
+                <h3 id="leave-dialog-title" className="text-base font-extrabold tracking-tight text-slate-900">Keluar dari form?</h3>
+                <p className="mt-1 text-sm text-slate-500">Isian tersimpan otomatis sebagai draft. Kamu bisa lanjut mengisi kapan saja.</p>
               </div>
             </div>
             <div className="mt-5 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={confirmLeave}
-                className="w-full rounded-[var(--radius-md)] bg-brand-red px-4 py-3 text-sm font-bold text-white transition hover:brightness-110"
-              >
-                Tetap Keluar
-              </button>
-              <button
-                type="button"
-                onClick={cancelLeave}
-                className="w-full rounded-[var(--radius-md)] border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-              >
-                Kembali Mengisi
-              </button>
+              <button type="button" onClick={confirmLeave} className="w-full rounded-[var(--radius-md)] bg-brand-red px-4 py-3 text-sm font-bold text-white transition hover:brightness-110">Tetap Keluar</button>
+              <button type="button" onClick={cancelLeave} className="w-full rounded-[var(--radius-md)] border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Kembali Mengisi</button>
             </div>
           </div>
         </div>

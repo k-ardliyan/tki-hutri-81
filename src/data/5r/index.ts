@@ -48,6 +48,7 @@ export interface FiveRSubmission {
   submittedAt: string
   createdAt: string
   updatedAt: string
+  createdBy?: string | null
 }
 
 import roomsData from './rooms.json'

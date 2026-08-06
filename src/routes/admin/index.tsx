@@ -11,11 +11,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
-import { getRooms, getForms } from '../../server/functions/5r'
+import { getRooms, getForms, getSubmissions } from '../../server/functions/5r'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
 import type { SubmissionScore } from '../../lib/scoring'
-import { loadSubmissions } from '../../components/pages/Hasil5RPage'
 
 const searchSchema = z.object({
   room: z.string().optional(),
@@ -23,10 +22,10 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute('/admin/')({
   validateSearch: searchSchema,
-  loader: async () => ({
-    rooms: await getRooms(),
-    forms: await getForms(),
-  }),
+  loader: async () => {
+    const [rooms, forms] = await Promise.all([getRooms(), getForms()])
+    return { rooms, forms }
+  },
   component: AdminDashboardPage,
 })
 
@@ -36,7 +35,11 @@ function AdminDashboardPage() {
   const [submissions, setSubmissions] = useState<FiveRSubmission[]>([])
 
   useEffect(() => {
-    setSubmissions(loadSubmissions())
+    const init = async () => {
+      const subs = await getSubmissions()
+      setSubmissions(subs)
+    }
+    void init()
   }, [])
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])

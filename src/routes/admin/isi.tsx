@@ -12,6 +12,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { getRooms, getForms } from '../../server/functions/5r'
 import ScoringForm from '../../components/5r/ScoringForm'
+import RiwayatHariIni from '../../components/5r/RiwayatHariIni'
 
 const searchSchema = z.object({
   room: z.string().optional(),
@@ -41,6 +42,7 @@ function IsiPage() {
           <h1 className="text-lg font-extrabold tracking-tight text-slate-900">Isi Penilaian 5R</h1>
           <p className="mt-0.5 text-sm text-slate-500">Pilih ruangan untuk mulai mengisi form.</p>
         </section>
+        <RiwayatHariIni />
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {rooms.map((r) => (
             <button
