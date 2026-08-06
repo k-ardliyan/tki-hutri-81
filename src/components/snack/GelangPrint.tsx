@@ -5,7 +5,9 @@
  * A4: grid kartu, auto-fit. Print via browser Ctrl+P.
  */
 import { useEffect, useState } from 'react'
+import { Printer } from 'lucide-react'
 import QRCode from 'qrcode'
+import { Button } from '../ui/button'
 import type { SnackTeam } from '../../server/functions/snack'
 
 const KATEGORI_COLORS: Record<string, { strip: string; bg: string; ring: string; text: string }> = {
@@ -39,8 +41,8 @@ export default function GelangPrint({ team }: GelangPrintProps) {
     <div>
       {/* Print header (hidden on screen, shown on print) */}
       <div className="mb-3 hidden items-center justify-between print:flex">
-        <p className="text-lg font-extrabold text-slate-900">Gelang Snack — {team.nama}</p>
-        <p className="text-xs text-slate-500">HUT RI ke-81 · PT TKI x PT FTP</p>
+        <p className="text-lg font-extrabold text-foreground">Gelang Snack — {team.nama}</p>
+        <p className="text-xs text-muted-foreground">HUT RI ke-81 · PT TKI x PT FTP</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 print:grid-cols-3 print:gap-2">
@@ -59,7 +61,6 @@ export default function GelangPrint({ team }: GelangPrintProps) {
 
             {/* Konten gelang */}
             <div className="flex flex-col items-center gap-1 px-3 pt-1 pb-3 text-center">
-              {/* Badge kategori */}
               <span className={`rounded-full bg-white/80 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider ${colors.text} ${colors.ring} border`}>
                 {team.kategori === 'panitia' ? 'PANITIA' : team.nama}
               </span>
@@ -69,7 +70,7 @@ export default function GelangPrint({ team }: GelangPrintProps) {
                 {qrDataUrl ? (
                   <img src={qrDataUrl} alt={`QR ${team.kode}`} className="h-full w-full object-contain" />
                 ) : (
-                  <span className="text-[9px] text-slate-300">QR</span>
+                  <span className="text-[9px] text-muted-foreground/40">QR</span>
                 )}
               </div>
 
@@ -77,13 +78,13 @@ export default function GelangPrint({ team }: GelangPrintProps) {
               <p className={`text-[9px] font-bold uppercase tracking-wider ${colors.text}`}>{team.kode}</p>
 
               {/* Nama anggota */}
-              <p className="text-sm font-bold leading-tight text-slate-900">{m.nama}</p>
+              <p className="text-sm font-bold leading-tight text-foreground">{m.nama}</p>
 
               {/* Divisi + NIP */}
-              <p className="text-[9px] text-slate-400">{m.divisi ?? ''}{m.nip ? ` · ${m.nip}` : ''}</p>
+              <p className="text-[9px] text-muted-foreground">{m.divisi ?? ''}{m.nip ? ` · ${m.nip}` : ''}</p>
 
               {/* Event label */}
-              <p className="text-[7px] font-semibold text-slate-300 uppercase tracking-widest">HUT RI ke-81</p>
+              <p className="text-[7px] font-semibold text-muted-foreground/40 uppercase tracking-widest">HUT RI ke-81</p>
             </div>
           </div>
         ))}
@@ -91,14 +92,10 @@ export default function GelangPrint({ team }: GelangPrintProps) {
 
       {/* Print button (screen only) */}
       <div className="mt-4 flex gap-2 print:hidden">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="flex-1 cursor-pointer rounded-[var(--radius-md)] bg-brand-red px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand-red/15 transition hover:brightness-110 active:scale-[0.98]"
-        >
-          <i className="fa-solid fa-print mr-1.5" />
+        <Button onClick={() => window.print()} className="flex-1 py-3 text-sm font-bold">
+          <Printer size={14} className="mr-1.5" />
           Cetak Gelang
-        </button>
+        </Button>
       </div>
     </div>
   )

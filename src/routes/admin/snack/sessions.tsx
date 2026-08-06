@@ -1,11 +1,35 @@
 /**
  * AdminSnackSessions — admin set sesi snack + kuota porsi.
- * CRUD via Modal: buat sesi, edit nama+kuota, toggle aktif, hapus.
+ * CRUD via Drawer: buat sesi, edit nama+kuota, toggle aktif, hapus (AlertDialog).
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '../../../components/ui/button'
+import { Card } from '../../../components/ui/card'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '../../../components/ui/drawer'
+import { Input } from '../../../components/ui/input'
+import { Label } from '../../../components/ui/label'
+import { Progress } from '../../../components/ui/progress'
+import FeedbackBanner from '../../../components/ui/FeedbackBanner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../../components/ui/alert-dialog'
 import { getSessions, createSession, updateSession, deleteSession } from '../../../server/functions/snack'
-import Modal from '../../../components/ui/Modal'
 
 export const Route = createFileRoute('/admin/snack/sessions')({
   component: AdminSnackSessions,
@@ -26,15 +50,18 @@ function AdminSnackSessions() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  // Create modal
+  // Create drawer
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
   const [newQuota, setNewQuota] = useState('')
 
-  // Edit modal
+  // Edit drawer
   const [editTarget, setEditTarget] = useState<SessionRow | null>(null)
   const [editName, setEditName] = useState('')
   const [editQuota, setEditQuota] = useState('')
+
+  // Delete confirm
+  const [deleteTarget, setDeleteTarget] = useState<SessionRow | null>(null)
 
   const load = async () => { setSessions(await getSessions()) }
   useEffect(() => { void load() }, [])
@@ -71,157 +98,159 @@ function AdminSnackSessions() {
     await load()
   }
 
-  const remove = async (s: SessionRow) => {
-    if (!confirm(`Hapus sesi "${s.name}"? Data redemption ikut terhapus.`)) return
-    await deleteSession({ data: { id: s.id } })
-    await load()
+  const remove = async () => {
+    if (!deleteTarget) return
+    await deleteSession({ data: { id: deleteTarget.id } }); setDeleteTarget(null); await load()
   }
 
   return (
     <div className="space-y-5">
       <section className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">Sesi Snack & Kuota</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Buat sesi, set porsi kuota, aktifkan/nonaktifkan.</p>
+          <h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Sesi Snack & Kuota</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Buat sesi, set porsi kuota, aktifkan/nonaktifkan.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => { setNewName(''); setNewQuota(''); setShowCreate(true) }}
-          className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
-        >
-          + Sesi
-        </button>
+        <Button onClick={() => { setNewName(''); setNewQuota(''); setShowCreate(true) }}>
+          <Plus size={14} className="mr-1" />Sesi
+        </Button>
       </section>
 
-      {msg && <p className="rounded-[var(--radius-md)] bg-status-done-soft px-3 py-2 text-xs font-semibold text-status-done">{msg}</p>}
-      {err && <p className="rounded-[var(--radius-md)] bg-status-danger-soft px-3 py-2 text-xs font-semibold text-status-danger">{err}</p>}
+      {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
+      {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
 
       {/* Session list */}
-      <section className="surface-card divide-y divide-slate-100">
-        {sessions.length === 0 && <p className="px-4 py-6 text-center text-xs text-slate-400">Belum ada sesi.</p>}
+      <Card className="divide-y divide-border">
+        {sessions.length === 0 && <p className="px-4 py-6 text-center text-xs text-muted-foreground">Belum ada sesi.</p>}
         {sessions.map((s) => (
           <div key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-slate-800">
+              <p className="text-sm font-bold text-foreground">
                 {s.name}
-                {s.isActive && <span className="ml-2 rounded-full bg-status-done-soft px-2 py-0.5 text-[10px] font-bold text-status-done">AKTIF</span>}
+                {s.isActive && <span className="ml-2 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">AKTIF</span>}
               </p>
-              <p className="text-[10px] text-slate-400">#{s.id} · Kuota {s.quota}</p>
-              {/* Sisa snack */}
+              <p className="text-[10px] text-muted-foreground">#{s.id} · Kuota {s.quota}</p>
               {s.remaining !== undefined && (
                 <div className="mt-1.5 flex items-center gap-2">
-                  <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className={`h-full rounded-full ${s.remaining === 0 ? 'bg-status-danger' : s.remaining <= s.quota * 0.2 ? 'bg-amber-500' : 'bg-status-done'}`}
-                      style={{ width: `${s.quota > 0 ? Math.max(0, Math.min(100, ((s.quota - s.remaining) / s.quota) * 100)) : 0}%` }}
-                    />
-                  </div>
-                  <span className={`text-[10px] font-bold ${s.remaining === 0 ? 'text-status-danger' : s.remaining <= s.quota * 0.2 ? 'text-amber-600' : 'text-status-done'}`}>
+                  <Progress
+                    value={s.quota > 0 ? Math.max(0, Math.min(100, ((s.quota - s.remaining) / s.quota) * 100)) : 0}
+                    className={`h-1.5 w-32 [&_[data-slot=progress-indicator]]:${s.remaining === 0 ? 'bg-destructive' : s.remaining <= s.quota * 0.2 ? 'bg-warning' : 'bg-success'}`}
+                  />
+                  <span className={`text-[10px] font-bold ${s.remaining === 0 ? 'text-destructive' : s.remaining <= s.quota * 0.2 ? 'text-warning' : 'text-success'}`}>
                     Sisa {s.remaining}
                   </span>
                 </div>
               )}
             </div>
             <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => { setEditTarget(s); setEditName(s.name); setEditQuota(String(s.quota)) }}
-                className="rounded-[var(--radius-sm)] bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600 transition hover:bg-slate-200"
-              >
-                <i className="fa-solid fa-pen-to-square mr-1" />Edit
-              </button>
-              <button
-                type="button"
+              <Button variant="secondary" size="sm" onClick={() => { setEditTarget(s); setEditName(s.name); setEditQuota(String(s.quota)) }} className="h-6 px-2.5 text-[10px] font-bold">
+                Edit
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => toggleActive(s)}
-                className={`rounded-[var(--radius-sm)] px-2.5 py-1 text-[10px] font-bold transition ${s.isActive ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-status-done-soft text-status-done hover:brightness-95'}`}
+                className={`h-6 px-2.5 text-[10px] font-bold ${s.isActive ? 'bg-warning/15 text-warning hover:bg-warning/25' : 'bg-success/10 text-success hover:bg-success/20'}`}
               >
                 {s.isActive ? 'Nonaktif' : 'Aktifkan'}
-              </button>
-              <button
-                type="button"
-                onClick={() => remove(s)}
-                className="rounded-[var(--radius-sm)] px-2.5 py-1 text-[10px] font-bold text-rose-600 transition hover:bg-rose-50"
-              >
-                <i className="fa-solid fa-trash-can" />
-              </button>
+              </Button>
+              <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(s)} className="text-destructive hover:bg-rose-50">
+                <Trash2 size={13} />
+              </Button>
             </div>
           </div>
         ))}
-      </section>
+      </Card>
 
-      {/* Create Modal */}
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Buat Sesi Baru"
-        footer={
-          <>
-            <button type="button" onClick={() => setShowCreate(false)} className="rounded-[var(--radius-md)] border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Batal</button>
-            <button type="button" onClick={doCreate} className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">Simpan</button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-600">Nama Sesi</label>
-            <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Contoh: Snack Pagi"
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
+      {/* Create Drawer */}
+      <Drawer open={showCreate} onOpenChange={setShowCreate}>
+        <DrawerContent className="mx-auto max-w-md">
+          <DrawerHeader>
+            <DrawerTitle>Buat Sesi Baru</DrawerTitle>
+            <DrawerDescription>Tentukan nama dan kuota porsi.</DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-3 px-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-name">Nama Sesi</Label>
+              <Input id="sess-name" type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Contoh: Snack Pagi" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-quota">Kuota Porsi</Label>
+              <Input id="sess-quota" type="number" value={newQuota} onChange={(e) => setNewQuota(e.target.value)} placeholder="0" min={0} />
+            </div>
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-600">Kuota Porsi</label>
-            <input type="number" value={newQuota} onChange={(e) => setNewQuota(e.target.value)} placeholder="0" min={0}
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-          </div>
-        </div>
-      </Modal>
+          <DrawerFooter>
+            <Button variant="outline" onClick={() => setShowCreate(false)}>Batal</Button>
+            <Button onClick={() => void doCreate()}>Simpan</Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Edit Modal */}
-      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Sesi"
-        footer={
-          <>
-            <button type="button" onClick={() => setEditTarget(null)} className="rounded-[var(--radius-md)] border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Batal</button>
-            <button type="button" onClick={doEdit} className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">Simpan</button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-600">Nama Sesi</label>
-            <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nama sesi"
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-600">Kuota Total</label>
-            <input type="number" value={editQuota} onChange={(e) => setEditQuota(e.target.value)} min={0}
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-            <p className="mt-1 text-[10px] text-slate-400">
-              Isi angka total, misal naik 100 → 110. Sisa dihitung otomatis.
-            </p>
-          </div>
-          {/* Info live: terambil & sisa */}
-          {editTarget && (
-            <div className="grid grid-cols-2 gap-2 rounded-[var(--radius-md)] bg-slate-50 px-3 py-2.5 text-center">
-              <div>
-                <p className="text-sm font-extrabold text-slate-700">{editTarget.redeemed ?? 0}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Terambil</p>
-              </div>
-              <div>
-                <p className={`text-sm font-extrabold ${(() => {
-                  const q = Number(editQuota)
-                  const taken = editTarget.redeemed ?? 0
-                  if (Number.isNaN(q) || q < 0) return 'text-status-danger'
-                  return q - taken < 0 ? 'text-status-danger' : q - taken === 0 ? 'text-status-danger' : 'text-status-done'
-                })()}`}>
-                  {(() => {
+      {/* Edit Drawer */}
+      <Drawer open={!!editTarget} onOpenChange={(o) => { if (!o) setEditTarget(null) }}>
+        <DrawerContent className="mx-auto max-w-md">
+          <DrawerHeader>
+            <DrawerTitle>Edit Sesi</DrawerTitle>
+            <DrawerDescription>Ubah nama dan kuota total.</DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-3 px-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-sess-name">Nama Sesi</Label>
+              <Input id="edit-sess-name" type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nama sesi" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-sess-quota">Kuota Total</Label>
+              <Input id="edit-sess-quota" type="number" value={editQuota} onChange={(e) => setEditQuota(e.target.value)} min={0} />
+              <p className="text-[10px] text-muted-foreground">
+                Isi angka total, misal naik 100 → 110. Sisa dihitung otomatis.
+              </p>
+            </div>
+            {editTarget && (
+              <div className="grid grid-cols-2 gap-2 rounded-md bg-muted/50 px-3 py-2.5 text-center">
+                <div>
+                  <p className="text-sm font-extrabold text-foreground/80">{editTarget.redeemed ?? 0}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Terambil</p>
+                </div>
+                <div>
+                  <p className={`text-sm font-extrabold ${(() => {
                     const q = Number(editQuota)
                     const taken = editTarget.redeemed ?? 0
-                    if (Number.isNaN(q)) return '—'
-                    return Math.max(0, q - taken)
-                  })()}
-                </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Sisa Setelah</p>
+                    if (Number.isNaN(q) || q < 0) return 'text-destructive'
+                    return q - taken < 0 ? 'text-destructive' : 'text-success'
+                  })()}`}>
+                    {(() => {
+                      const q = Number(editQuota)
+                      const taken = editTarget.redeemed ?? 0
+                      if (Number.isNaN(q)) return '—'
+                      return Math.max(0, q - taken)
+                    })()}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Sisa Setelah</p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </Modal>
+            )}
+          </div>
+          <DrawerFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>Batal</Button>
+            <Button onClick={() => void doEdit()}>Simpan</Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Delete confirm */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus sesi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.name}. Data redemption ikut terhapus. Tindakan ini tidak bisa dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void remove()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Hapus</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

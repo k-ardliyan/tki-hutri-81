@@ -4,8 +4,11 @@
  * - Download ZIP: satu file PNG per tim (PUTRA-1.png, PUTRA-2.png, dst).
  */
 import { useEffect, useState } from 'react'
+import { Download, FileArchive, Loader2 } from 'lucide-react'
 import QRCode from 'qrcode'
 import JSZip from 'jszip'
+import { Button } from '../ui/button'
+import { Card } from '../ui/card'
 import { getTeamsWithMembers } from '../../server/functions/snack'
 
 interface TeamBrief {
@@ -63,21 +66,17 @@ export default function BarcodeAll() {
 
   /** Draw satu sel kartu barcode (QR + kode + nama) ke canvas. */
   const drawCell = (ctx: CanvasRenderingContext2D, x: number, y: number, team: TeamBrief, qrImg: HTMLImageElement | null) => {
-    // Border sel
     ctx.strokeStyle = '#e2e8f0'
     ctx.lineWidth = 2
     ctx.strokeRect(x + 10, y + 10, CELL - 20, CELL - 20)
-    // QR
     if (qrImg) {
       const qs = 190
       ctx.drawImage(qrImg, x + (CELL - qs) / 2, y + 24, qs, qs)
     }
-    // Label kode (PUTRA-1)
     ctx.fillStyle = '#0f172a'
     ctx.font = 'bold 30px Inter, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(team.kode, x + CELL / 2, y + CELL - 74)
-    // Nama tim
     ctx.font = '16px Inter, sans-serif'
     ctx.fillStyle = '#64748b'
     ctx.fillText(team.nama, x + CELL / 2, y + CELL - 44)
@@ -88,7 +87,6 @@ export default function BarcodeAll() {
 
   /** Kartu barcode SVG lengkap (border + QR + kode + nama) — ringan & scalable. */
   const buildCardSvg = (team: TeamBrief, qrSvg: string): string => {
-    // Extract viewBox QR (default 0 0 33 33) untuk scale ke 190px
     const vb = qrSvg.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 33 33'
     const parts = vb.split(/\s+/).map(Number)
     const qrSize = parts[2] || 33
@@ -147,12 +145,10 @@ export default function BarcodeAll() {
 
       for (const t of teams) {
         if (!t.kode) continue
-        // SVG — QR murni, scalable, ukuran kecil
         try {
           const qrSvg = await QRCode.toString(t.kode, { type: 'svg', width: 240, margin: 1 })
           zip.file(`${t.kode}.svg`, buildCardSvg(t, qrSvg))
         } catch { /* ignore */ }
-        // PNG — kartu raster (canvas)
         const qrImg = map[t.kode] ? await loadImg(map[t.kode]).catch(() => null) : null
         const canvas = document.createElement('canvas')
         canvas.width = CELL
@@ -179,29 +175,19 @@ export default function BarcodeAll() {
   }
 
   return (
-    <section className="surface-card overflow-hidden">
+    <Card>
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div>
-          <p className="text-xs font-bold text-slate-600">Barcode Semua Tim</p>
-          <p className="text-[10px] text-slate-400">{teams.length} tim · PNG grid, atau ZIP per tim (PNG + SVG)</p>
+          <p className="text-xs font-bold text-muted-foreground">Barcode Semua Tim</p>
+          <p className="text-[10px] text-muted-foreground/70">{teams.length} tim · PNG grid, atau ZIP per tim (PNG + SVG)</p>
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void downloadZip()}
-            disabled={teams.length === 0 || busy !== null}
-            className="rounded-[var(--radius-md)] border border-brand-red/30 bg-brand-red/5 px-3 py-2 text-xs font-bold text-brand-red transition hover:bg-brand-red/10 active:scale-95 disabled:opacity-40"
-          >
-            {busy === 'zip' ? <i className="fa-solid fa-spinner fa-spin" /> : <><i className="fa-solid fa-file-zipper mr-1.5" />Download ZIP</>}
-          </button>
-          <button
-            type="button"
-            onClick={() => void downloadPng()}
-            disabled={teams.length === 0 || busy !== null}
-            className="rounded-[var(--radius-md)] bg-brand-red px-3 py-2 text-xs font-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-40"
-          >
-            {busy === 'png' ? <i className="fa-solid fa-spinner fa-spin" /> : <><i className="fa-solid fa-download mr-1.5" />Download PNG</>}
-          </button>
+          <Button variant="outline" size="sm" onClick={() => void downloadZip()} disabled={teams.length === 0 || busy !== null} className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10">
+            {busy === 'zip' ? <Loader2 size={12} className="animate-spin" /> : <><FileArchive size={12} className="mr-1.5" />Download ZIP</>}
+          </Button>
+          <Button size="sm" onClick={() => void downloadPng()} disabled={teams.length === 0 || busy !== null}>
+            {busy === 'png' ? <Loader2 size={12} className="animate-spin" /> : <><Download size={12} className="mr-1.5" />Download PNG</>}
+          </Button>
         </div>
       </div>
 
@@ -209,20 +195,20 @@ export default function BarcodeAll() {
       {teams.length > 0 && (
         <div className="grid grid-cols-3 gap-2 px-4 pb-4 sm:grid-cols-4 lg:grid-cols-5">
           {teams.map((t) => (
-            <div key={t.id} className="flex flex-col items-center rounded-[var(--radius-md)] border border-slate-200 bg-white px-2 py-2 text-center">
+            <div key={t.id} className="flex flex-col items-center rounded-md border border-border bg-white px-2 py-2 text-center">
               <div className="flex h-16 w-16 items-center justify-center bg-white">
                 {qrMap[t.kode] ? (
                   <img src={qrMap[t.kode]} alt={`Barcode ${t.kode}`} className="h-full w-full object-contain" />
                 ) : (
-                  <span className="text-[8px] text-slate-300">QR</span>
+                  <span className="text-[8px] text-muted-foreground/40">QR</span>
                 )}
               </div>
-              <p className="mt-1 text-[9px] font-extrabold text-brand-red">{t.kode}</p>
-              <p className="truncate text-[8px] text-slate-400">{t.nama}</p>
+              <p className="mt-1 text-[9px] font-extrabold text-primary">{t.kode}</p>
+              <p className="truncate text-[8px] text-muted-foreground/70">{t.nama}</p>
             </div>
           ))}
         </div>
       )}
-    </section>
+    </Card>
   )
 }

@@ -3,6 +3,10 @@
  * Default: SEMUA KOSONG (petugas pilih sendiri). Counter porsi dinamis.
  */
 import { useState } from 'react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Card, CardContent } from '../ui/card'
+import { Checkbox } from '../ui/checkbox'
 import type { SnackTeam } from '../../server/functions/snack'
 
 interface ConfirmFormProps {
@@ -39,89 +43,75 @@ export default function ConfirmForm({ team, sessionName, submitting, onSubmit, o
   return (
     <div className="space-y-3">
       {/* Header */}
-      <section className="surface-card px-4 py-4">
-        <div className="flex items-center justify-between gap-3">
+      <Card>
+        <CardContent className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-brand-red">{sessionName}</p>
-            <h1 className="mt-0.5 text-lg font-extrabold text-slate-900">{team.nama}</h1>
-            <p className="text-xs text-slate-500">{team.members.length} anggota · kode {team.kode}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{sessionName}</p>
+            <h1 className="mt-0.5 text-lg font-extrabold text-foreground">{team.nama}</h1>
+            <p className="text-xs text-muted-foreground">{team.members.length} anggota · kode {team.kode}</p>
           </div>
-          <button
-            type="button"
-            onClick={onBack}
-            className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200"
-          >
-            <i className="fa-solid fa-arrow-left mr-1" /> Ganti
-          </button>
-        </div>
-      </section>
+          <Button variant="secondary" size="sm" onClick={onBack}>
+            <ArrowLeft size={12} className="mr-1" /> Ganti
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Counter porsi dinamis */}
-      <section className="surface-card flex items-center justify-between px-4 py-3.5">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Jumlah Snack</p>
-          <p className="text-2xl font-extrabold tabular-nums text-slate-900">
-            {selected.size}
-            <span className="text-sm text-slate-400"> / {team.members.length} porsi</span>
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={toggleAll}
-          className="rounded-[var(--radius-md)] border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-        >
-          {allChecked ? 'Kosongkan' : 'Centang Semua'}
-        </button>
-      </section>
+      <Card>
+        <CardContent className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Jumlah Snack</p>
+            <p className="text-2xl font-extrabold tabular-nums text-foreground">
+              {selected.size}
+              <span className="text-sm text-muted-foreground"> / {team.members.length} porsi</span>
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={toggleAll}>
+            {allChecked ? 'Kosongkan' : 'Centang Semua'}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Checklist anggota */}
-      <section className="surface-card divide-y divide-slate-100">
+      <Card className="divide-y divide-border">
         {team.members.map((m, idx) => {
           const checked = selected.has(m.employeeId)
           return (
             <label
               key={m.employeeId}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition ${
-                checked ? 'bg-status-done/[0.04]' : ''
-              }`}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition ${checked ? 'bg-success/[0.04]' : ''}`}
             >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => toggle(m.employeeId)}
-                className="h-5 w-5 shrink-0 cursor-pointer rounded border-slate-300 accent-brand-red"
-              />
-              <span className="w-6 shrink-0 text-xs font-bold text-slate-400">{idx + 1}</span>
+              <Checkbox checked={checked} onCheckedChange={() => toggle(m.employeeId)} />
+              <span className="w-6 shrink-0 text-xs font-bold text-muted-foreground/50">{idx + 1}</span>
               <span className="min-w-0 flex-1">
-                <span className={`block text-sm font-semibold ${checked ? 'text-slate-900' : 'text-slate-600'}`}>
+                <span className={`block text-sm font-semibold ${checked ? 'text-foreground' : 'text-muted-foreground/80'}`}>
                   {m.nama}
                 </span>
-                <span className="block text-[10px] text-slate-400">
+                <span className="block text-[10px] text-muted-foreground">
                   {m.divisi ?? '—'}
                   {m.nip ? ` · ${m.nip}` : ''}
                 </span>
               </span>
-              <i className={`fa-solid fa-circle-check text-lg ${checked ? 'text-status-done' : 'text-slate-200'}`} />
+              <CheckCircle2 size={20} className={checked ? 'text-success' : 'text-muted-foreground/15'} />
             </label>
           )
         })}
-      </section>
+      </Card>
 
       {/* Submit */}
-      <div className="sticky bottom-[calc(3.25rem+env(safe-area-inset-bottom,0px))] z-40 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-3.5 shadow-[0_-2px_10px_-4px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bottom-0">
-        <button
-          type="button"
+      <div className="sticky bottom-[calc(3.25rem+env(safe-area-inset-bottom,0px))] z-40 -mx-4 border-t border-border bg-white/95 px-4 py-3.5 shadow-[0_-2px_10px_-4px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bottom-0">
+        <Button
           disabled={selected.size === 0 || submitting}
           onClick={() => {
             setConfirming(true)
             onSubmit([...selected])
           }}
-          className="w-full cursor-pointer rounded-[var(--radius-md)] bg-brand-red px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-red/15 transition hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+          className="w-full py-3.5 text-sm font-bold"
         >
           {submitting ? 'Menyimpan...' : `Konfirmasi ${selected.size} Porsi`}
-        </button>
+        </Button>
         {confirming && (
-          <p className="mt-2 text-center text-[10px] text-slate-400">
+          <p className="mt-2 text-center text-[10px] text-muted-foreground">
             Pastikan centang sesuai jumlah snack yang diserahkan.
           </p>
         )}

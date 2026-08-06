@@ -1,12 +1,20 @@
 /**
  * PetugasSnackPage — scan QR tim → centang siapa yang ambil → konfirmasi.
- * Anti-dup: skip yang sudah ambil, tampilkan layar merah + metadata.
- *
- * Scanner: saat QR terbaca → pause dulu. Kode tak dikenal → modal alert (bukan
- * string QRIS panjang di page). Kode dikenal → confirm stage.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { Check, TriangleAlert } from 'lucide-react'
+import { Button } from '../../components/ui/button'
+import { Card, CardContent } from '../../components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
 import Scanner from '../../components/snack/Scanner'
 import type { ScannerHandle } from '../../components/snack/Scanner'
 import ConfirmForm from '../../components/snack/ConfirmForm'
@@ -56,7 +64,6 @@ function PetugasSnackPage() {
     setError(null)
     const found = await getTeamByKode({ data: { kode } })
     if (!found) {
-      // Kode tak dikenal — tampilkan modal, scanner tetap paused sampai ditutup
       setUnknownCode(kode)
       setShowUnknown(true)
       return false
@@ -114,8 +121,8 @@ function PetugasSnackPage() {
     <div className="space-y-4">
       <section className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-slate-900">Scan QR Kelompok</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Pilih sesi, lalu pindai QR gelang tim.</p>
+          <h1 className="text-lg font-extrabold tracking-tight text-foreground">Scan QR Kelompok</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Pilih sesi, lalu pindai QR gelang tim.</p>
         </div>
         {stage === 'scan' && (
           <SessionPicker
@@ -127,11 +134,7 @@ function PetugasSnackPage() {
         )}
       </section>
 
-      {error && (
-        <p className="rounded-[var(--radius-md)] bg-status-danger-soft px-3 py-2 text-xs font-semibold text-status-danger">
-          {error}
-        </p>
-      )}
+      {error && <FeedbackBanner tone="error">{error}</FeedbackBanner>}
 
       {stage === 'scan' && <Scanner ref={scannerRef} onScan={handleScan} />}
 
@@ -150,63 +153,44 @@ function PetugasSnackPage() {
       )}
 
       {stage === 'success' && (
-        <section className="surface-card border-status-done/40 bg-status-done/[0.03] px-4 py-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-done/10 text-status-done">
-            <i className="fa-solid fa-check text-2xl" />
-          </div>
-          <h2 className="mt-3 text-lg font-extrabold text-status-done">Berhasil!</h2>
-          <p className="mt-1 text-sm text-slate-600">{inserted} porsi snack dicatat.</p>
-          <button
-            type="button"
-            onClick={reset}
-            className="mt-4 rounded-[var(--radius-md)] bg-brand-red px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110 active:scale-95"
-          >
-            Scan Kelompok Lain
-          </button>
-        </section>
+        <Card className="border-success/40 bg-success/[0.03]">
+          <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
+              <Check size={24} />
+            </div>
+            <h2 className="mt-1 text-lg font-extrabold text-success">Berhasil!</h2>
+            <p className="text-sm text-muted-foreground">{inserted} porsi snack dicatat.</p>
+            <Button onClick={reset} className="mt-2 px-5">
+              Scan Kelompok Lain
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Modal alert — kode QR tidak dikenal (bukan string QRIS di page) */}
-      {showUnknown && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="unknown-qr-title"
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          onMouseDown={closeUnknown}
-        >
-          <div
-            className="w-full max-w-sm rounded-[var(--radius-lg)] bg-white p-5 shadow-2xl"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
+      {/* AlertDialog — kode QR tidak dikenal */}
+      <AlertDialog open={showUnknown} onOpenChange={(o) => { if (!o) closeUnknown() }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-danger/10 text-status-danger">
-                <i className="fa-solid fa-triangle-exclamation" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <TriangleAlert size={18} />
               </div>
               <div className="min-w-0">
-                <h3 id="unknown-qr-title" className="text-base font-extrabold tracking-tight text-slate-900">
-                  QR Tidak Dikenal
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <AlertDialogTitle className="text-base font-extrabold tracking-tight">QR Tidak Dikenal</AlertDialogTitle>
+                <AlertDialogDescription className="mt-1 text-sm">
                   Kode ini bukan QR kelompok snack. Pindai QR gelang tim (PUTRA-1, PUTRI-2, PANITIA, dst).
-                </p>
+                </AlertDialogDescription>
                 {unknownCode && (
-                  <p className="mt-2 truncate rounded-[var(--radius-md)] bg-slate-50 px-2 py-1 text-[10px] text-slate-400" title={unknownCode}>
+                  <p className="mt-2 truncate rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground" title={unknownCode}>
                     {unknownCode.slice(0, 40)}{unknownCode.length > 40 ? '…' : ''}
                   </p>
                 )}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={closeUnknown}
-              className="mt-4 w-full rounded-[var(--radius-md)] bg-brand-red px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110"
-            >
-              Oke, Lanjut Scan
-            </button>
-          </div>
-        </div>
-      )}
+          </AlertDialogHeader>
+          <AlertDialogAction onClick={closeUnknown} className="w-full">Oke, Lanjut Scan</AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

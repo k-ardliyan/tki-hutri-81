@@ -1,12 +1,35 @@
 /**
- * AdminEmployees — kelola master karyawan via Modal.
- * Create/Edit: modal (nama, nip, divisi, eligible).
- * Inline: search, delete.
+ * AdminEmployees — kelola master karyawan via Drawer.
+ * Create/Edit: drawer (nama, nip, divisi, eligible). Inline: search, delete.
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { Plus, Search, Trash2 } from 'lucide-react'
+import { Button } from '../../components/ui/button'
+import { Card } from '../../components/ui/card'
+import { Checkbox } from '../../components/ui/checkbox'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '../../components/ui/drawer'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog'
 import { listEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../server/functions/admin'
-import Modal from '../../components/ui/Modal'
 
 export const Route = createFileRoute('/admin/employees')({
   beforeLoad: async () => {
@@ -27,13 +50,16 @@ function AdminEmployees() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  // Modal state
-  const [showModal, setShowModal] = useState(false)
+  // Drawer state
+  const [showDrawer, setShowDrawer] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [nama, setNama] = useState('')
   const [nip, setNip] = useState('')
   const [divisi, setDivisi] = useState('')
   const [eligible, setEligible] = useState(true)
+
+  // Delete confirm
+  const [deleteTarget, setDeleteTarget] = useState<EmployeeRow | null>(null)
 
   const load = async (query?: string) => {
     setRows(await listEmployees({ data: { q: query ?? (q || undefined), limit: 200 } }))
@@ -41,8 +67,8 @@ function AdminEmployees() {
   }
   useEffect(() => { void load() }, [])
 
-  const openCreate = () => { setEditId(null); setNama(''); setNip(''); setDivisi(''); setEligible(true); setShowModal(true) }
-  const openEdit = (r: EmployeeRow) => { setEditId(r.id); setNama(r.nama); setNip(r.nip ?? ''); setDivisi(r.divisi ?? ''); setEligible(r.isSnackEligible); setShowModal(true) }
+  const openCreate = () => { setEditId(null); setNama(''); setNip(''); setDivisi(''); setEligible(true); setShowDrawer(true) }
+  const openEdit = (r: EmployeeRow) => { setEditId(r.id); setNama(r.nama); setNip(r.nip ?? ''); setDivisi(r.divisi ?? ''); setEligible(r.isSnackEligible); setShowDrawer(true) }
 
   const submit = async () => {
     setErr(null); setMsg(null)
@@ -54,12 +80,12 @@ function AdminEmployees() {
       await createEmployee({ data: { nama: nama.trim(), nip: nip || null, divisi: divisi || null, isSnackEligible: eligible } })
       setMsg('Karyawan ditambah!')
     }
-    setShowModal(false); await load()
+    setShowDrawer(false); await load()
   }
 
-  const remove = async (r: EmployeeRow) => {
-    if (!confirm(`Hapus karyawan ${r.nama}?`)) return
-    await deleteEmployee({ data: { id: r.id } }); await load()
+  const remove = async () => {
+    if (!deleteTarget) return
+    await deleteEmployee({ data: { id: deleteTarget.id } }); setDeleteTarget(null); await load()
   }
 
   const visibleRows = rows.slice(0, visibleCount)
@@ -69,83 +95,106 @@ function AdminEmployees() {
     <div className="space-y-5">
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">Karyawan</h1>
-          <p className="mt-0.5 text-sm text-slate-500">{rows.length} karyawan · master data</p>
+          <h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Karyawan</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">{rows.length} karyawan · master data</p>
         </div>
         <div className="flex gap-2">
-          <input type="text" value={q} onChange={(e) => { setQ(e.target.value); void load(e.target.value) }}
-            placeholder="Cari nama / NIP..." className="w-40 rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red sm:w-56" />
-          <button type="button" onClick={openCreate}
-            className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">
-            + Karyawan
-          </button>
+          <div className="relative">
+            <Search size={14} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60" />
+            <Input
+              type="text"
+              value={q}
+              onChange={(e) => { setQ(e.target.value); void load(e.target.value) }}
+              placeholder="Cari nama / NIP..."
+              className="w-40 pl-9 sm:w-56"
+            />
+          </div>
+          <Button onClick={openCreate}>
+            <Plus size={14} className="mr-1" />Karyawan
+          </Button>
         </div>
       </section>
 
-      {msg && <p className="rounded-[var(--radius-md)] bg-status-done-soft px-3 py-2 text-xs font-semibold text-status-done">{msg}</p>}
-      {err && <p className="rounded-[var(--radius-md)] bg-status-danger-soft px-3 py-2 text-xs font-semibold text-status-danger">{err}</p>}
+      {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
+      {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
 
-      <section className="surface-card divide-y divide-slate-100">
-        {visibleRows.length === 0 && <p className="px-4 py-6 text-center text-xs text-slate-400">Tidak ada karyawan.</p>}
+      <Card className="divide-y divide-border">
+        {visibleRows.length === 0 && <p className="px-4 py-6 text-center text-xs text-muted-foreground">Tidak ada karyawan.</p>}
         {visibleRows.map((r) => (
           <div key={r.id} className="flex items-center gap-3 px-4 py-2.5">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-800">{r.nama}</p>
-              <p className="text-[10px] text-slate-400">{r.divisi ?? '—'}{r.nip ? ` · ${r.nip}` : ''}</p>
+              <p className="text-sm font-semibold text-foreground/90">{r.nama}</p>
+              <p className="text-[10px] text-muted-foreground">{r.divisi ?? '—'}{r.nip ? ` · ${r.nip}` : ''}</p>
             </div>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isSnackEligible ? 'bg-status-done-soft text-status-done' : 'bg-slate-100 text-slate-400'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.isSnackEligible ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
               {r.isSnackEligible ? 'Eligible' : 'Tidak'}
             </span>
-            <button type="button" onClick={() => openEdit(r)} className="rounded-[var(--radius-sm)] bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 transition hover:bg-slate-200">Edit</button>
-            <button type="button" onClick={() => remove(r)} className="rounded-[var(--radius-sm)] px-2 py-1 text-[10px] font-bold text-rose-600 transition hover:bg-rose-50">
-              <i className="fa-solid fa-trash-can" />
-            </button>
+            <Button variant="secondary" size="sm" onClick={() => openEdit(r)} className="h-6 px-2 text-[10px] font-bold">Edit</Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(r)} className="text-destructive hover:bg-rose-50">
+              <Trash2 size={13} />
+            </Button>
           </div>
         ))}
         {hasMore && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="w-full px-4 py-3 text-xs font-bold text-brand-red transition hover:bg-slate-50"
+            className="w-full rounded-none py-3 text-xs font-bold text-primary"
           >
             Muat Lagi ({rows.length - visibleCount} tersisa)
-          </button>
+          </Button>
         )}
-      </section>
+      </Card>
 
-      {/* Create/Edit Modal */}
-      <Modal open={showModal} onClose={() => setShowModal(false)} title={editId !== null ? 'Edit Karyawan' : 'Tambah Karyawan'}
-        footer={
-          <>
-            <button type="button" onClick={() => setShowModal(false)} className="rounded-[var(--radius-md)] border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Batal</button>
-            <button type="button" onClick={submit} className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">{editId !== null ? 'Simpan' : 'Tambah'}</button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-600">Nama Lengkap</label>
-            <input type="text" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Nama lengkap"
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-600">NIP</label>
-              <input type="text" value={nip} onChange={(e) => setNip(e.target.value)} placeholder="Opsional"
-                className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
+      {/* Create/Edit Drawer */}
+      <Drawer open={showDrawer} onOpenChange={setShowDrawer}>
+        <DrawerContent className="mx-auto max-w-md">
+          <DrawerHeader>
+            <DrawerTitle>{editId !== null ? 'Edit Karyawan' : 'Tambah Karyawan'}</DrawerTitle>
+            <DrawerDescription>Lengkapi data karyawan.</DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-3 px-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="emp-nama">Nama Lengkap</Label>
+              <Input id="emp-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Nama lengkap" />
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-600">Divisi</label>
-              <input type="text" value={divisi} onChange={(e) => setDivisi(e.target.value)} placeholder="Opsional"
-                className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="emp-nip">NIP</Label>
+                <Input id="emp-nip" type="text" value={nip} onChange={(e) => setNip(e.target.value)} placeholder="Opsional" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="emp-divisi">Divisi</Label>
+                <Input id="emp-divisi" type="text" value={divisi} onChange={(e) => setDivisi(e.target.value)} placeholder="Opsional" />
+              </div>
             </div>
+            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <Checkbox checked={eligible} onCheckedChange={(v) => setEligible(!!v)} />
+              Eligible snack
+            </label>
           </div>
-          <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <input type="checkbox" checked={eligible} onChange={(e) => setEligible(e.target.checked)} className="h-4 w-4 accent-brand-red" />
-            Eligible snack
-          </label>
-        </div>
-      </Modal>
+          <DrawerFooter>
+            <Button variant="outline" onClick={() => setShowDrawer(false)}>Batal</Button>
+            <Button onClick={submit}>{editId !== null ? 'Simpan' : 'Tambah'}</Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Delete confirm */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus karyawan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.nama}. Tindakan ini tidak bisa dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void remove()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Hapus</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

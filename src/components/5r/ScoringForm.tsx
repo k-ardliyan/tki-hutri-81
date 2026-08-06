@@ -1,15 +1,18 @@
 /**
  * ScoringForm — form isi penilaian 5R (mobile-first, ramah tim audit).
  *
- * UX improvements (design-taste-frontend):
- * - Score buttons: labels visible below number (1=Tidak Ada..5=Sangat Baik)
- * - Better visual feedback: green tint for scored, dashed for empty
- * - Larger category pills on mobile
- * - Thicker progress bar
- * - Bottom submit: full-width with shadow
- * - Shape consistency: radius-md throughout
+ * UX yang DI-PERTAHANKAN (tidak boleh hilang saat migrasi):
+ * - Sticky progress bar morph card ↔ full-bleed (GSAP)
+ * - Submit bar auto-hide: scroll down → hide, up → show, bottom → show (GSAP)
+ * - Draft auto-save localStorage + unsaved-form guard + beforeunload
+ * - Score buttons dengan label (1=Tidak Ada .. 5=Sangat Baik)
+ * - Kategori collapse + scroll-to kategori + auto-open yang belum lengkap
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Check, CheckCircle2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
+import { Input } from '../ui/input'
 import type { FiveRSubmission } from '../../data/5r'
 import { getFiveRForm } from '../../data/5r'
 import { saveSubmission } from '../../server/functions/5r'
@@ -183,7 +186,7 @@ export default function ScoringForm({
   useEffect(() => {
     if (!isDirty || !form || !roomId || !formId) return
     const handler = (e: BeforeUnloadEvent) => {
-      saveDraft(roomId, formId, answers, notes) // flush segera
+      saveDraft(roomId, formId, answers, notes)
       e.preventDefault()
       e.returnValue = ''
     }
@@ -197,9 +200,9 @@ export default function ScoringForm({
 
   if (!form) {
     return (
-      <section className="surface-card p-5 text-sm text-slate-500">
+      <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
         Pilih salah satu form di atas untuk mulai mengisi.
-      </section>
+      </div>
     )
   }
 
@@ -280,18 +283,18 @@ export default function ScoringForm({
       {/* Sticky progress bar — morph card ↔ full-bleed via GSAP */}
       <div
         ref={progressBarRef}
-        className="sticky top-14 z-30 rounded-[var(--radius-lg)] border border-slate-200 bg-white/95 px-4 py-2.5 shadow-sm shadow-slate-900/5 backdrop-blur-xl sm:px-6 lg:top-0"
+        className="sticky top-14 z-30 rounded-lg border border-border bg-white/95 px-4 py-2.5 shadow-sm shadow-slate-900/5 backdrop-blur-xl sm:px-6 lg:top-0"
       >
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xs font-extrabold text-slate-900 sm:text-sm">{form.label}</h2>
-          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-red">
+          <h2 className="text-xs font-extrabold text-foreground sm:text-sm">{form.label}</h2>
+          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
             {answeredCount}/{totalCriteria}
           </span>
         </div>
         {/* Progress bar — thicker */}
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-brand-red transition-all duration-300"
+            className="h-full rounded-full bg-primary transition-all duration-300"
             style={{ width: `${totalCriteria > 0 ? (answeredCount / totalCriteria) * 100 : 0}%` }}
           />
         </div>
@@ -308,13 +311,13 @@ export default function ScoringForm({
               }}
               className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
                 cat.done
-                  ? 'bg-status-done-soft text-status-done'
+                  ? 'bg-success/10 text-success'
                   : collapsed[cat.id]
-                    ? 'bg-slate-100 text-slate-500'
-                    : 'bg-brand-red/10 text-brand-red'
+                    ? 'bg-muted text-muted-foreground'
+                    : 'bg-primary/10 text-primary'
               }`}
             >
-              {cat.done && <i className="fa-solid fa-check text-[9px]" />}
+              {cat.done && <Check size={9} />}
               {cat.label.split('.')[0]}
               <span className="text-[9px] opacity-60">{cat.filled}/{cat.criteria.length}</span>
             </button>
@@ -325,13 +328,13 @@ export default function ScoringForm({
       {/* Auditor */}
       <div className="px-4 pt-5 sm:px-6">
         <label className="block">
-          <span className="text-xs font-semibold text-slate-600">Nama Auditor</span>
-          <input
+          <span className="text-xs font-semibold text-muted-foreground">Nama Auditor</span>
+          <Input
             type="text"
             value={auditor}
             onChange={(e) => setAuditor(e.target.value)}
             placeholder="Nama penilai"
-            className="mt-1.5 w-full rounded-[var(--radius-md)] border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-red focus:ring-2 focus:ring-brand-red/15"
+            className="mt-1.5"
           />
         </label>
       </div>
@@ -347,21 +350,21 @@ export default function ScoringForm({
               <button
                 type="button"
                 onClick={() => toggleCollapse(cat.id)}
-                className={`flex w-full items-center justify-between rounded-[var(--radius-md)] px-3.5 py-2.5 text-xs font-extrabold transition ${
+                className={`flex w-full items-center justify-between rounded-md px-3.5 py-2.5 text-xs font-extrabold transition ${
                   cp.done
-                    ? 'bg-status-done-soft text-status-done'
-                    : 'bg-slate-100 text-slate-700'
+                    ? 'bg-success/10 text-success'
+                    : 'bg-muted text-foreground/80'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span>{cat.label}</span>
-                  {cp.done && <i className="fa-solid fa-check-circle text-[10px]" />}
+                  {cp.done && <CheckCircle2 size={11} />}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold opacity-60">
                     {cp.filled}/{cat.criteria.length}
                   </span>
-                  <i className={`fa-solid fa-chevron-${isCollapsed ? 'down' : 'up'} text-[10px] opacity-40`} />
+                  {isCollapsed ? <ChevronDown size={12} className="opacity-40" /> : <ChevronUp size={12} className="opacity-40" />}
                 </div>
               </button>
 
@@ -373,14 +376,14 @@ export default function ScoringForm({
                     return (
                       <div
                         key={c.id}
-                        className={`rounded-[var(--radius-md)] border p-3 transition ${
+                        className={`rounded-md border p-3 transition ${
                           answered
-                            ? 'border-status-done/30 bg-status-done/[0.06]'
-                            : 'border-dashed border-slate-200'
+                            ? 'border-success/30 bg-success/[0.06]'
+                            : 'border-dashed border-border'
                         }`}
                       >
-                        <p className="text-sm font-semibold text-slate-800">
-                          <span className="text-slate-400">{c.order}.</span> {c.text}
+                        <p className="text-sm font-semibold text-foreground/90">
+                          <span className="text-muted-foreground/60">{c.order}.</span> {c.text}
                         </p>
 
                         {/* Score buttons with labels */}
@@ -393,14 +396,14 @@ export default function ScoringForm({
                                 type="button"
                                 onClick={() => setScore(c.id, opt.score)}
                                 aria-pressed={selected}
-                                className={`flex h-auto min-h-[3rem] flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border py-1.5 text-center transition active:scale-95 ${
+                                className={`flex h-auto min-h-[3rem] flex-col items-center justify-center gap-0.5 rounded-md border py-1.5 text-center transition active:scale-95 ${
                                   selected
-                                    ? 'border-status-done bg-status-done text-white shadow-sm'
-                                    : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                    ? 'border-success bg-success text-white shadow-sm'
+                                    : 'border-border bg-white text-muted-foreground hover:border-muted-foreground/40'
                                 }`}
                               >
                                 <span className="text-sm font-bold leading-none">{opt.score}</span>
-                                <span className={`hidden text-[8px] font-semibold leading-tight sm:block ${selected ? 'text-white/80' : 'text-slate-400'}`}>
+                                <span className={`hidden text-[8px] font-semibold leading-tight sm:block ${selected ? 'text-white/80' : 'text-muted-foreground/70'}`}>
                                   {SCORE_LABELS[opt.score]}
                                 </span>
                               </button>
@@ -410,18 +413,18 @@ export default function ScoringForm({
 
                         {/* Description */}
                         {answered && (
-                          <p className="mt-2 rounded-[var(--radius-sm)] bg-status-done-soft/50 px-2.5 py-1.5 text-xs text-slate-600">
+                          <p className="mt-2 rounded-md bg-success/10 px-2.5 py-1.5 text-xs text-muted-foreground">
                             {c.options.find((o) => o.score === answers[c.id])?.desc}
                           </p>
                         )}
 
                         {/* Note */}
-                        <input
+                        <Input
                           type="text"
                           value={notes[c.id] ?? ''}
                           onChange={(e) => setNote(c.id, e.target.value)}
                           placeholder="Catatan (opsional)"
-                          className="mt-2 w-full rounded-[var(--radius-sm)] border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-brand-red"
+                          className="mt-2 h-8 bg-muted/50 text-xs"
                         />
                       </div>
                     )
@@ -437,88 +440,74 @@ export default function ScoringForm({
       <div
         ref={submitBarRef}
         style={{ pointerEvents: submitVisible ? 'auto' : 'none' }}
-        className="sticky bottom-[calc(3.25rem+env(safe-area-inset-bottom,0px))] z-40 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-3.5 shadow-[0_-2px_10px_-4px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bottom-0"
+        className="sticky bottom-[calc(3.25rem+env(safe-area-inset-bottom,0px))] z-40 -mx-4 border-t border-border bg-white/95 px-4 py-3.5 shadow-[0_-2px_10px_-4px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bottom-0"
       >
         {error && (
-          <p className="mb-2 rounded-[var(--radius-md)] bg-status-danger-soft px-3 py-2 text-xs font-semibold text-status-danger">
+          <p className="mb-2 rounded-md bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
             {error}
           </p>
         )}
         {saved && (
-          <p className="mb-2 rounded-[var(--radius-md)] bg-status-done-soft px-3 py-2 text-xs font-semibold text-status-done">
+          <p className="mb-2 rounded-md bg-success/10 px-3 py-2 text-xs font-semibold text-success">
             Tersimpan! Bisa isi lagi untuk penilaian berikutnya.
           </p>
         )}
-        <button
-          type="button"
+        <Button
           onClick={handleSubmit}
           disabled={saving}
-          className="w-full cursor-pointer rounded-[var(--radius-md)] bg-brand-red px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-red/15 transition hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+          className="w-full py-3.5 text-sm font-bold shadow-lg shadow-primary/15"
         >
           {saving ? 'Menyimpan...' : `Submit Penilaian (${answeredCount}/${totalCriteria})`}
-        </button>
+        </Button>
       </div>
 
-      {/* Summary modal */}
-      {showSummary && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 sm:items-center">
-          <div className="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl sm:rounded-2xl">
-            <h3 className="text-base font-extrabold text-slate-900">Konfirmasi Submit</h3>
-            <p className="mt-1 text-xs text-slate-500">Pastikan semua jawaban sudah benar.</p>
-
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Ruangan</span>
-                <span className="font-bold text-slate-900">{roomId}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Form</span>
-                <span className="font-bold text-slate-900">{form.label}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Auditor</span>
-                <span className="font-bold text-slate-900">{auditor}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Kriteria diisi</span>
-                <span className="font-bold text-slate-900">{answeredCount}/{totalCriteria}</span>
-              </div>
-
-              <div className="mt-3 border-t border-slate-100 pt-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Skor per Kategori</p>
-                <div className="mt-2 grid grid-cols-5 gap-1.5">
-                  {catProgress.map((cat) => (
-                    <div key={cat.id} className="rounded-[var(--radius-sm)] bg-slate-50 p-1.5 text-center">
-                      <p className="text-[9px] font-bold text-slate-400">{cat.label.split('.')[0]}</p>
-                      <p className="text-xs font-bold text-slate-800">
-                        {cat.done ? `${Math.round((cat.filled / cat.criteria.length) * 100)}%` : '--'}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* Summary dialog */}
+      <Dialog open={showSummary} onOpenChange={(o) => { if (!o) setShowSummary(false) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-extrabold">Konfirmasi Submit</DialogTitle>
+            <DialogDescription>Pastikan semua jawaban sudah benar.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Ruangan</span>
+              <span className="font-bold text-foreground">{roomId}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Form</span>
+              <span className="font-bold text-foreground">{form.label}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Auditor</span>
+              <span className="font-bold text-foreground">{auditor}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Kriteria diisi</span>
+              <span className="font-bold text-foreground">{answeredCount}/{totalCriteria}</span>
             </div>
 
-            <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowSummary(false)}
-                className="flex-1 cursor-pointer rounded-[var(--radius-md)] border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={doSubmit}
-                disabled={saving}
-                className="flex-1 cursor-pointer rounded-[var(--radius-md)] bg-brand-red px-4 py-2.5 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
-              >
-                {saving ? 'Menyimpan...' : 'Ya, Submit'}
-              </button>
+            <div className="mt-3 border-t border-border pt-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Skor per Kategori</p>
+              <div className="mt-2 grid grid-cols-5 gap-1.5">
+                {catProgress.map((cat) => (
+                  <div key={cat.id} className="rounded-md bg-muted/60 p-1.5 text-center">
+                    <p className="text-[9px] font-bold text-muted-foreground">{cat.label.split('.')[0]}</p>
+                    <p className="text-xs font-bold text-foreground">
+                      {cat.done ? `${Math.round((cat.filled / cat.criteria.length) * 100)}%` : '--'}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="flex gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setShowSummary(false)} className="flex-1">Batal</Button>
+            <Button onClick={() => void doSubmit()} disabled={saving} className="flex-1">
+              {saving ? <Loader2 size={14} className="animate-spin" /> : 'Ya, Submit'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

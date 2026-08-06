@@ -1,18 +1,18 @@
 /**
  * AuditDashboardPage — dashboard untuk tim audit.
- *
- * Shows:
- * - Stats: hari ini / total penilaian, avg skor, ruangan selesai
- * - Room status: badge "✓ Sudah" kalau ada submission hari ini
- * - Click room → /audit/isi?room=X
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
-import { getRooms, getForms, getSubmissions } from '../../server/functions/5r'
-import type { FiveRForm, FiveRSubmission } from '../../data/5r'
+import { CalendarCheck, CalendarX, Check } from 'lucide-react'
+import { Card, CardContent } from '../../components/ui/card'
+import RoomIcon from '../../components/ui/RoomIcon'
+import StatCard from '../../components/ui/StatCard'
+import { getRooms, getForms } from '../../server/functions/5r'
+import type { FiveRForm } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
 import { todayPrefix } from '../../lib/dateUtils'
+import { useSubmissions } from '../../lib/queries'
 
 const searchSchema = z.object({})
 
@@ -25,20 +25,10 @@ export const Route = createFileRoute('/audit/')({
   component: AuditDashboardPage,
 })
 
-/** Today's date prefix (YYYY-MM-DD) in UTC. */
-
 function AuditDashboardPage() {
   const { rooms, forms } = Route.useLoaderData()
   const navigate = useNavigate()
-  const [submissions, setSubmissions] = useState<FiveRSubmission[]>([])
-
-  useEffect(() => {
-    const init = async () => {
-      const subs = await getSubmissions()
-      setSubmissions(subs)
-    }
-    void init()
-  }, [])
+  const { data: submissions = [] } = useSubmissions()
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
 
@@ -65,9 +55,7 @@ function AuditDashboardPage() {
 
   // Per-room status
   const roomStatus = useMemo(() => rooms.map((room) => {
-    // Today's submissions for this room
     const todayRoomSubs = todaySubs.filter((s) => s.roomId === room.id)
-    // All submissions
     const allRoomSubs = submissions.filter((s) => s.roomId === room.id)
     const scores = allRoomSubs
       .map((s) => {
@@ -87,94 +75,89 @@ function AuditDashboardPage() {
   return (
     <div className="space-y-6">
       <section>
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900">Dashboard Audit 5R</h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <h1 className="text-lg font-extrabold tracking-tight text-foreground">Dashboard Audit 5R</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           {formatLongDate(new Date())}
         </p>
       </section>
 
       {/* Today's summary banner */}
       {todayTotal > 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-status-done/20 bg-status-done/[0.06] px-4 py-3">
+        <div className="rounded-lg border border-success/20 bg-success/[0.06] px-4 py-3">
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-calendar-check text-status-done" />
-            <p className="text-xs font-bold text-status-done">
+            <CalendarCheck size={16} className="text-success" />
+            <p className="text-xs font-bold text-success">
               Hari ini: {todayTotal} penilaian dari {new Set(todaySubs.map((s) => s.roomId)).size} ruangan
             </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-calendar-xmark text-slate-400" />
-            <p className="text-xs font-semibold text-slate-500">Belum ada penilaian hari ini</p>
+            <CalendarX size={16} className="text-muted-foreground" />
+            <p className="text-xs font-semibold text-muted-foreground">Belum ada penilaian hari ini</p>
           </div>
         </div>
       )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="surface-card px-4 py-4 text-center">
-          <p className="text-2xl font-extrabold text-slate-900">{todayTotal}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Hari Ini</p>
-        </div>
-        <div className="surface-card px-4 py-4 text-center">
-          <p className="text-2xl font-extrabold text-slate-900">{submissions.length > 0 ? avgScore : '--'}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Rata-rata</p>
-        </div>
-        <div className="surface-card px-4 py-4 text-center">
-          <p className="text-2xl font-extrabold text-slate-900">{completed}<span className="text-sm text-slate-400">/{rooms.length}</span></p>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Selesai Hari Ini</p>
-        </div>
+        <StatCard center icon={CalendarCheck} label="Hari Ini" value={String(todayTotal)} />
+        <StatCard center icon={Check} iconCls="bg-warning/10 text-warning" label="Rata-rata" value={submissions.length > 0 ? String(avgScore) : '--'} />
+        <StatCard center icon={Check} iconCls="bg-success/10 text-success" label="Selesai Hari Ini" value={`${completed}/${rooms.length}`} />
       </div>
 
       {/* Room status */}
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-extrabold tracking-tight text-slate-900">Status Ruangan</h2>
-          <span className="shrink-0 text-[10px] font-semibold text-slate-400">Klik untuk isi</span>
+          <h2 className="text-sm font-extrabold tracking-tight text-foreground">Status Ruangan</h2>
+          <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">Klik untuk isi</span>
         </div>
         <div className="space-y-2">
           {roomStatus.map(({ room, count, final, doneToday, todayCount, lastSub }) => {
             const badgeBg = !doneToday
-              ? 'bg-slate-100 text-slate-500'
-              : final >= 80 ? 'bg-status-done-soft text-status-done'
-                : final >= 60 ? 'bg-status-pending-soft text-status-pending'
-                  : 'bg-status-danger-soft text-status-danger'
+              ? 'bg-muted text-muted-foreground'
+              : final >= 80 ? 'bg-success/10 text-success'
+                : final >= 60 ? 'bg-warning/10 text-warning'
+                  : 'bg-destructive/10 text-destructive'
             return (
               <button
                 key={room.id}
                 type="button"
                 onClick={() => navigate({ to: '/audit/isi', search: { room: room.id } })}
-                className="surface-card flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left transition hover:border-slate-300"
+                className="cursor-pointer text-left transition active:scale-[0.99]"
               >
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] ${
-                  doneToday ? 'bg-status-done text-white' : 'bg-slate-100 text-slate-400'
-                }`}>
-                  <i className={`fa-solid ${doneToday ? 'fa-check' : room.icon} text-sm`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate font-bold text-slate-900">{room.name}</p>
-                    {doneToday && (
-                      <span className="shrink-0 rounded-full bg-status-done-soft px-2 py-0.5 text-[10px] font-bold text-status-done">
-                        <i className="fa-solid fa-check mr-0.5" />Sudah
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    {room.pic}
-                    {lastSub && !doneToday && (
-                      <> &middot; Terakhir: {formatDateShort(lastSub.createdAt)}</>
-                    )}
-                    {doneToday && todayCount > 0 && (
-                      <> &middot; {todayCount}x hari ini</>
-                    )}
-                  </p>
-                </div>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeBg}`}>
-                  {count > 0 ? round1(final) : '--'}
-                </span>
+                <Card className="hover:bg-muted/40">
+                  <CardContent className="flex items-center gap-3 py-3.5">
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
+                      doneToday ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground/60'
+                    }`}>
+                      {doneToday ? <Check size={14} /> : <RoomIcon name={room.icon} size={14} />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-bold text-foreground">{room.name}</p>
+                        {doneToday && (
+                          <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">
+                            <Check size={9} className="mr-0.5 inline" />Sudah
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        {room.pic}
+                        {lastSub && !doneToday && (
+                          <> &middot; Terakhir: {formatDateShort(lastSub.createdAt)}</>
+                        )}
+                        {doneToday && todayCount > 0 && (
+                          <> &middot; {todayCount}x hari ini</>
+                        )}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeBg}`}>
+                      {count > 0 ? round1(final) : '--'}
+                    </span>
+                  </CardContent>
+                </Card>
               </button>
             )
           })}

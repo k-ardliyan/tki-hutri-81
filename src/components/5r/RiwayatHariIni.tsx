@@ -1,136 +1,112 @@
 /**
  * RiwayatHariIni — submission 5R hari ini dengan skor + detail.
- *
- * Features:
- * - Score badge per submission (color-coded)
- * - "Kamu" badge for current user
- * - Filter: semua / punyaku
- * - Grouped by time
  */
 import { useEffect, useMemo, useState } from 'react'
-import { getSubmissions } from '../../server/functions/5r'
+import { Clock3 } from 'lucide-react'
+import { Card, CardContent } from '../ui/card'
+import ScoreBadge from '../ui/ScoreBadge'
 import { getSession } from '../../server/functions/auth'
-import type { FiveRSubmission } from '../../data/5r'
-import { getRooms, getForms } from '../../server/functions/5r'
-import type { FiveRRoom, FiveRForm } from '../../data/5r'
 import { scoreSubmission, round1 } from '../../lib/scoring'
 import { todayPrefix } from '../../lib/dateUtils'
+import { useForms, useRooms, useSubmissions } from '../../lib/queries'
 
 export default function RiwayatHariIni() {
-  const [subs, setSubs] = useState<FiveRSubmission[]>([])
+  const { data: subs = [] } = useSubmissions()
+  const { data: rooms = [] } = useRooms()
+  const { data: forms = [] } = useForms()
   const [currentUser, setCurrentUser] = useState('')
-  const [rooms, setRooms] = useState<FiveRRoom[]>([])
-  const [forms, setForms] = useState<FiveRForm[]>([])
   const [filter, setFilter] = useState<'all' | 'mine'>('all')
 
   useEffect(() => {
-    const init = async () => {
-      const [allSubs, session, r, f] = await Promise.all([
-        getSubmissions(),
-        getSession(),
-        getRooms(),
-        getForms(),
-      ])
-      const today = todayPrefix()
-      const todaySubs = allSubs.filter((s) => s.createdAt.startsWith(today))
-      setSubs(todaySubs)
-      setCurrentUser(session.username ?? '')
-      setRooms(r)
-      setForms(f)
-    }
-    void init()
+    void getSession().then((session) => setCurrentUser(session.username ?? ''))
   }, [])
 
+  const today = todayPrefix()
+  const todaySubs = useMemo(() => subs.filter((s) => s.createdAt.startsWith(today)), [subs, today])
   const roomMap = useMemo(() => new Map(rooms.map((r) => [r.id, r])), [rooms])
   const formMap = useMemo(() => new Map(forms.map((f) => [f.id, f])), [forms])
 
   const filtered = filter === 'mine'
-    ? subs.filter((s) => s.createdBy === currentUser)
-    : subs
+    ? todaySubs.filter((s) => s.createdBy === currentUser)
+    : todaySubs
 
-  // Compute scores for each submission
   const subsWithScore = useMemo(() => filtered.map((s) => {
     const form = formMap.get(s.formId)
     const score = form ? scoreSubmission(form, s) : null
     return { sub: s, score }
   }), [filtered, formMap])
 
-  const myCount = subs.filter((s) => s.createdBy === currentUser).length
+  const myCount = todaySubs.filter((s) => s.createdBy === currentUser).length
 
-  if (subs.length === 0) return null
+  if (todaySubs.length === 0) return null
 
   return (
-    <section className="surface-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3">
-        <p className="text-xs font-bold text-slate-600">
-          <i className="fa-solid fa-clock-rotate-left mr-1 text-slate-400" />
-          Riwayat Hari Ini
-          <span className="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
-            {subs.length}
-          </span>
-        </p>
-        <div className="flex gap-1">
-          <button
-            type="button"
-            onClick={() => setFilter('all')}
-            className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${filter === 'all' ? 'bg-brand-red text-white' : 'bg-slate-100 text-slate-500'}`}
-          >
-            Semua ({subs.length})
-          </button>
-          {currentUser && myCount > 0 && (
+    <Card>
+      <CardContent className="px-0 py-0">
+        <div className="flex items-center justify-between px-4 py-3">
+          <p className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+            <Clock3 size={13} />
+            Riwayat Hari Ini
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">
+              {todaySubs.length}
+            </span>
+          </p>
+          <div className="flex gap-1">
             <button
               type="button"
-              onClick={() => setFilter('mine')}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${filter === 'mine' ? 'bg-brand-red text-white' : 'bg-slate-100 text-slate-500'}`}
+              onClick={() => setFilter('all')}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
             >
-              Punyaku ({myCount})
+              Semua ({todaySubs.length})
             </button>
-          )}
+            {currentUser && myCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setFilter('mine')}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${filter === 'mine' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+              >
+                Punyaku ({myCount})
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="divide-y divide-slate-100">
-        {subsWithScore.map(({ sub: s, score }) => {
-          const room = roomMap.get(s.roomId)
-          const form = formMap.get(s.formId)
-          const isMine = s.createdBy === currentUser
-          return (
-            <div key={s.id} className="flex items-center gap-3 px-4 py-2.5">
-              {/* Score badge */}
-              {score ? (
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[10px] font-bold ${
-                  score.final >= 80 ? 'bg-status-done-soft text-status-done'
-                    : score.final >= 60 ? 'bg-status-pending-soft text-status-pending'
-                      : 'bg-status-danger-soft text-status-danger'
-                }`}>
-                  {round1(score.final)}
-                </div>
-              ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-slate-100 text-[10px] font-bold text-slate-400">
-                  --
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-semibold text-slate-700">
-                    {room?.name ?? s.roomId}
+        <div className="divide-y divide-border">
+          {subsWithScore.map(({ sub: s, score }) => {
+            const room = roomMap.get(s.roomId)
+            const form = formMap.get(s.formId)
+            const isMine = s.createdBy === currentUser
+            return (
+              <div key={s.id} className="flex items-center gap-3 px-4 py-2.5">
+                {score ? (
+                  <ScoreBadge value={round1(score.final)} showMax={false} className="min-w-8 justify-center" />
+                ) : (
+                  <div className="flex h-8 min-w-8 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-bold text-muted-foreground">
+                    --
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-foreground/80">
+                      {room?.name ?? s.roomId}
+                    </p>
+                    <span className="text-[10px] text-muted-foreground/30">&middot;</span>
+                    <p className="text-[10px] text-muted-foreground">{form?.label ?? s.formId}</p>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {s.auditor} &middot; {new Date(s.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                   </p>
-                  <span className="text-[10px] text-slate-300">&middot;</span>
-                  <p className="text-[10px] text-slate-400">{form?.label ?? s.formId}</p>
                 </div>
-                <p className="text-[10px] text-slate-400">
-                  {s.auditor} &middot; {new Date(s.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                </p>
+                {isMine && (
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">Kamu</span>
+                )}
+                {!isMine && s.createdBy && (
+                  <span className="shrink-0 text-[10px] text-muted-foreground">@{s.createdBy}</span>
+                )}
               </div>
-              {isMine && (
-                <span className="shrink-0 rounded-full bg-brand-red/10 px-2 py-0.5 text-[10px] font-bold text-brand-red">Kamu</span>
-              )}
-              {!isMine && s.createdBy && (
-                <span className="shrink-0 text-[10px] text-slate-400">@{s.createdBy}</span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </section>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

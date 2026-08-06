@@ -1,13 +1,14 @@
 /**
  * Scanner — wrapper html5-qrcode (browser-only, dynamic import).
- *
- * Key design decisions:
- * - SIMPAN MediaStream langsung → stop track = pasti mati kamera.
- * - JANGAN rely on html5-qrcode stop/clear untuk release kamera.
- * - mountedRef guard: kalau unmount saat async init, jangan start kamera.
- * - Instance baru setiap mount (jangan reuse).
+ * Mempertahankan sepenuhnya logika kamera (killCamera, mountedRef, instance baru).
+ * Hanya styling diarahkan ke token shadcn.
  */
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { RotateCcw, CameraOff, Loader2, Video } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Card } from '../ui/card'
+import { Input } from '../ui/input'
+import { NativeSelect, NativeSelectOption } from '../ui/native-select'
 import type { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 
 interface CameraDevice {
@@ -21,7 +22,6 @@ export interface ScannerHandle {
 }
 
 interface ScannerProps {
-  /** Return true kalau kode dikenali (parent lanjut), false kalau tidak (parent show modal). */
   onScan: (kode: string) => Promise<boolean> | boolean
   onError?: (err: string) => void
 }
@@ -35,7 +35,7 @@ const DECODE_COOLDOWN_MS = 1200
 const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onScan, onError }, ref) {
   const containerRef = useRef<HTMLDivElement>(null)
   const instRef = useRef<Html5Qrcode | null>(null)
-  const streamRef = useRef<MediaStream | null>(null)  // simpan stream langsung
+  const streamRef = useRef<MediaStream | null>(null)
   const mountedRef = useRef(true)
   const cooldownRef = useRef(0)
   const onScanRef = useRef(onScan)
@@ -48,22 +48,15 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
   const [currentCamIdx, setCurrentCamIdx] = useState(0)
   const [mobile, setMobile] = useState(false)
 
-  /**
-   * Stop kamera — PASTI mati.
-   * Strategy: stop MediaStream tracks langsung (bukan rely on html5-qrcode).
-   */
   const killCamera = useCallback(() => {
-    // 1. Stop stream langsung — ini yang bikin lampu kamera mati
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
-    // 2. Stop instance html5-qrcode (opsional, untuk cleanup internal state)
     if (instRef.current) {
       try { instRef.current.stop().catch(() => {}) } catch { /* ignore */ }
       instRef.current = null
     }
-    // 3. Clear container — hapus video element
     if (containerRef.current) {
       containerRef.current.querySelectorAll('video').forEach((v) => {
         v.srcObject = null
@@ -91,7 +84,6 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
 
       if (!containerRef.current || !mountedRef.current) return
 
-      // Selalu buat instance baru
       instRef.current = new Html5QrcodeClass('snack-qr-reader', { formatsToSupport: [fmt.QR_CODE] } as never)
       const inst = instRef.current
 
@@ -109,13 +101,11 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
           if (cooldownRef.current > Date.now()) return
           cooldownRef.current = Date.now() + DECODE_COOLDOWN_MS
 
-          // Pause — jangan reset apapun, stream masih hidup
           try { await inst.pause(true) } catch { /* ignore */ }
 
           try {
             await onScanRef.current(code)
           } catch {
-            // onScan error — resume supaya scanner tidak stuck paused
             try { await inst.resume() } catch { /* ignore */ }
           }
         },
@@ -123,17 +113,14 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
       )
 
       if (!mountedRef.current) {
-        // Unmount saat inst.start() — matikan sekarang
         killCamera()
         return
       }
 
-      // Simpan stream setelah start berhasil
       const video = containerRef.current?.querySelector('video') ?? null
       const stream = video?.srcObject as MediaStream | null
       streamRef.current = stream
 
-      // Listen trackended — kalau browser stop track, sync state
       if (stream) {
         stream.getTracks().forEach((t) => {
           t.addEventListener('ended', () => {
@@ -153,7 +140,6 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
     }
   }, [mobile, onError, killCamera])
 
-  // Expose resume()
   useImperativeHandle(ref, () => ({
     resume: async () => {
       if (!instRef.current || !mountedRef.current) return
@@ -166,7 +152,6 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
     },
   }))
 
-  // Init
   useEffect(() => {
     mountedRef.current = true
     setMobile(isMobile())
@@ -178,7 +163,6 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Switch kamera
   const switchCamera = async () => {
     setStarting(true)
     setCamError(null)
@@ -190,7 +174,7 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
   return (
     <div className="space-y-3">
       {/* Camera area */}
-      <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-[var(--radius-lg)] border border-slate-200 bg-slate-900">
+      <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-lg border border-border bg-slate-900">
         <div id="snack-qr-reader" ref={containerRef} className="flex h-full w-full items-center justify-center" />
 
         {mobile && !starting && !camError && (
@@ -200,19 +184,19 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
             className="absolute top-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
             aria-label="Ganti kamera"
           >
-            <i className="fa-solid fa-camera-rotate text-sm" />
+            <RotateCcw size={14} />
           </button>
         )}
 
         {starting && !camError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/80">
-            <i className="fa-solid fa-spinner fa-spin text-2xl" />
+            <Loader2 size={24} className="animate-spin" />
             <p className="text-xs font-semibold">Menyiapkan kamera...</p>
           </div>
         )}
         {camError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/90 p-4 text-center">
-            <i className="fa-solid fa-camera-slash text-2xl text-slate-400" />
+            <CameraOff size={24} className="text-slate-400" />
             <p className="text-xs font-semibold text-slate-300">{camError}</p>
             <p className="text-[10px] text-slate-400">Gunakan pencarian manual di bawah.</p>
           </div>
@@ -220,42 +204,38 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
       </div>
 
       {!mobile && cameras.length > 1 && !starting && (
-        <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-slate-200 bg-white px-3 py-2">
-          <i className="fa-solid fa-video text-xs text-slate-400" />
-          <select
+        <div className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2">
+          <Video size={14} className="text-muted-foreground" />
+          <NativeSelect
+            className="flex-1"
             value={currentCamIdx}
             onChange={(e) => { setCurrentCamIdx(Number(e.target.value)); void startScanner(Number(e.target.value)) }}
-            className="flex-1 bg-transparent text-xs font-semibold text-slate-700 outline-none"
           >
             {cameras.map((c, i) => (
-              <option key={c.id} value={i}>{c.label}</option>
+              <NativeSelectOption key={c.id} value={i}>{c.label}</NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       )}
 
-      <div className="rounded-[var(--radius-md)] border border-slate-200 bg-white p-3">
-        <label className="block text-xs font-bold text-slate-600">QR rusak? Ketik kode tim manual</label>
+      <Card className="p-3">
+        <label className="block text-xs font-bold text-muted-foreground">QR rusak? Ketik kode tim manual</label>
         <div className="mt-1.5 flex gap-2">
-          <input
+          <Input
             type="text"
             value={manual}
             onChange={(e) => setManual(e.target.value.toUpperCase())}
             placeholder="PUTRA-1 / PANITIA"
-            className="flex-1 rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-300 focus:border-brand-red focus:ring-2 focus:ring-brand-red/15"
+            className="flex-1"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && manual.trim()) onScan(manual.trim())
             }}
           />
-          <button
-            type="button"
-            onClick={() => manual.trim() && onScan(manual.trim())}
-            className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-xs font-bold text-white transition hover:brightness-110 active:scale-95"
-          >
+          <Button onClick={() => manual.trim() && onScan(manual.trim())}>
             Cari
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   )
 })

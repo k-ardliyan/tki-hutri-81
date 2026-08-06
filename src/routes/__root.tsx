@@ -1,5 +1,6 @@
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRoute,
   HeadContent,
@@ -78,11 +79,16 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } } }),
+  )
   return (
     <RootDocument>
-      <AudienceProvider>
-        <AppLayout />
-      </AudienceProvider>
+      <QueryClientProvider client={queryClient}>
+        <AudienceProvider>
+          <AppLayout />
+        </AudienceProvider>
+      </QueryClientProvider>
     </RootDocument>
   )
 }

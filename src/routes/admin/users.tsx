@@ -1,13 +1,45 @@
 /**
- * SuperadminUsers — kelola user via Modal.
- * Create: modal (username, password, role, cari karyawan).
- * Inline: toggle active, change role, reset password, delete.
+ * SuperadminUsers — kelola user via Drawer + Dialog.
+ * Create: drawer (username, password, role, cari karyawan).
+ * Inline: toggle active, change role, edit username, reset password, delete.
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { KeyRound, Plus, Search, Trash2, UserPen } from 'lucide-react'
+import { Button } from '../../components/ui/button'
+import { Card } from '../../components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '../../components/ui/drawer'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import { NativeSelect, NativeSelectOption } from '../../components/ui/native-select'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog'
 import { listUsers, createUser, updateUser, resetPassword, deleteUser, listEmployees } from '../../server/functions/admin'
 import { ROLE_LABELS, type UserRole } from '../../lib/auth'
-import Modal from '../../components/ui/Modal'
 
 export const Route = createFileRoute('/admin/users')({
   beforeLoad: async () => {
@@ -34,9 +66,16 @@ function SuperadminUsers() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  // Edit modal state
+  // Edit username dialog
   const [editTarget, setEditTarget] = useState<UserRow | null>(null)
   const [editUsername, setEditUsername] = useState('')
+
+  // Reset password dialog
+  const [resetTarget, setResetTarget] = useState<UserRow | null>(null)
+  const [resetPw, setResetPw] = useState('')
+
+  // Delete confirm
+  const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null)
 
   const load = async () => { setUsers(await listUsers()) }
   useEffect(() => { void load() }, [])
@@ -58,11 +97,6 @@ function SuperadminUsers() {
 
   const toggleActive = async (u: UserRow) => { await updateUser({ data: { id: u.id, isActive: !u.isActive } }); await load() }
   const changeRole = async (u: UserRow, next: UserRole) => { await updateUser({ data: { id: u.id, role: next } }); await load() }
-  const doReset = async (u: UserRow) => {
-    const pw = prompt(`Reset password untuk ${u.username}? Masukkan password baru:`)
-    if (!pw) return
-    await resetPassword({ data: { id: u.id, password: pw } }); setMsg('Password direset!'); await load()
-  }
 
   const doEditUsername = async () => {
     setErr(null); setMsg(null)
@@ -71,125 +105,175 @@ function SuperadminUsers() {
     await updateUser({ data: { id: editTarget.id, username: editUsername.trim() } })
     setEditTarget(null); setMsg('Username diupdate!'); await load()
   }
-  const remove = async (u: UserRow) => { if (!confirm(`Hapus user ${u.username}?`)) return; await deleteUser({ data: { id: u.id } }); await load() }
+
+  const doReset = async () => {
+    setErr(null); setMsg(null)
+    if (!resetTarget) return
+    if (!resetPw.trim()) { setErr('Password baru wajib'); return }
+    await resetPassword({ data: { id: resetTarget.id, password: resetPw } })
+    setResetTarget(null); setResetPw(''); setMsg('Password direset!'); await load()
+  }
+
+  const remove = async () => {
+    if (!deleteTarget) return
+    await deleteUser({ data: { id: deleteTarget.id } }); setDeleteTarget(null); await load()
+  }
 
   return (
     <div className="space-y-5">
       <section className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">Kelola User</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Superadmin — buat user, reset password, atur role.</p>
+          <h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Kelola User</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Superadmin — buat user, reset password, atur role.</p>
         </div>
-        <button type="button" onClick={() => { setUsername(''); setPassword(''); setEmployeeId(''); setSearch(''); setRole('admin'); setShowCreate(true) }}
-          className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">
-          + User Baru
-        </button>
+        <Button onClick={() => { setUsername(''); setPassword(''); setEmployeeId(''); setSearch(''); setRole('admin'); setShowCreate(true) }}>
+          <Plus size={14} className="mr-1" />User Baru
+        </Button>
       </section>
 
-      {msg && <p className="rounded-[var(--radius-md)] bg-status-done-soft px-3 py-2 text-xs font-semibold text-status-done">{msg}</p>}
-      {err && <p className="rounded-[var(--radius-md)] bg-status-danger-soft px-3 py-2 text-xs font-semibold text-status-danger">{err}</p>}
+      {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
+      {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
 
       {/* User list */}
-      <section className="surface-card divide-y divide-slate-100">
-        {users.length === 0 && <p className="px-4 py-6 text-center text-xs text-slate-400">Belum ada user.</p>}
+      <Card className="divide-y divide-border">
+        {users.length === 0 && <p className="px-4 py-6 text-center text-xs text-muted-foreground">Belum ada user.</p>}
         {users.map((u) => (
           <div key={u.id} className="flex flex-wrap items-center gap-2 px-4 py-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-slate-800">
+              <p className="text-sm font-bold text-foreground">
                 {u.username}
-                {!u.isActive && <span className="ml-2 rounded-full bg-status-danger-soft px-2 py-0.5 text-[10px] font-bold text-status-danger">NONAKTIF</span>}
+                {!u.isActive && <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">NONAKTIF</span>}
               </p>
-              <p className="text-[10px] text-slate-400">{ROLE_LABELS[u.role]}{u.employeeNama ? ` · ${u.employeeNama}` : ' · (tanpa karyawan)'}</p>
+              <p className="text-[10px] text-muted-foreground">{ROLE_LABELS[u.role]}{u.employeeNama ? ` · ${u.employeeNama}` : ' · (tanpa karyawan)'}</p>
             </div>
-            <select value={u.role} onChange={(e) => changeRole(u, e.target.value as UserRole)}
-              className="rounded-[var(--radius-sm)] border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 outline-none focus:border-brand-red">
-              {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-            </select>
-            <button type="button" onClick={() => toggleActive(u)} className={`rounded-[var(--radius-sm)] px-2 py-1 text-[10px] font-bold transition ${u.isActive ? 'bg-amber-100 text-amber-700' : 'bg-status-done-soft text-status-done'}`}>
+            <NativeSelect size="sm" value={u.role} onChange={(e) => changeRole(u, e.target.value as UserRole)}>
+              {ROLES.map((r) => <NativeSelectOption key={r} value={r}>{ROLE_LABELS[r]}</NativeSelectOption>)}
+            </NativeSelect>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => toggleActive(u)}
+              className={`h-6 px-2 text-[10px] font-bold ${u.isActive ? 'bg-warning/15 text-warning hover:bg-warning/25' : 'bg-success/10 text-success hover:bg-success/20'}`}
+            >
               {u.isActive ? 'Nonaktif' : 'Aktif'}
-            </button>
-            <button type="button" onClick={() => { setEditTarget(u); setEditUsername(u.username) }} className="rounded-[var(--radius-sm)] bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 transition hover:bg-slate-200">Edit</button>
-            <button type="button" onClick={() => doReset(u)} className="rounded-[var(--radius-sm)] bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 transition hover:bg-slate-200">Reset PW</button>
-            <button type="button" onClick={() => remove(u)} className="rounded-[var(--radius-sm)] px-2 py-1 text-[10px] font-bold text-rose-600 transition hover:bg-rose-50">
-              <i className="fa-solid fa-trash-can" />
-            </button>
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => { setEditTarget(u); setEditUsername(u.username) }} className="h-6 px-2 text-[10px] font-bold">
+              <UserPen size={11} className="mr-1" />Edit
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => { setResetTarget(u); setResetPw('') }} className="h-6 px-2 text-[10px] font-bold">
+              <KeyRound size={11} className="mr-1" />Reset PW
+            </Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(u)} className="text-destructive hover:bg-rose-50">
+              <Trash2 size={13} />
+            </Button>
           </div>
         ))}
-      </section>
+      </Card>
 
-      {/* Create User Modal */}
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Buat User Baru"
-        footer={
-          <>
-            <button type="button" onClick={() => setShowCreate(false)} className="rounded-[var(--radius-md)] border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Batal</button>
-            <button type="button" onClick={submit} className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">Buat User</button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-600">Username</label>
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username"
-                className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-600">Password Awal</label>
-              <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password awal"
-                className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Role</label>
-            <div className="flex flex-wrap gap-1.5">
-              {ROLES.map((r) => (
-                <button key={r} type="button" onClick={() => setRole(r)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${role === r ? 'bg-brand-red text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
-                  {ROLE_LABELS[r]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Karyawan (opsional)</label>
-            <input type="text" value={search} onChange={(e) => loadEmployees(e.target.value)} placeholder="Cari nama, minimal 2 huruf"
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-            {employees.length > 0 && (
-              <div className="mt-1.5 max-h-40 overflow-auto divide-y divide-slate-100 rounded-[var(--radius-md)] border border-slate-200">
-                {employees.map((e) => (
-                  <button key={e.id} type="button" onClick={() => { setEmployeeId(e.id); setSearch(e.nama); setEmployees([]) }}
-                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50">
-                    <span className="font-semibold text-slate-700">{e.nama}</span>
-                    <span className="text-[10px] text-slate-400">{e.nip ?? '—'}</span>
-                  </button>
-                ))}
+      {/* Create User Drawer */}
+      <Drawer open={showCreate} onOpenChange={setShowCreate}>
+        <DrawerContent className="mx-auto max-w-md">
+          <DrawerHeader>
+            <DrawerTitle>Buat User Baru</DrawerTitle>
+            <DrawerDescription>Set kredensial awal dan role.</DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-3 px-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="usr-username">Username</Label>
+                <Input id="usr-username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
               </div>
-            )}
-            {employeeId !== '' && (
-              <p className="mt-1 text-[10px] font-semibold text-status-done"><i className="fa-solid fa-check mr-1" />Terhubung: {search}</p>
-            )}
+              <div className="space-y-1.5">
+                <Label htmlFor="usr-password">Password Awal</Label>
+                <Input id="usr-password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password awal" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Role</Label>
+              <NativeSelect className="w-full" value={role} onChange={(e) => setRole(e.target.value as UserRole)}>
+                {ROLES.map((r) => <NativeSelectOption key={r} value={r}>{ROLE_LABELS[r]}</NativeSelectOption>)}
+              </NativeSelect>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Karyawan (opsional)</Label>
+              <div className="relative">
+                <Search size={14} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60" />
+                <Input type="text" value={search} onChange={(e) => loadEmployees(e.target.value)} placeholder="Cari nama, minimal 2 huruf" className="pl-9" />
+              </div>
+              {employees.length > 0 && (
+                <div className="mt-1.5 max-h-40 overflow-auto divide-y divide-border rounded-md border border-border">
+                  {employees.map((e) => (
+                    <button key={e.id} type="button" onClick={() => { setEmployeeId(e.id); setSearch(e.nama); setEmployees([]) }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted">
+                      <span className="font-semibold text-foreground/80">{e.nama}</span>
+                      <span className="text-[10px] text-muted-foreground">{e.nip ?? '—'}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {employeeId !== '' && (
+                <p className="text-[10px] font-semibold text-success">Terhubung: {search}</p>
+              )}
+            </div>
           </div>
-        </div>
-      </Modal>
+          <DrawerFooter>
+            <Button variant="outline" onClick={() => setShowCreate(false)}>Batal</Button>
+            <Button onClick={submit}>Buat User</Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Edit Username Modal */}
-      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Username"
-        footer={
-          <>
-            <button type="button" onClick={() => setEditTarget(null)} className="rounded-[var(--radius-md)] border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Batal</button>
-            <button type="button" onClick={doEditUsername} className="rounded-[var(--radius-md)] bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:brightness-110">Simpan</button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-600">Username</label>
-            <input type="text" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} placeholder="Username baru"
-              className="w-full rounded-[var(--radius-md)] border border-slate-200 px-3 py-2 text-sm outline-none placeholder:text-slate-300 focus:border-brand-red" />
-            <p className="mt-1 text-[10px] text-slate-400">Login selanjutnya pakai username baru ini.</p>
+      {/* Edit Username Dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => { if (!o) setEditTarget(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Username</DialogTitle>
+            <DialogDescription>Login selanjutnya pakai username baru ini.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-username">Username</Label>
+            <Input id="edit-username" type="text" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} placeholder="Username baru" />
           </div>
-        </div>
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>Batal</Button>
+            <Button onClick={() => void doEditUsername()}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={!!resetTarget} onOpenChange={(o) => { if (!o) setResetTarget(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>Masukkan password baru untuk {resetTarget?.username}.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="reset-pw">Password Baru</Label>
+            <Input id="reset-pw" type="text" value={resetPw} onChange={(e) => setResetPw(e.target.value)} placeholder="Password baru" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetTarget(null)}>Batal</Button>
+            <Button onClick={() => void doReset()}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.username}. Tindakan ini tidak bisa dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void remove()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Hapus</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

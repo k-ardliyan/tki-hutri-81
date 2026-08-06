@@ -1,10 +1,12 @@
 /**
  * GelangPage — pilih team → print gelang (QR tim, kartu per anggota).
- * Route: /admin/snack/gelang?team=PUTRA-1
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
+import { Printer } from 'lucide-react'
+import { Card, CardContent } from '../../../components/ui/card'
+import { NativeSelect, NativeSelectOption } from '../../../components/ui/native-select'
 import { getTeamsWithMembers } from '../../../server/functions/snack'
 import type { SnackTeam } from '../../../server/functions/snack'
 import GelangPrint from '../../../components/snack/GelangPrint'
@@ -36,32 +38,34 @@ function GelangPage() {
     <div className="space-y-5">
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">Generate Gelang</h1>
-          <p className="mt-0.5 text-sm text-slate-500">QR = kode tim, dicetak per anggota. Ukuran A4 otomatis.</p>
+          <h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Generate Gelang</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">QR = kode tim, dicetak per anggota. Ukuran A4 otomatis.</p>
         </div>
-        <select
+        <NativeSelect
+          className="w-full sm:w-64"
           value={selected?.kode ?? ''}
           onChange={(e) => {
             const t = teams.find((x) => x.kode === e.target.value)
             setSelected(t ?? null)
           }}
-          className="rounded-[var(--radius-md)] border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-brand-red"
         >
-          <option value="">Pilih kelompok...</option>
+          <NativeSelectOption value="">Pilih kelompok...</NativeSelectOption>
           {teams.map((t) => (
-            <option key={t.id} value={t.kode}>
+            <NativeSelectOption key={t.id} value={t.kode}>
               {t.nama} ({t.members.length} org)
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
       </section>
 
       {!selected && (
-        <section className="surface-card p-8 text-center">
-          <i className="fa-solid fa-print text-2xl text-slate-300" />
-          <p className="mt-2 text-sm font-bold text-slate-600">Pilih kelompok untuk generate gelang</p>
-          <p className="mt-1 text-xs text-slate-400">Gelang dicetak per anggota, QR berisi kode tim.</p>
-        </section>
+        <Card className="p-8 text-center">
+          <CardContent className="flex flex-col items-center gap-2">
+            <Printer size={24} className="text-muted-foreground/40" />
+            <p className="text-sm font-bold text-foreground/80">Pilih kelompok untuk generate gelang</p>
+            <p className="text-xs text-muted-foreground">Gelang dicetak per anggota, QR berisi kode tim.</p>
+          </CardContent>
+        </Card>
       )}
 
       {selected && <GelangPrint team={selected} />}
