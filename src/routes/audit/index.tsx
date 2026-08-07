@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { CalendarCheck, CalendarX, Check } from 'lucide-react'
+import { Alert, AlertDescription } from '../../components/ui/alert'
 import { Card, CardContent } from '../../components/ui/card'
 import RoomIcon from '../../components/ui/RoomIcon'
 import StatCard from '../../components/ui/StatCard'
@@ -83,21 +84,17 @@ function AuditDashboardPage() {
 
       {/* Today's summary banner */}
       {todayTotal > 0 ? (
-        <div className="rounded-lg border border-success/20 bg-success/[0.06] px-4 py-3">
-          <div className="flex items-center gap-2">
-            <CalendarCheck size={16} className="text-success" />
-            <p className="text-xs font-bold text-success">
-              Hari ini: {todayTotal} penilaian dari {new Set(todaySubs.map((s) => s.roomId)).size} ruangan
-            </p>
-          </div>
-        </div>
+        <Alert className="border-success/20 bg-success/[0.06] text-success">
+          <CalendarCheck size={16} />
+          <AlertDescription className="text-xs font-bold text-success">
+            Hari ini: {todayTotal} penilaian dari {new Set(todaySubs.map((s) => s.roomId)).size} ruangan
+          </AlertDescription>
+        </Alert>
       ) : (
-        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <CalendarX size={16} className="text-muted-foreground" />
-            <p className="text-xs font-semibold text-muted-foreground">Belum ada penilaian hari ini</p>
-          </div>
-        </div>
+        <Alert className="bg-muted/40">
+          <CalendarX size={16} />
+          <AlertDescription className="text-xs font-semibold">Belum ada penilaian hari ini</AlertDescription>
+        </Alert>
       )}
 
       {/* Stats */}

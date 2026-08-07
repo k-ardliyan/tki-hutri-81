@@ -9,10 +9,12 @@
  * - Kategori collapse + scroll-to kategori + auto-open yang belum lengkap
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, CheckCircle2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Check, CheckCircle2, Loader2 } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Input } from '../ui/input'
+import { Progress } from '../ui/progress'
 import type { FiveRSubmission } from '../../data/5r'
 import { getFiveRForm } from '../../data/5r'
 import { saveSubmission } from '../../server/functions/5r'
@@ -214,15 +216,24 @@ export default function ScoringForm({
     setNotes((prev) => ({ ...prev, [criterionId]: note }))
   }
 
-  const toggleCollapse = (catId: string) => {
-    setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }))
-  }
-
   // Count per kategori
   const catProgress = form.categories.map((cat) => {
     const filled = cat.criteria.filter((c) => answers[c.id] !== undefined).length
     return { ...cat, filled, done: filled === cat.criteria.length }
   })
+
+  // Accordion kategori — open ids di-derive dari state collapsed
+  const openCats = form.categories
+    .filter((c) => !(collapsed[c.id] ?? c.id !== form.categories[0]?.id))
+    .map((c) => c.id)
+
+  const handleAccordionChange = (ids: string[]) => {
+    setCollapsed((prev) => {
+      const next: Record<string, boolean> = { ...prev }
+      for (const c of form.categories) next[c.id] = !ids.includes(c.id)
+      return next
+    })
+  }
 
   const handleSubmit = () => {
     setError(null)
@@ -292,12 +303,10 @@ export default function ScoringForm({
           </span>
         </div>
         {/* Progress bar — thicker */}
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${totalCriteria > 0 ? (answeredCount / totalCriteria) * 100 : 0}%` }}
-          />
-        </div>
+        <Progress
+          value={totalCriteria > 0 ? (answeredCount / totalCriteria) * 100 : 0}
+          className="mt-2 h-2 bg-muted"
+        />
 
         {/* Category pills — larger on mobile */}
         <div className="mt-2.5 flex gap-1.5 overflow-x-auto no-scrollbar">
@@ -341,99 +350,90 @@ export default function ScoringForm({
 
       {/* Categories */}
       <div className="space-y-3 px-4 pt-4 pb-5 sm:px-6">
-        {form.categories.map((cat) => {
-          const cp = catProgress.find((c) => c.id === cat.id)!
-          const isCollapsed = collapsed[cat.id] ?? (cat.id !== form.categories[0]?.id)
-          return (
-            <div key={cat.id} id={`cat-${cat.id}`} className="scroll-mt-[10rem] lg:scroll-mt-28">
-              {/* Category header */}
-              <button
-                type="button"
-                onClick={() => toggleCollapse(cat.id)}
-                className={`flex w-full items-center justify-between rounded-md px-3.5 py-2.5 text-xs font-extrabold transition ${
-                  cp.done
-                    ? 'bg-success/10 text-success'
-                    : 'bg-muted text-foreground/80'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{cat.label}</span>
-                  {cp.done && <CheckCircle2 size={11} />}
-                </div>
-                <div className="flex items-center gap-2">
+        <Accordion type="multiple" value={openCats} onValueChange={handleAccordionChange}>
+          {form.categories.map((cat) => {
+            const cp = catProgress.find((c) => c.id === cat.id)!
+            return (
+              <AccordionItem key={cat.id} value={cat.id} id={`cat-${cat.id}`} className="scroll-mt-[10rem] border-0 lg:scroll-mt-28">
+                <AccordionTrigger
+                  className={`rounded-md px-3.5 py-2.5 text-xs font-extrabold ${
+                    cp.done ? 'bg-success/10 text-success' : 'bg-muted text-foreground/80'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    {cat.label}
+                    {cp.done && <CheckCircle2 size={11} />}
+                  </span>
                   <span className="text-[10px] font-bold opacity-60">
                     {cp.filled}/{cat.criteria.length}
                   </span>
-                  {isCollapsed ? <ChevronDown size={12} className="opacity-40" /> : <ChevronUp size={12} className="opacity-40" />}
-                </div>
-              </button>
-
-              {/* Criteria */}
-              {!isCollapsed && (
-                <div className="mt-2 space-y-2.5">
-                  {cat.criteria.map((c) => {
-                    const answered = answers[c.id] !== undefined
-                    return (
-                      <div
-                        key={c.id}
-                        className={`rounded-md border p-3 transition ${
-                          answered
-                            ? 'border-success/30 bg-success/[0.06]'
-                            : 'border-dashed border-border'
-                        }`}
-                      >
-                        <p className="text-sm font-semibold text-foreground/90">
-                          <span className="text-muted-foreground/60">{c.order}.</span> {c.text}
-                        </p>
-
-                        {/* Score buttons with labels */}
-                        <div className="mt-2.5 grid grid-cols-5 gap-1.5">
-                          {c.options.map((opt) => {
-                            const selected = answers[c.id] === opt.score
-                            return (
-                              <button
-                                key={opt.score}
-                                type="button"
-                                onClick={() => setScore(c.id, opt.score)}
-                                aria-pressed={selected}
-                                className={`flex h-auto min-h-[3rem] flex-col items-center justify-center gap-0.5 rounded-md border py-1.5 text-center transition active:scale-95 ${
-                                  selected
-                                    ? 'border-success bg-success text-white shadow-sm'
-                                    : 'border-border bg-white text-muted-foreground hover:border-muted-foreground/40'
-                                }`}
-                              >
-                                <span className="text-sm font-bold leading-none">{opt.score}</span>
-                                <span className={`hidden text-[8px] font-semibold leading-tight sm:block ${selected ? 'text-white/80' : 'text-muted-foreground/70'}`}>
-                                  {SCORE_LABELS[opt.score]}
-                                </span>
-                              </button>
-                            )
-                          })}
-                        </div>
-
-                        {/* Description */}
-                        {answered && (
-                          <p className="mt-2 rounded-md bg-success/10 px-2.5 py-1.5 text-xs text-muted-foreground">
-                            {c.options.find((o) => o.score === answers[c.id])?.desc}
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <div className="space-y-2.5">
+                    {cat.criteria.map((c) => {
+                      const answered = answers[c.id] !== undefined
+                      return (
+                        <div
+                          key={c.id}
+                          className={`rounded-md border p-3 transition ${
+                            answered
+                              ? 'border-success/30 bg-success/[0.06]'
+                              : 'border-dashed border-border'
+                          }`}
+                        >
+                          <p className="text-sm font-semibold text-foreground/90">
+                            <span className="text-muted-foreground/60">{c.order}.</span> {c.text}
                           </p>
-                        )}
 
-                        {/* Note */}
-                        <Input
-                          type="text"
-                          value={notes[c.id] ?? ''}
-                          onChange={(e) => setNote(c.id, e.target.value)}
-                          placeholder="Catatan (opsional)"
-                          className="mt-2 h-8 bg-muted/50 text-xs"
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
+                          {/* Score buttons with labels */}
+                          <div className="mt-2.5 grid grid-cols-5 gap-1.5">
+                            {c.options.map((opt) => {
+                              const selected = answers[c.id] === opt.score
+                              return (
+                                <button
+                                  key={opt.score}
+                                  type="button"
+                                  onClick={() => setScore(c.id, opt.score)}
+                                  aria-pressed={selected}
+                                  className={`flex h-auto min-h-[3rem] flex-col items-center justify-center gap-0.5 rounded-md border py-1.5 text-center transition active:scale-95 ${
+                                    selected
+                                      ? 'border-success bg-success text-white shadow-sm'
+                                      : 'border-border bg-white text-muted-foreground hover:border-muted-foreground/40'
+                                  }`}
+                                >
+                                  <span className="text-sm font-bold leading-none">{opt.score}</span>
+                                  <span className={`hidden text-[8px] font-semibold leading-tight sm:block ${selected ? 'text-white/80' : 'text-muted-foreground/70'}`}>
+                                    {SCORE_LABELS[opt.score]}
+                                  </span>
+                                </button>
+                              )
+                            })}
+                          </div>
+
+                          {/* Description */}
+                          {answered && (
+                            <p className="mt-2 rounded-md bg-success/10 px-2.5 py-1.5 text-xs text-muted-foreground">
+                              {c.options.find((o) => o.score === answers[c.id])?.desc}
+                            </p>
+                          )}
+
+                          {/* Note */}
+                          <Input
+                            type="text"
+                            value={notes[c.id] ?? ''}
+                            onChange={(e) => setNote(c.id, e.target.value)}
+                            placeholder="Catatan (opsional)"
+                            className="mt-2 h-8 bg-muted/50 text-xs"
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
       </div>
 
       {/* Bottom submit — auto-hide via GSAP, di atas bottom nav (mobile) */}

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Clock3 } from 'lucide-react'
 import { Card, CardContent } from '../ui/card'
 import ScoreBadge from '../ui/ScoreBadge'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 import { getSession } from '../../server/functions/auth'
 import { scoreSubmission, round1 } from '../../lib/scoring'
 import { todayPrefix } from '../../lib/dateUtils'
@@ -51,24 +52,14 @@ export default function RiwayatHariIni() {
               {todaySubs.length}
             </span>
           </p>
-          <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={() => setFilter('all')}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-            >
-              Semua ({todaySubs.length})
-            </button>
-            {currentUser && myCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setFilter('mine')}
-                className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${filter === 'mine' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-              >
-                Punyaku ({myCount})
-              </button>
-            )}
-          </div>
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as 'all' | 'mine')}>
+            <TabsList className="h-7">
+              <TabsTrigger value="all" className="h-6 px-2.5 text-[10px] font-bold">Semua ({todaySubs.length})</TabsTrigger>
+              {currentUser && myCount > 0 && (
+                <TabsTrigger value="mine" className="h-6 px-2.5 text-[10px] font-bold">Punyaku ({myCount})</TabsTrigger>
+              )}
+            </TabsList>
+          </Tabs>
         </div>
         <div className="divide-y divide-border">
           {subsWithScore.map(({ sub: s, score }) => {

@@ -5,6 +5,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../../components/ui/breadcrumb'
+import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import RoomIcon from '../../components/ui/RoomIcon'
 import { getRooms, getForms } from '../../server/functions/5r'
@@ -94,18 +96,19 @@ function IsiPage() {
             {forms.map((f) => {
               const total = f.categories.reduce((s, c) => s + c.criteria.length, 0)
               return (
-                <button
+                <Button
                   key={f.id}
                   type="button"
+                  variant="outline"
                   onClick={() => navigate({ to: '/admin/isi', search: { room, form: f.id } })}
-                  className="flex w-full cursor-pointer items-center justify-between rounded-md border border-border bg-white px-3.5 py-3 text-left transition hover:border-primary"
+                  className="flex h-auto w-full justify-between px-3.5 py-3"
                 >
-                  <div>
+                  <div className="text-left">
                     <p className="text-sm font-bold text-foreground">{f.label}</p>
                     <p className="text-xs text-muted-foreground">{total} kriteria / skor 1-5</p>
                   </div>
                   <ChevronRight size={14} className="text-muted-foreground/40" />
-                </button>
+                </Button>
               )
             })}
           </CardContent>
@@ -119,19 +122,25 @@ function IsiPage() {
     <div className="space-y-4">
       <Card>
         <CardContent className="py-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/admin/isi', search: { room } })}
-              className="font-semibold transition hover:text-foreground"
-            >
-              {roomObj.name}
-            </button>
-            <ChevronRight size={10} />
-            <span className="font-semibold text-foreground/70">
-              {forms.find((f) => f.id === form)?.label}
-            </span>
-          </div>
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: '/admin/isi', search: { room } })}
+                  className="text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                >
+                  {roomObj.name}
+                </button>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-xs font-semibold text-foreground/70">
+                  {forms.find((f) => f.id === form)?.label}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </CardContent>
       </Card>
       <ScoringForm roomId={room} formId={form} />
