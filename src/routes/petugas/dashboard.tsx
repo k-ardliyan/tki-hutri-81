@@ -5,7 +5,8 @@
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { ChevronRight, Search, Loader2, UserPlus, Users } from 'lucide-react'
+import { toast } from 'sonner'
+import { ChevronRight, Loader2, Search, UserPlus, Users } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import {
@@ -61,7 +62,6 @@ function PetugasDashboardPage() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
-  const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
@@ -75,11 +75,11 @@ function PetugasDashboardPage() {
   }, [])
 
   const openSearch = () => {
-    setQ(''); setResults([]); setMsg(null); setErr(null); setShowSearch(true)
+    setQ(''); setResults([]); setErr(null); setShowSearch(true)
   }
 
   const doSearch = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     if (!q.trim()) { setResults([]); return }
     setSearching(true)
     try {
@@ -94,14 +94,14 @@ function PetugasDashboardPage() {
 
   const redeemOne = async (id: number) => {
     if (!sessionId) { setErr('Tidak ada sesi aktif'); return }
-    setErr(null); setMsg(null)
+    setErr(null)
     const res = await redeemSnack({ data: { sessionId, employeeIds: [id], claimedBy } })
     if (!res.ok) { setErr(res.error ?? 'Gagal'); return }
     if (res.skipped.length > 0) {
       const r = res.skipped[0]
       setErr(`${r.claimedBy} sudah ambil pada ${new Date(r.claimedAt).toLocaleString('id-ID')}`)
     } else {
-      setMsg('1 porsi dicatat!')
+      toast.success('1 porsi dicatat!')
       setResults([]); setQ('')
       const s = await getRedemptionSummary({ data: {} })
       setSummary(s)
@@ -187,7 +187,6 @@ function PetugasDashboardPage() {
 
             {/* Feedback */}
             {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
-            {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
 
             {/* Empty state */}
             {!searching && results.length === 0 && !err && (

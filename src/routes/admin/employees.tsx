@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { Plus, Search, Trash2 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
@@ -47,7 +48,6 @@ function AdminEmployees() {
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [q, setQ] = useState('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
   // Drawer state
@@ -71,14 +71,14 @@ function AdminEmployees() {
   const openEdit = (r: EmployeeRow) => { setEditId(r.id); setNama(r.nama); setNip(r.nip ?? ''); setDivisi(r.divisi ?? ''); setEligible(r.isSnackEligible); setShowDrawer(true) }
 
   const submit = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     if (!nama.trim()) { setErr('Nama wajib'); return }
     if (editId !== null) {
       await updateEmployee({ data: { id: editId, nama: nama.trim(), nip: nip || null, divisi: divisi || null, isSnackEligible: eligible } })
-      setMsg('Karyawan diupdate!')
+      toast.success('Karyawan diupdate!')
     } else {
       await createEmployee({ data: { nama: nama.trim(), nip: nip || null, divisi: divisi || null, isSnackEligible: eligible } })
-      setMsg('Karyawan ditambah!')
+      toast.success('Karyawan ditambah!')
     }
     setShowDrawer(false); await load()
   }
@@ -86,6 +86,7 @@ function AdminEmployees() {
   const remove = async () => {
     if (!deleteTarget) return
     await deleteEmployee({ data: { id: deleteTarget.id } }); setDeleteTarget(null); await load()
+    toast.success('Karyawan dihapus')
   }
 
   const visibleRows = rows.slice(0, visibleCount)
@@ -115,7 +116,6 @@ function AdminEmployees() {
         </div>
       </section>
 
-      {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
       {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
 
       <Card className="divide-y divide-border">

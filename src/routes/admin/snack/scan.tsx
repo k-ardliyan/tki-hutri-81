@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { Check, TriangleAlert } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent } from '../../../components/ui/card'
@@ -107,6 +108,7 @@ function AdminScanPage() {
       return
     }
     setInserted(res.inserted)
+    toast.success(`${res.inserted} porsi snack dicatat!`)
     setStage('success')
   }
 

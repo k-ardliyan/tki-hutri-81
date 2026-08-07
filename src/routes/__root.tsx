@@ -10,6 +10,7 @@ import {
 } from '@tanstack/react-router'
 import '../styles.css'
 import { gsap, shouldReduceMotion } from '../lib/gsap'
+import { Toaster } from '../components/ui/sonner'
 import { AudienceProvider } from '../context/AudienceContext'
 import SiteHeader from '../components/layout/Header'
 import BottomNav from '../components/layout/BottomNav'
@@ -183,6 +184,7 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="top-center" richColors />
         <Scripts />
       </body>
     </html>

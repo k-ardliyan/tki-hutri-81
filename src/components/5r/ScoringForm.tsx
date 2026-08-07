@@ -9,6 +9,7 @@
  * - Kategori collapse + scroll-to kategori + auto-open yang belum lengkap
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { Check, CheckCircle2, Loader2 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
 import { Button } from '../ui/button'
@@ -76,7 +77,6 @@ export default function ScoringForm({
   const [answers, setAnswers] = useState<Record<string, number>>(draft?.answers ?? {})
   const [notes, setNotes] = useState<Record<string, string>>(draft?.notes ?? {})
   const [auditor, setAuditor] = useState(loadAuditor)
-  const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showSummary, setShowSummary] = useState(false)
@@ -210,7 +210,6 @@ export default function ScoringForm({
 
   const setScore = (criterionId: string, score: number) => {
     setAnswers((prev) => ({ ...prev, [criterionId]: score }))
-    setSaved(false)
   }
   const setNote = (criterionId: string, note: string) => {
     setNotes((prev) => ({ ...prev, [criterionId]: note }))
@@ -282,7 +281,7 @@ export default function ScoringForm({
 
     saveAuditor(auditor.trim())
     clearDraft(roomId, form.id)
-    setSaved(true)
+    toast.success('Penilaian tersimpan!')
     setSaving(false)
     setShowSummary(false)
     setAnswers({})
@@ -445,11 +444,6 @@ export default function ScoringForm({
         {error && (
           <p className="mb-2 rounded-md bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
             {error}
-          </p>
-        )}
-        {saved && (
-          <p className="mb-2 rounded-md bg-success/10 px-3 py-2 text-xs font-semibold text-success">
-            Tersimpan! Bisa isi lagi untuk penilaian berikutnya.
           </p>
         )}
         <Button

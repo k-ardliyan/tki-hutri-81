@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import { AlertTriangle, ArrowLeft, Check, ClipboardCheck, Ellipsis, LogOut, Moon, Sun } from 'lucide-react'
+import { toast } from 'sonner'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
@@ -69,6 +70,7 @@ export default function AppShell({
       return
     }
     await logout()
+    toast.success('Berhasil keluar')
     navigate({ to: '/login' })
   }
 
@@ -110,7 +112,7 @@ export default function AppShell({
   const confirmLeave = () => {
     setFormDirty(false); showLeaveRef.current = false; setShowLeave(false)
     const pending = pendingRef.current; pendingRef.current = null
-    if (pending?.logout) { void logout().then(() => navigate({ to: pending.to })) }
+    if (pending?.logout) { void logout().then(() => { toast.success('Berhasil keluar'); navigate({ to: pending.to }) }) }
     else if (pending) { navigate(pending.to.startsWith('http') || pending.to.includes('?') ? { href: pending.to } : { to: pending.to }) }
   }
 

@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
@@ -47,7 +48,6 @@ interface SessionRow {
 
 function AdminSnackSessions() {
   const [sessions, setSessions] = useState<SessionRow[]>([])
-  const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
   // Create drawer
@@ -67,17 +67,17 @@ function AdminSnackSessions() {
   useEffect(() => { void load() }, [])
 
   const doCreate = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     const q = Number(newQuota)
     if (!newName.trim()) { setErr('Nama sesi wajib'); return }
     if (Number.isNaN(q) || q < 0) { setErr('Kuota harus angka >= 0'); return }
     await createSession({ data: { name: newName.trim(), quota: q } })
-    setNewName(''); setNewQuota(''); setShowCreate(false); setMsg('Sesi dibuat!')
+    setNewName(''); setNewQuota(''); setShowCreate(false); toast.success('Sesi dibuat!')
     await load()
   }
 
   const doEdit = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     if (!editTarget) return
     const q = Number(editQuota)
     if (!editName.trim()) { setErr('Nama sesi wajib'); return }
@@ -89,18 +89,20 @@ function AdminSnackSessions() {
       return
     }
     await updateSession({ data: { id: editTarget.id, name: editName.trim(), quota: q } })
-    setEditTarget(null); setMsg('Sesi diupdate!')
+    setEditTarget(null); toast.success('Sesi diupdate!')
     await load()
   }
 
   const toggleActive = async (s: SessionRow) => {
     await updateSession({ data: { id: s.id, isActive: !s.isActive } })
     await load()
+    toast.success(s.isActive ? 'Sesi dinonaktifkan' : 'Sesi diaktifkan')
   }
 
   const remove = async () => {
     if (!deleteTarget) return
     await deleteSession({ data: { id: deleteTarget.id } }); setDeleteTarget(null); await load()
+    toast.success('Sesi dihapus')
   }
 
   return (
@@ -115,7 +117,6 @@ function AdminSnackSessions() {
         </Button>
       </section>
 
-      {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
       {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
 
       {/* Session list */}

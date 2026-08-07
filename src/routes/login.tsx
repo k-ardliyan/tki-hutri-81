@@ -6,6 +6,7 @@
  */
 import { useState } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { ClipboardCheck, ArrowLeft } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
@@ -43,6 +44,7 @@ export default function LoginPage() {
     try {
       const res = await login({ data: { username, password } })
       if (res.ok && res.role) {
+        toast.success(`Login berhasil · ${res.role}`)
         navigate({ to: homeForRole(res.role) })
       } else {
         setError(res.error ?? 'Login gagal')

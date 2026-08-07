@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { KeyRound, Plus, Search, Trash2, UserPen } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
@@ -63,7 +64,6 @@ function SuperadminUsers() {
   const [role, setRole] = useState<UserRole>('admin')
   const [employeeId, setEmployeeId] = useState<number | ''>('')
   const [search, setSearch] = useState('')
-  const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
   // Edit username dialog
@@ -87,36 +87,40 @@ function SuperadminUsers() {
   }
 
   const submit = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     if (!username.trim() || !password.trim()) { setErr('Username & password wajib'); return }
     try {
       await createUser({ data: { username: username.trim(), password, role, employeeId: employeeId === '' ? null : employeeId } })
-      setMsg('User dibuat!'); setUsername(''); setPassword(''); setEmployeeId(''); setSearch(''); setShowCreate(false); await load()
+      toast.success('User dibuat!'); setUsername(''); setPassword(''); setEmployeeId(''); setSearch(''); setShowCreate(false); await load()
     } catch (e) { setErr(e instanceof Error ? e.message : 'Gagal buat user') }
   }
 
-  const toggleActive = async (u: UserRow) => { await updateUser({ data: { id: u.id, isActive: !u.isActive } }); await load() }
+  const toggleActive = async (u: UserRow) => {
+    await updateUser({ data: { id: u.id, isActive: !u.isActive } }); await load()
+    toast.success(u.isActive ? 'User dinonaktifkan' : 'User diaktifkan')
+  }
   const changeRole = async (u: UserRow, next: UserRole) => { await updateUser({ data: { id: u.id, role: next } }); await load() }
 
   const doEditUsername = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     if (!editTarget) return
     if (!editUsername.trim()) { setErr('Username wajib'); return }
     await updateUser({ data: { id: editTarget.id, username: editUsername.trim() } })
-    setEditTarget(null); setMsg('Username diupdate!'); await load()
+    setEditTarget(null); toast.success('Username diupdate!'); await load()
   }
 
   const doReset = async () => {
-    setErr(null); setMsg(null)
+    setErr(null)
     if (!resetTarget) return
     if (!resetPw.trim()) { setErr('Password baru wajib'); return }
     await resetPassword({ data: { id: resetTarget.id, password: resetPw } })
-    setResetTarget(null); setResetPw(''); setMsg('Password direset!'); await load()
+    setResetTarget(null); setResetPw(''); toast.success('Password direset!'); await load()
   }
 
   const remove = async () => {
     if (!deleteTarget) return
     await deleteUser({ data: { id: deleteTarget.id } }); setDeleteTarget(null); await load()
+    toast.success('User dihapus')
   }
 
   return (
@@ -131,7 +135,6 @@ function SuperadminUsers() {
         </Button>
       </section>
 
-      {msg && <FeedbackBanner tone="success">{msg}</FeedbackBanner>}
       {err && <FeedbackBanner tone="error">{err}</FeedbackBanner>}
 
       {/* User list */}
