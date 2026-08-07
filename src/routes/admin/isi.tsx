@@ -13,6 +13,9 @@ import { getRooms, getForms } from '../../server/functions/5r'
 import ScoringForm from '../../components/5r/ScoringForm'
 import RiwayatHariIni from '../../components/5r/RiwayatHariIni'
 
+import { PageHeader } from '../../components/ui/page-header'
+import { InteractiveCard } from '../../components/ui/interactive-card'
+
 const searchSchema = z.object({
   room: z.string().optional(),
   form: z.string().optional(),
@@ -37,32 +40,28 @@ function IsiPage() {
   if (!room || !roomObj) {
     return (
       <div className="space-y-4">
-        <section>
-          <h1 className="text-lg font-extrabold tracking-tight text-foreground">Isi Penilaian 5R</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Pilih ruangan untuk mulai mengisi form.</p>
-        </section>
+        <PageHeader
+          title="Isi Penilaian 5R"
+          subtitle="Pilih ruangan untuk mulai mengisi form."
+        />
         <RiwayatHariIni />
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {rooms.map((r) => (
-            <button
+            <InteractiveCard
               key={r.id}
-              type="button"
               onClick={() => navigate({ to: '/admin/isi', search: { room: r.id } })}
-              className="cursor-pointer text-left transition active:scale-[0.99]"
             >
-              <Card className="h-full hover:bg-muted/40">
-                <CardContent className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground/60">
-                    <RoomIcon name={r.icon} size={14} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold text-foreground">{r.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{r.pic}</p>
-                  </div>
-                  <ChevronRight size={14} className="shrink-0 text-muted-foreground/40" />
-                </CardContent>
-              </Card>
-            </button>
+              <CardContent className="flex items-center gap-3 p-3.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground/60">
+                  <RoomIcon name={r.icon} size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold text-foreground text-sm">{r.name}</p>
+                  <p className="text-xs text-muted-foreground">{r.pic}</p>
+                </div>
+                <ChevronRight size={16} className="shrink-0 text-muted-foreground/40" />
+              </CardContent>
+            </InteractiveCard>
           ))}
         </div>
       </div>
@@ -90,27 +89,29 @@ function IsiPage() {
           </CardContent>
         </Card>
 
-        <Card className="space-y-2">
-          <CardContent>
-            <p className="mb-2 text-xs font-bold text-muted-foreground">Pilih Form</p>
-            {forms.map((f) => {
-              const total = f.categories.reduce((s, c) => s + c.criteria.length, 0)
-              return (
-                <Button
-                  key={f.id}
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate({ to: '/admin/isi', search: { room, form: f.id } })}
-                  className="flex h-auto w-full justify-between px-3.5 py-3"
-                >
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-foreground">{f.label}</p>
-                    <p className="text-xs text-muted-foreground">{total} kriteria / skor 1-5</p>
-                  </div>
-                  <ChevronRight size={14} className="text-muted-foreground/40" />
-                </Button>
-              )
-            })}
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-bold text-muted-foreground">Pilih Form</p>
+            <div className="mt-3 space-y-2.5">
+              {forms.map((f) => {
+                const total = f.categories.reduce((s, c) => s + c.criteria.length, 0)
+                return (
+                  <Button
+                    key={f.id}
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate({ to: '/admin/isi', search: { room, form: f.id } })}
+                    className="flex h-auto w-full justify-between px-4 py-3.5"
+                  >
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-foreground">{f.label}</p>
+                      <p className="text-xs text-muted-foreground">{total} kriteria / skor 1-5</p>
+                    </div>
+                    <ChevronRight size={14} className="text-muted-foreground/40" />
+                  </Button>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>

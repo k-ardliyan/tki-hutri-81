@@ -1,14 +1,16 @@
-/**
- * AuditDashboardPage — dashboard untuk tim audit.
- */
 import { useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { CalendarCheck, CalendarX, Check } from 'lucide-react'
 import { Alert, AlertDescription } from '../../components/ui/alert'
-import { Card, CardContent } from '../../components/ui/card'
+import { Badge } from '../../components/ui/badge'
+import { CardContent } from '../../components/ui/card'
+import { SectionCards } from '../../components/section-cards'
 import RoomIcon from '../../components/ui/RoomIcon'
-import StatCard from '../../components/ui/StatCard'
+import { PageHeader } from '../../components/ui/page-header'
+import { InteractiveCard } from '../../components/ui/interactive-card'
+import { StatusBadge } from '../../components/ui/status-badge'
+import { AuditDashboardSkeleton } from '../../components/ui/skeletons'
 import { getRooms, getForms } from '../../server/functions/5r'
 import type { FiveRForm } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
@@ -29,7 +31,7 @@ export const Route = createFileRoute('/audit/')({
 function AuditDashboardPage() {
   const { rooms, forms } = Route.useLoaderData()
   const navigate = useNavigate()
-  const { data: submissions = [] } = useSubmissions()
+  const { data: submissions = [], isLoading } = useSubmissions()
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
 
@@ -73,14 +75,14 @@ function AuditDashboardPage() {
   const completed = roomStatus.filter((r) => r.doneToday).length
   const todayTotal = todaySubs.length
 
+  if (isLoading) return <AuditDashboardSkeleton />
+
   return (
     <div className="space-y-6">
-      <section>
-        <h1 className="text-lg font-extrabold tracking-tight text-foreground">Dashboard Audit 5R</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          {formatLongDate(new Date())}
-        </p>
-      </section>
+      <PageHeader
+        title="Dashboard Audit 5R"
+        subtitle={formatLongDate(new Date())}
+      />
 
       {/* Today's summary banner */}
       {todayTotal > 0 ? (
@@ -98,64 +100,80 @@ function AuditDashboardPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard center icon={CalendarCheck} label="Hari Ini" value={String(todayTotal)} />
-        <StatCard center icon={Check} iconCls="bg-warning/10 text-warning" label="Rata-rata" value={submissions.length > 0 ? String(avgScore) : '--'} />
-        <StatCard center icon={Check} iconCls="bg-success/10 text-success" label="Selesai Hari Ini" value={`${completed}/${rooms.length}`} />
-      </div>
+      <SectionCards
+        gridClass="grid-cols-2 lg:grid-cols-3"
+        stats={[
+          {
+            label: 'Hari Ini',
+            value: String(todayTotal),
+            action: (
+              <Badge variant="outline">
+                <CalendarCheck className="mr-1 size-3.5" />
+                {todayTotal}
+              </Badge>
+            ),
+          },
+          {
+            label: 'Rata-rata',
+            value: submissions.length > 0 ? String(avgScore) : '--',
+            action: submissions.length > 0 ? (
+              <StatusBadge score={avgScore}>Semua</StatusBadge>
+            ) : undefined,
+          },
+          {
+            label: 'Selesai Hari Ini',
+            value: `${completed}/${rooms.length}`,
+            action: (
+              <StatusBadge status="success">
+                <Check className="mr-1 size-3.5 inline" />
+                {completed}
+              </StatusBadge>
+            ),
+          },
+        ]}
+      />
 
       {/* Room status */}
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="text-sm font-extrabold tracking-tight text-foreground">Status Ruangan</h2>
-          <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">Klik untuk isi</span>
+          <span className="shrink-0 text-xs font-semibold text-muted-foreground">Klik untuk isi</span>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {roomStatus.map(({ room, count, final, doneToday, todayCount, lastSub }) => {
-            const badgeBg = !doneToday
-              ? 'bg-muted text-muted-foreground'
-              : final >= 80 ? 'bg-success/10 text-success'
-                : final >= 60 ? 'bg-warning/10 text-warning'
-                  : 'bg-destructive/10 text-destructive'
             return (
-              <button
+              <InteractiveCard
                 key={room.id}
-                type="button"
                 onClick={() => navigate({ to: '/audit/isi', search: { room: room.id } })}
-                className="cursor-pointer text-left transition active:scale-[0.99]"
               >
-                <Card className="hover:bg-muted/40">
-                  <CardContent className="flex items-center gap-3 py-3.5">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                      doneToday ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground/60'
-                    }`}>
-                      {doneToday ? <Check size={14} /> : <RoomIcon name={room.icon} size={14} />}
+                <CardContent className="flex items-center gap-3 p-3.5">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    doneToday ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground/60'
+                  }`}>
+                    {doneToday ? <Check size={16} /> : <RoomIcon name={room.icon} size={16} />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-bold text-foreground text-sm">{room.name}</p>
+                      {doneToday && (
+                        <StatusBadge status="success" className="px-1.5 py-0 text-[10px]">
+                          <Check size={9} className="mr-0.5 inline" />Sudah
+                        </StatusBadge>
+                      )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate font-bold text-foreground">{room.name}</p>
-                        {doneToday && (
-                          <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">
-                            <Check size={9} className="mr-0.5 inline" />Sudah
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        {room.pic}
-                        {lastSub && !doneToday && (
-                          <> &middot; Terakhir: {formatDateShort(lastSub.createdAt)}</>
-                        )}
-                        {doneToday && todayCount > 0 && (
-                          <> &middot; {todayCount}x hari ini</>
-                        )}
-                      </p>
-                    </div>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeBg}`}>
-                      {count > 0 ? round1(final) : '--'}
-                    </span>
-                  </CardContent>
-                </Card>
-              </button>
+                    <p className="text-xs text-muted-foreground">
+                      {room.pic}
+                      {lastSub && !doneToday && (
+                        <> &middot; Terakhir: {formatDateShort(lastSub.createdAt)}</>
+                      )}
+                      {doneToday && todayCount > 0 && (
+                        <> &middot; {todayCount}x hari ini</>
+                      )}
+                    </p>
+                  </div>
+                  <StatusBadge score={count > 0 ? round1(final) : null} />
+                </CardContent>
+              </InteractiveCard>
             )
           })}
         </div>

@@ -4,11 +4,16 @@
  */
 import { Gauge, QrCode } from 'lucide-react'
 import AppShell from './AppShell'
-import type { ShellNavItem } from './AppShell'
+import type { NavSection } from '../../lib/nav'
 
-const NAV: ShellNavItem[] = [
-  { id: 'scan', label: 'Scan', icon: QrCode, path: '/petugas' },
-  { id: 'dashboard', label: 'Dashboard', icon: Gauge, path: '/petugas/dashboard' },
+const NAV: NavSection[] = [
+  {
+    title: 'Utama',
+    items: [
+      { id: 'scan', label: 'Scan', icon: QrCode, path: '/petugas' },
+      { id: 'dashboard', label: 'Dashboard', icon: Gauge, path: '/petugas/dashboard' },
+    ],
+  },
 ]
 
 export default function PetugasShell({ children }: { children: React.ReactNode }) {

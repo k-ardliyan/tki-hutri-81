@@ -1,26 +1,13 @@
-import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-/**
- * Toaster sonner — mengikuti theme class strategy proyek (.dark di <html>),
- * tanpa next-themes (kita kelola toggle di AppShell + localStorage).
- */
 const Toaster = ({ ...props }: ToasterProps) => {
-  const [theme, setTheme] = useState<"light" | "dark">("light")
-
-  useEffect(() => {
-    const el = document.documentElement
-    const update = () => setTheme(el.classList.contains("dark") ? "dark" : "light")
-    update()
-    const obs = new MutationObserver(update)
-    obs.observe(el, { attributes: true, attributeFilter: ["class"] })
-    return () => obs.disconnect()
-  }, [])
+  const { theme = "system" } = useTheme()
 
   return (
     <Sonner
-      theme={theme}
+      theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
         success: (

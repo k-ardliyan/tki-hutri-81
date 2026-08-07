@@ -133,25 +133,31 @@ function AppLayout() {
   }, [pathname])
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-clip bg-canvas text-slate-800 antialiased">
+    <div className={`flex min-h-screen flex-col overflow-x-clip text-foreground antialiased ${
+      isAdminArea ? 'bg-background' : 'bg-canvas landing-gradient'
+    }`}>
       {!isAdminArea && <SiteHeader />}
 
-      <main
-        className={`mb-auto ${
-          isAdminArea
-            ? 'pb-0'
-            : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
-        }`}
-      >
-        {isHome && !isAdminArea && <Hero />}
-        <div className={isAdminArea ? '' : 'shell py-6 sm:py-8'}>
-          <div ref={panelRef}>
-            <Suspense fallback={<PageFallback />}>
-              <Outlet />
-            </Suspense>
+      {isAdminArea ? (
+        <Suspense fallback={<PageFallback />}>
+          <Outlet />
+        </Suspense>
+      ) : (
+        <main
+          className={`mb-auto ${
+            'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+          }`}
+        >
+          {isHome && <Hero />}
+          <div className="shell py-6 sm:py-8">
+            <div ref={panelRef}>
+              <Suspense fallback={<PageFallback />}>
+                <Outlet />
+              </Suspense>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      )}
 
       {!isAdminArea && <SiteFooter />}
       {!isAdminArea && <BottomNav />}

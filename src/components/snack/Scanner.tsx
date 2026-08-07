@@ -1,14 +1,17 @@
 /**
  * Scanner — wrapper html5-qrcode (browser-only, dynamic import).
- * Mempertahankan sepenuhnya logika kamera (killCamera, mountedRef, instance baru).
- * Hanya styling diarahkan ke token shadcn.
+ * Features:
+ * - Dark mode camera selection dropdown & restart button
+ * - Restart camera control when camera stream stops or errors
+ * - Improved responsive desktop/mobile layout
  */
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { RotateCcw, CameraOff, Loader2, Video } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo } from 'react'
+import { RotateCcw, CameraOff, Loader2, Video, Search, Keyboard } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { Input } from '../ui/input'
-import { NativeSelect, NativeSelectOption } from '../ui/native-select'
+import { Label } from '../ui/label'
+import { Combobox, type ComboboxOption } from '../ui/combobox'
 import type { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 
 interface CameraDevice {
@@ -48,6 +51,11 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
   const [currentCamIdx, setCurrentCamIdx] = useState(0)
   const [mobile, setMobile] = useState(false)
 
+  const cameraOptions = useMemo<ComboboxOption[]>(
+    () => cameras.map((c, i) => ({ value: String(i), label: c.label })),
+    [cameras]
+  )
+
   const killCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop())
@@ -70,6 +78,8 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
 
     killCamera()
     if (!mountedRef.current) return
+    setStarting(true)
+    setCamError(null)
 
     try {
       const mod = await import('html5-qrcode')
@@ -164,74 +174,127 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
   }, [])
 
   const switchCamera = async () => {
-    setStarting(true)
-    setCamError(null)
     const nextIdx = cameras.length > 0 ? (currentCamIdx + 1) % cameras.length : 0
     setCurrentCamIdx(nextIdx)
     await startScanner(nextIdx)
   }
 
+  const handleRestartCamera = async () => {
+    await startScanner(currentCamIdx)
+  }
+
   return (
-    <div className="space-y-3">
-      {/* Camera area */}
-      <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-lg border border-border bg-slate-900">
-        <div id="snack-qr-reader" ref={containerRef} className="flex h-full w-full items-center justify-center" />
+    <div className="max-w-md mx-auto space-y-4">
+      {/* Camera Viewport Card */}
+      <Card className="overflow-hidden border border-border shadow-xs">
+        <div className="relative aspect-square w-full bg-slate-950 overflow-hidden">
+          <div id="snack-qr-reader" ref={containerRef} className="flex h-full w-full items-center justify-center" />
 
-        {mobile && !starting && !camError && (
-          <button
-            type="button"
-            onClick={switchCamera}
-            className="absolute top-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
-            aria-label="Ganti kamera"
-          >
-            <RotateCcw size={14} />
-          </button>
-        )}
+          {/* Switch Camera Mobile Button */}
+          {mobile && !starting && !camError && cameras.length > 1 && (
+            <button
+              type="button"
+              onClick={switchCamera}
+              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs transition hover:bg-black/80 active:scale-95"
+              aria-label="Ganti kamera"
+            >
+              <RotateCcw size={15} />
+            </button>
+          )}
 
-        {starting && !camError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/80">
-            <Loader2 size={24} className="animate-spin" />
-            <p className="text-xs font-semibold">Menyiapkan kamera...</p>
-          </div>
-        )}
-        {camError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/90 p-4 text-center">
-            <CameraOff size={24} className="text-slate-400" />
-            <p className="text-xs font-semibold text-slate-300">{camError}</p>
-            <p className="text-[10px] text-slate-400">Gunakan pencarian manual di bawah.</p>
-          </div>
-        )}
-      </div>
+          {/* Loading Camera State */}
+          {starting && !camError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-slate-950/80 text-white/90 backdrop-blur-xs">
+              <Loader2 size={28} className="animate-spin text-primary" />
+              <p className="text-xs font-bold">Menyiapkan kamera...</p>
+            </div>
+          )}
 
-      {!mobile && cameras.length > 1 && !starting && (
-        <div className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2">
-          <Video size={14} className="text-muted-foreground" />
-          <NativeSelect
-            className="flex-1"
-            value={currentCamIdx}
-            onChange={(e) => { setCurrentCamIdx(Number(e.target.value)); void startScanner(Number(e.target.value)) }}
-          >
-            {cameras.map((c, i) => (
-              <NativeSelectOption key={c.id} value={i}>{c.label}</NativeSelectOption>
-            ))}
-          </NativeSelect>
+          {/* Error Camera State */}
+          {camError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/95 p-6 text-center text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/20 text-muted-foreground">
+                <CameraOff size={22} />
+              </div>
+              <div className="space-y-1 max-w-xs">
+                <p className="text-xs font-bold text-slate-200">{camError}</p>
+                <p className="text-[11px] text-slate-400">Kamera tidak aktif atau izin ditolak. Gunakan pencarian manual atau muat ulang.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRestartCamera}
+                className="mt-1 border-slate-700 bg-slate-800 text-xs font-bold text-white hover:bg-slate-700"
+              >
+                <RotateCcw size={13} className="mr-1.5" /> Coba Muat Ulang Kamera
+              </Button>
+            </div>
+          )}
         </div>
-      )}
 
-      <Card className="p-3">
-        <label className="block text-xs font-bold text-muted-foreground">QR rusak? Ketik kode tim manual</label>
-        <div className="mt-1.5 flex gap-2">
+        {/* Camera Selector & Restart Controls Bar */}
+        <div className="flex items-center justify-between gap-2 p-3 bg-card border-t border-border">
+          {cameras.length > 1 ? (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Video size={14} className="text-primary shrink-0" />
+              <Combobox
+                options={cameraOptions}
+                value={String(currentCamIdx)}
+                onValueChange={(val) => {
+                  const idx = Number(val)
+                  setCurrentCamIdx(idx)
+                  void startScanner(idx)
+                }}
+                showSearch={false}
+                size="sm"
+                triggerClassName="flex-1 text-xs h-8"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+              <Video size={14} className="text-primary shrink-0" />
+              <span>Status Kamera</span>
+            </div>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRestartCamera}
+            disabled={starting}
+            className="h-8 text-xs font-semibold shrink-0"
+          >
+            <RotateCcw size={13} className="mr-1.5" />
+            Restart
+          </Button>
+        </div>
+      </Card>
+
+      {/* Manual Input Card (QR Rusak) */}
+      <Card className="p-4 space-y-2.5 border border-border">
+        <div className="flex items-center gap-2">
+          <Keyboard size={15} className="text-primary" />
+          <Label htmlFor="manual-code" className="text-xs font-bold text-foreground">
+            QR Rusak? Ketik Kode Tim Manual
+          </Label>
+        </div>
+        <div className="flex gap-2">
           <Input
+            id="manual-code"
             type="text"
             value={manual}
             onChange={(e) => setManual(e.target.value.toUpperCase())}
-            placeholder="PUTRA-1 / PANITIA"
-            className="flex-1"
+            placeholder="Contoh: PUTRA-1 / PANITIA"
+            className="flex-1 uppercase font-mono text-xs h-9 bg-background"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && manual.trim()) onScan(manual.trim())
             }}
           />
-          <Button onClick={() => manual.trim() && onScan(manual.trim())}>
+          <Button
+            onClick={() => manual.trim() && onScan(manual.trim())}
+            className="h-9 font-bold px-4 text-xs"
+          >
+            <Search size={14} className="mr-1" />
             Cari
           </Button>
         </div>

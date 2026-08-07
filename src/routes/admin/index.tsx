@@ -1,19 +1,27 @@
-/**
- * AdminDashboardPage — dashboard panitia dengan statistik informatif.
- */
 import { useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
-import { ChartLine, CircleCheck, ClipboardList, SquarePen, TriangleAlert } from 'lucide-react'
+import { CircleCheck, ClipboardList, SquarePen, TriangleAlert } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
+import { ChartAreaInteractive } from '../../components/chart-area-interactive'
+import { ChartBarStrength } from '../../components/chart-bar-strength'
+import { SectionCards } from '../../components/section-cards'
 import EmptyState from '../../components/ui/EmptyState'
 import { Progress } from '../../components/ui/progress'
 import RoomIcon from '../../components/ui/RoomIcon'
-import ScoreBadge from '../../components/ui/ScoreBadge'
 import SectionHeader from '../../components/ui/SectionHeader'
 import { Skeleton } from '../../components/ui/skeleton'
-import StatCard from '../../components/ui/StatCard'
+import { PageHeader } from '../../components/ui/page-header'
+import { InteractiveCard } from '../../components/ui/interactive-card'
+import { StatusBadge } from '../../components/ui/status-badge'
+import {
+  SectionCardsSkeleton,
+  RoomListSkeleton,
+  ChartSkeleton,
+  ActivityListSkeleton,
+} from '../../components/ui/skeletons'
 import { getRooms, getForms } from '../../server/functions/5r'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
@@ -119,101 +127,122 @@ function AdminDashboardPage() {
       return { sub: s, form, room, score }
     })
 
-  const calendar = useMemo(() => buildCalendar(submissions), [submissions])
+  const calendar = useMemo(() => buildDailySeries(submissions), [submissions])
 
   const avgLabel = avgScore >= 80 ? 'Baik' : avgScore >= 60 ? 'Cukup' : 'Perlu Perbaikan'
-  const avgTone = avgScore >= 80 ? 'bg-success/10 text-success' : avgScore >= 60 ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'
+
+  const stats = [
+    {
+      label: 'Total Penilaian',
+      value: String(totalSubs),
+      action: (
+        <Badge variant="outline">
+          <CircleCheck className="mr-1 size-3.5" />
+          {todayCount > 0 ? `${todayCount} hari ini` : 'Belum ada'}
+        </Badge>
+      ),
+      footer: (
+        <div className="text-muted-foreground">
+          {todayCount > 0 ? 'Hari ini aktif' : 'Belum ada penilaian hari ini'}
+        </div>
+      ),
+    },
+    {
+      label: 'Rata-rata Skor',
+      value: totalSubs > 0 ? String(avgScore) : '--',
+      action: totalSubs > 0 ? (
+        <StatusBadge score={avgScore}>{avgLabel}</StatusBadge>
+      ) : undefined,
+      footer: (
+        <div className="text-muted-foreground">
+          {totalSubs > 0 ? 'Semua penilaian' : 'Belum ada data'}
+        </div>
+      ),
+    },
+    {
+      label: 'Cakupan Ruangan',
+      value: `${roomsDone}/${rooms.length}`,
+      action: (
+        <Badge variant="outline">
+          <ClipboardList className="mr-1 size-3.5" />
+          {coveragePct}%
+        </Badge>
+      ),
+      footer: (
+        <Progress
+          value={coveragePct}
+          className="h-1.5 [&_[data-slot=progress-indicator]]:bg-success"
+        />
+      ),
+    },
+    {
+      label: 'Butuh Perhatian',
+      value: String(attention),
+      action: (
+        <StatusBadge status={lowScore > 0 ? 'destructive' : notRated > 0 ? 'warning' : 'success'}>
+          <TriangleAlert className="mr-1 size-3.5 inline" />
+          {attention}
+        </StatusBadge>
+      ),
+      footer: (
+        <div className="text-muted-foreground">
+          {attention > 0 ? `Belum dinilai ${notRated} · Skor <60 ${lowScore}` : 'Semua ruangan aman'}
+        </div>
+      ),
+    },
+  ]
+
+  // Full-page skeleton when submissions are loading
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Dashboard Audit 5R"
+          subtitle={`${formatLongDate(new Date())} · Masa penilaian 10–27 Agustus`}
+          action={
+            <Button onClick={() => navigate({ to: '/admin/isi' })} className="hidden shrink-0 sm:inline-flex">
+              <SquarePen size={14} className="mr-1.5" />
+              Isi Penilaian
+            </Button>
+          }
+        />
+        <SectionCardsSkeleton count={4} />
+        <ChartSkeleton height={200} />
+        <ChartSkeleton height={160} />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28 rounded" />
+          <RoomListSkeleton count={6} />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-32 rounded" />
+          <ActivityListSkeleton count={5} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <section className="flex items-end justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Dashboard Audit 5R</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {formatLongDate(new Date())} &middot; Masa penilaian 10&ndash;27 Agustus
-          </p>
-        </div>
-        <Button onClick={() => navigate({ to: '/admin/isi' })} className="hidden shrink-0 sm:inline-flex">
-          <SquarePen size={14} />
-          Isi Penilaian
-        </Button>
-      </section>
+      <PageHeader
+        title="Dashboard Audit 5R"
+        subtitle={`${formatLongDate(new Date())} · Masa penilaian 10–27 Agustus`}
+        action={
+          <Button onClick={() => navigate({ to: '/admin/isi' })} className="hidden shrink-0 sm:inline-flex">
+            <SquarePen size={14} className="mr-1.5" />
+            Isi Penilaian
+          </Button>
+        }
+      />
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {isLoading ? (
-          <>
-            {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[104px] rounded-lg" />)}
-          </>
-        ) : (
-          <>
-        <StatCard
-          icon={ClipboardList}
-          label="Total Penilaian"
-          value={String(totalSubs)}
-          hint={todayCount > 0 ? `${todayCount} hari ini` : 'Belum ada hari ini'}
-        />
-        <StatCard
-          icon={ChartLine}
-          iconCls="bg-warning/10 text-warning"
-          label="Rata-rata Skor"
-          value={totalSubs > 0 ? String(avgScore) : '--'}
-          hint={
-            totalSubs > 0 ? (
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${avgTone}`}>
-                {avgLabel}
-              </span>
-            ) : (
-              'Belum ada data'
-            )
-          }
-        />
-        <StatCard
-          icon={CircleCheck}
-          iconCls="bg-success/10 text-success"
-          label="Cakupan Ruangan"
-          value={`${roomsDone}/${rooms.length}`}
-          hint={
-            <span className="mt-1 block h-1.5 w-full max-w-[5rem] overflow-hidden rounded-full bg-muted">
-              <span
-                role="progressbar"
-                aria-valuenow={coveragePct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={`Cakupan ${roomsDone}/${rooms.length} ruangan`}
-                className="block h-full rounded-full bg-success transition-all"
-                style={{ width: `${coveragePct}%` }}
-              />
-            </span>
-          }
-        />
-        <StatCard
-          icon={TriangleAlert}
-          iconCls={
-            lowScore > 0
-              ? 'bg-destructive/10 text-destructive'
-              : notRated > 0
-                ? 'bg-warning/10 text-warning'
-                : 'bg-success/10 text-success'
-          }
-          label="Butuh Perhatian"
-          value={String(attention)}
-          hint={
-            attention > 0
-              ? `Belum dinilai ${notRated} · Skor <60 ${lowScore}`
-              : 'Semua ruangan aman'
-          }
-        />
-          </>
-        )}
-      </div>
+      <SectionCards stats={stats} />
 
       {/* Kekuatan 5R */}
-      <Card>
-        <CardContent>
-          <SectionHeader title="Kekuatan 5R" subtext="Rata-rata semua penilaian" />
-          {catStrength.length === 0 ? (
+      {catStrength.length === 0 ? (
+        <Card>
+          <CardContent>
+            <SectionHeader title="Kekuatan 5R" subtext="Rata-rata semua penilaian" />
             <EmptyState
               title="Belum ada data."
               hint="Isi penilaian pertama untuk melihat kekuatan 5R."
@@ -223,32 +252,14 @@ function AdminDashboardPage() {
                 </Button>
               }
             />
-          ) : (
-            <div className="space-y-2.5">
-              {catStrength.map((c) => (
-                <div key={c.id}>
-                  <div className="mb-1 flex items-baseline justify-between">
-                    <span className="text-xs font-bold text-foreground/80">{c.label}</span>
-                    <span className="text-xs font-extrabold tabular-nums">{round1(c.avg)}</span>
-                  </div>
-                  <Progress
-                    value={c.avg}
-                    className={`h-2 bg-muted [&_[data-slot=progress-indicator]]:${c.avg >= 80 ? 'bg-success' : c.avg >= 60 ? 'bg-warning' : 'bg-destructive'}`}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <ChartBarStrength data={catStrength} />
+      )}
 
-      {/* Kalender */}
-      <Card>
-        <CardContent>
-          <SectionHeader title="Kalender Penilaian" subtext="Titik hijau = ada penilaian" />
-          <CalendarGrid data={calendar} />
-        </CardContent>
-      </Card>
+      {/* Aktivitas */}
+      <ChartAreaInteractive data={calendar} />
 
       {/* Room status */}
       <section>
@@ -256,34 +267,27 @@ function AdminDashboardPage() {
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {roomStatus.map(({ room, count, final, last }) => {
             const done = count > 0
-            const badgeBg = !done ? 'bg-muted text-muted-foreground' : final >= 80 ? 'bg-success/10 text-success' : final >= 60 ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'
             return (
-              <button
+              <InteractiveCard
                 key={room.id}
-                type="button"
                 onClick={() => navigate({ to: '/admin/isi', search: { room: room.id } })}
-                className="cursor-pointer text-left transition active:scale-[0.99]"
               >
-                <Card className="h-full hover:bg-muted/40">
-                  <CardContent className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                      done ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground/60'
-                    }`}>
-                      <RoomIcon name={room.icon} size={14} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-bold text-foreground">{room.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {room.pic}
-                        {done && last ? ` / ${timeAgo(last.createdAt)}` : ' / Belum dinilai'}
-                      </p>
-                    </div>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeBg}`}>
-                      {done ? round1(final) : '--'}
-                    </span>
-                  </CardContent>
-                </Card>
-              </button>
+                <CardContent className="flex items-center gap-3 p-4">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    done ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground/60'
+                  }`}>
+                    <RoomIcon name={room.icon} size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-foreground text-sm">{room.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {room.pic}
+                      {done && last ? ` / ${timeAgo(last.createdAt)}` : ' / Belum dinilai'}
+                    </p>
+                  </div>
+                  <StatusBadge score={done ? round1(final) : null} />
+                </CardContent>
+              </InteractiveCard>
             )
           })}
         </div>
@@ -293,7 +297,7 @@ function AdminDashboardPage() {
       {recent.length > 0 && (
         <section>
           <SectionHeader title="Aktivitas Terakhir" subtext="5 penilaian terbaru" />
-          <Card className="divide-y divide-border">
+          <Card className="divide-y divide-border overflow-hidden">
             {recent.map(({ sub, form, room, score }) => {
               return (
                 <div key={sub.id} className="flex items-center justify-between px-4 py-3.5">
@@ -303,11 +307,11 @@ function AdminDashboardPage() {
                       <span className="mx-1.5 text-muted-foreground/40">/</span>
                       <span className="text-muted-foreground">{form?.label}</span>
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {sub.auditor} / {timeAgo(sub.createdAt)}
                     </p>
                   </div>
-                  {score && <ScoreBadge value={round1(score.final)} showMax={false} />}
+                  {score && <StatusBadge score={round1(score.final)} showScoreMax />}
                 </div>
               )
             })}
@@ -317,9 +321,9 @@ function AdminDashboardPage() {
 
       {/* Forms info */}
       <Card>
-        <CardContent>
+        <CardContent className="p-4">
           <SectionHeader title="Form Tersedia" subtext="Jumlah kriteria per checklist" />
-          <div className="mt-2 space-y-1.5">
+          <div className="mt-3 space-y-2">
             {forms.map((f) => {
               const total = f.categories.reduce((s, c) => s + c.criteria.length, 0)
               return (
@@ -336,88 +340,24 @@ function AdminDashboardPage() {
   )
 }
 
-// ── Calendar helpers ──
+// ── Chart helpers ──
 
-interface CalendarDay {
-  date: number
-  isCurrentMonth: boolean
-  isToday: boolean
-  submissionCount: number
-}
-
-function buildCalendar(submissions: FiveRSubmission[]): CalendarDay[] {
+/** Seri harian penilaian untuk 90 hari terakhir (termasuk hari tanpa data). */
+function buildDailySeries(submissions: FiveRSubmission[]): { date: string; count: number }[] {
+  const days: { date: string; count: number }[] = []
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  const startPad = firstDay.getDay()
-
-  const dayCounts = new Map<number, number>()
+  const countMap = new Map<string, number>()
   for (const s of submissions) {
-    const d = new Date(s.createdAt)
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const day = d.getDate()
-      dayCounts.set(day, (dayCounts.get(day) ?? 0) + 1)
-    }
+    const key = s.createdAt.slice(0, 10)
+    countMap.set(key, (countMap.get(key) ?? 0) + 1)
   }
-
-  const days: CalendarDay[] = []
-
-  const prevLast = new Date(year, month, 0).getDate()
-  for (let i = startPad - 1; i >= 0; i--) {
-    days.push({ date: prevLast - i, isCurrentMonth: false, isToday: false, submissionCount: 0 })
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    days.push({ date: key, count: countMap.get(key) ?? 0 })
   }
-
-  for (let d = 1; d <= lastDay.getDate(); d++) {
-    days.push({
-      date: d,
-      isCurrentMonth: true,
-      isToday: d === now.getDate(),
-      submissionCount: dayCounts.get(d) ?? 0,
-    })
-  }
-
-  while (days.length % 7 !== 0) {
-    days.push({ date: days.length - (startPad + lastDay.getDate()) + 1, isCurrentMonth: false, isToday: false, submissionCount: 0 })
-  }
-
   return days
-}
-
-function CalendarGrid({ data }: { data: CalendarDay[] }) {
-  const now = new Date()
-  const monthLabel = now.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
-  const weekDays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
-
-  return (
-    <div>
-      <p className="mb-2 text-xs font-bold text-muted-foreground/80">{monthLabel}</p>
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {weekDays.map((d) => (
-          <div key={d} className="py-1 text-[10px] font-bold text-muted-foreground">{d}</div>
-        ))}
-        {data.map((day, i) => (
-          <div
-            key={i}
-            className={`relative flex h-8 items-center justify-center rounded-[var(--radius-sm)] text-xs ${
-              !day.isCurrentMonth
-                ? 'text-muted-foreground/30'
-                : day.isToday
-                  ? 'font-bold text-primary'
-                  : 'text-foreground/80'
-            }`}
-          >
-            {day.date}
-            {day.submissionCount > 0 && (
-              <span className="absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-success" />
-            )}
-            <span className="sr-only">{day.submissionCount > 0 ? `${day.submissionCount} penilaian` : 'tidak ada penilaian'}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 }
 
 // ── helpers ──

@@ -15,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog'
-import FeedbackBanner from '../../components/ui/FeedbackBanner'
 import Scanner from '../../components/snack/Scanner'
 import type { ScannerHandle } from '../../components/snack/Scanner'
 import ConfirmForm from '../../components/snack/ConfirmForm'
@@ -24,6 +23,10 @@ import { getTeamByKode, getSessions, redeemSnack } from '../../server/functions/
 import type { SnackTeam, RedemptionInfo } from '../../server/functions/snack'
 import { getSession } from '../../server/functions/auth'
 import SessionPicker from '../../components/snack/SessionPicker'
+
+import { PageHeader } from '../../components/ui/page-header'
+import { Alert, AlertDescription } from '../../components/ui/alert'
+import { Skeleton } from '../../components/ui/skeleton'
 
 export const Route = createFileRoute('/petugas/')({
   component: PetugasSnackPage,
@@ -42,6 +45,7 @@ function PetugasSnackPage() {
   const [skipped, setSkipped] = useState<RedemptionInfo[]>([])
   const [inserted, setInserted] = useState(0)
   const [claimedBy, setClaimedBy] = useState('')
+  const [sessionsLoading, setSessionsLoading] = useState(true)
 
   // Modal "kode tidak dikenal"
   const [showUnknown, setShowUnknown] = useState(false)
@@ -51,12 +55,16 @@ function PetugasSnackPage() {
   // Load semua sesi + username petugas
   useEffect(() => {
     const init = async () => {
-      const [allSessions, sess] = await Promise.all([getSessions(), getSession()])
-      setSessions(allSessions)
-      const active = allSessions.find((s) => s.isActive) ?? null
-      setSessionId(active?.id ?? null)
-      setSessionName(active?.name ?? '—')
-      setClaimedBy(sess.username ?? 'petugas')
+      try {
+        const [allSessions, sess] = await Promise.all([getSessions(), getSession()])
+        setSessions(allSessions)
+        const active = allSessions.find((s) => s.isActive) ?? null
+        setSessionId(active?.id ?? null)
+        setSessionName(active?.name ?? '—')
+        setClaimedBy(sess.username ?? 'petugas')
+      } finally {
+        setSessionsLoading(false)
+      }
     }
     void init()
   }, [])
@@ -119,24 +127,43 @@ function PetugasSnackPage() {
     setSkipped([])
   }
 
-  return (
-    <div className="space-y-4">
-      <section className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-foreground">Scan QR Kelompok</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Pilih sesi, lalu pindai QR gelang tim.</p>
+  if (sessionsLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <Skeleton className="h-6 w-40 rounded" />
+            <Skeleton className="h-4 w-64 rounded" />
+          </div>
+          <Skeleton className="h-9 w-32 rounded-lg" />
         </div>
-        {stage === 'scan' && (
-          <SessionPicker
-            sessions={sessions.filter((s) => s.isActive)}
-            value={sessionId}
-            onChange={pickSession}
-            placeholder={sessions.some((s) => s.isActive) ? 'Pilih sesi...' : 'Tidak ada sesi aktif'}
-          />
-        )}
-      </section>
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    )
+  }
 
-      {error && <FeedbackBanner tone="error">{error}</FeedbackBanner>}
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Pindai QR Tim"
+        subtitle="Petugas — scan QR gelang tim, centang anggota yang mengambil snack."
+        action={
+          stage === 'scan' ? (
+            <SessionPicker
+              sessions={sessions.filter((s) => s.isActive)}
+              value={sessionId}
+              onChange={pickSession}
+              placeholder={sessions.some((s) => s.isActive) ? 'Pilih sesi...' : 'Tidak ada sesi aktif'}
+            />
+          ) : undefined
+        }
+      />
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {stage === 'scan' && <Scanner ref={scannerRef} onScan={handleScan} />}
 

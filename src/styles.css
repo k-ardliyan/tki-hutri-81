@@ -19,7 +19,7 @@
   --color-footer-via: #850a12;
   --color-footer-to: #6e070e;
   --color-ink: #0f172a;
-  --color-muted: #64748b;
+  --color-muted-dim: #64748b;
   --color-line: #e8edf5;
   --color-canvas: #f6f7fb;
   --color-surface: #ffffff;
@@ -30,10 +30,7 @@
   --color-status-pending-soft: #fffbeb;
   --color-status-danger: #dc2626;
   --color-status-danger-soft: #fef2f2;
-  /* Radius system — ONE scale throughout */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  /* Radius: defined via @theme inline below using --radius CSS variable */
 }
 
 @layer base {
@@ -46,11 +43,6 @@
   body {
     margin: 0;
     font-family: var(--font-sans);
-    background:
-      radial-gradient(1200px 500px at 10% -10%, rgba(198, 40, 40, 0.08), transparent 55%),
-      radial-gradient(900px 400px at 100% 0%, rgba(230, 180, 34, 0.08), transparent 50%),
-      var(--color-canvas);
-    color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     @apply bg-background text-foreground;
@@ -68,8 +60,8 @@
     touch-action: manipulation;
   }
 
-  button:active,
-  [role="button"]:active {
+  .nav-pill:active,
+  .chip:active {
     transform: translateY(1px) scale(0.98);
     transition: transform 0.1s ease;
   }
@@ -94,7 +86,7 @@
   }
 
   .surface-card {
-    @apply rounded-3xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-24px_rgba(15,23,42,0.35)];
+    @apply rounded-xl border border-slate-200/80 bg-card shadow-[0_10px_40px_-24px_rgba(15,23,42,0.35)];
   }
 
   .chip {
@@ -234,6 +226,14 @@
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
 }
+
+/* Landing page gradient — only on public pages */
+.landing-gradient {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(198, 40, 40, 0.08), transparent 55%),
+    radial-gradient(900px 400px at 100% 0%, rgba(230, 180, 34, 0.08), transparent 50%),
+    var(--color-canvas);
+}
 .animate-fade-in-up-delay-1 {
   animation: fadeInUp 0.5s ease-out 0.08s forwards;
   opacity: 0;
@@ -336,6 +336,7 @@
 }
 
 :root {
+  --header-height: 3.5rem;
   --background: #f6f7fb;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -364,7 +365,7 @@
   --chart-3: #d97706;
   --chart-4: #e6b422;
   --chart-5: #64748b;
-  --radius: 1rem;
+  --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #c62828;

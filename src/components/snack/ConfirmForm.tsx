@@ -1,12 +1,18 @@
 /**
  * ConfirmForm — checklist anggota tim, petugas centang manual siapa yang ambil.
- * Default: SEMUA KOSONG (petugas pilih sendiri). Counter porsi dinamis.
+ * Refactored for:
+ * 1. Full-width desktop container (w-full lg:grid lg:grid-cols-12)
+ * 2. Tight compact member list (py-2.5 px-3.5 divide-y divide-border)
+ * 3. Unified left column card for Team Info & Portion Counter
+ * 4. Refined desktop & mobile submit bar
  */
 import { useState } from 'react'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2, Users } from 'lucide-react'
+import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
 import { Checkbox } from '../ui/checkbox'
+import { Progress } from '../ui/progress'
 import type { SnackTeam } from '../../server/functions/snack'
 
 interface ConfirmFormProps {
@@ -17,7 +23,13 @@ interface ConfirmFormProps {
   onBack: () => void
 }
 
-export default function ConfirmForm({ team, sessionName, submitting, onSubmit, onBack }: ConfirmFormProps) {
+export default function ConfirmForm({
+  team,
+  sessionName,
+  submitting,
+  onSubmit,
+  onBack,
+}: ConfirmFormProps) {
   // Default: kosong semua — petugas centang manual
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [confirming, setConfirming] = useState(false)
@@ -38,83 +50,152 @@ export default function ConfirmForm({ team, sessionName, submitting, onSubmit, o
     })
   }
 
-  const allChecked = team.members.length > 0 && selected.size === team.members.length
+  const allChecked =
+    team.members.length > 0 && selected.size === team.members.length
+  const pct =
+    team.members.length > 0
+      ? Math.round((selected.size / team.members.length) * 100)
+      : 0
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <Card>
-        <CardContent className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{sessionName}</p>
-            <h1 className="mt-0.5 text-lg font-extrabold text-foreground">{team.nama}</h1>
-            <p className="text-xs text-muted-foreground">{team.members.length} anggota · kode {team.kode}</p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={onBack}>
-            <ArrowLeft size={12} className="mr-1" /> Ganti
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Counter porsi dinamis */}
-      <Card>
-        <CardContent className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Jumlah Snack</p>
-            <p className="text-2xl font-extrabold tabular-nums text-foreground">
-              {selected.size}
-              <span className="text-sm text-muted-foreground"> / {team.members.length} porsi</span>
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={toggleAll}>
-            {allChecked ? 'Kosongkan' : 'Centang Semua'}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Checklist anggota */}
-      <Card className="divide-y divide-border">
-        {team.members.map((m, idx) => {
-          const checked = selected.has(m.employeeId)
-          return (
-            <label
-              key={m.employeeId}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition ${checked ? 'bg-success/[0.04]' : ''}`}
+    <div className="w-full space-y-3 lg:grid lg:grid-cols-12 lg:gap-5 lg:space-y-0 lg:items-start">
+      {/* Left Column (Sticky on Desktop): Unified Team Info & Portion Counter Card */}
+      <div className="space-y-3 lg:col-span-5 lg:sticky lg:top-20">
+        <Card className="overflow-hidden border border-border divide-y divide-border shadow-xs">
+          {/* Header Team Info */}
+          <CardContent className="p-3.5 flex items-center justify-between gap-3">
+            <div className="space-y-1 min-w-0">
+              <Badge
+                variant="outline"
+                className="text-[10px] uppercase font-bold text-primary border-primary/30 bg-primary/10"
+              >
+                {sessionName}
+              </Badge>
+              <h1 className="truncate text-base font-extrabold text-foreground tracking-tight sm:text-lg">
+                {team.nama}
+              </h1>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Users size={13} className="text-muted-foreground shrink-0" />
+                <span>{team.members.length} Anggota</span>
+                <span>·</span>
+                <span>
+                  Kode:{' '}
+                  <strong className="font-mono text-foreground">
+                    {team.kode}
+                  </strong>
+                </span>
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="shrink-0 text-xs font-bold"
             >
-              <Checkbox checked={checked} onCheckedChange={() => toggle(m.employeeId)} />
-              <span className="w-6 shrink-0 text-xs font-bold text-muted-foreground/50">{idx + 1}</span>
-              <span className="min-w-0 flex-1">
-                <span className={`block text-sm font-semibold ${checked ? 'text-foreground' : 'text-muted-foreground/80'}`}>
-                  {m.nama}
-                </span>
-                <span className="block text-[10px] text-muted-foreground">
-                  {m.divisi ?? '—'}
-                  {m.nip ? ` · ${m.nip}` : ''}
-                </span>
-              </span>
-              <CheckCircle2 size={20} className={checked ? 'text-success' : 'text-muted-foreground/15'} />
-            </label>
-          )
-        })}
-      </Card>
+              <ArrowLeft size={13} className="mr-1" /> Ganti
+            </Button>
+          </CardContent>
 
-      {/* Submit */}
-      <div className="sticky bottom-[calc(3.25rem+env(safe-area-inset-bottom,0px))] z-40 -mx-4 border-t border-border bg-white/95 px-4 py-3.5 shadow-[0_-2px_10px_-4px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bottom-0">
-        <Button
-          disabled={selected.size === 0 || submitting}
-          onClick={() => {
-            setConfirming(true)
-            onSubmit([...selected])
-          }}
-          className="w-full py-3.5 text-sm font-bold"
-        >
-          {submitting ? 'Menyimpan...' : `Konfirmasi ${selected.size} Porsi`}
-        </Button>
-        {confirming && (
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            Pastikan centang sesuai jumlah snack yang diserahkan.
-          </p>
-        )}
+          {/* Portion Counter */}
+          <CardContent className="p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Jumlah Snack Diambil
+                </p>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-2xl font-extrabold tabular-nums text-foreground">
+                    {selected.size}
+                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    / {team.members.length} Porsi
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleAll}
+                className="text-xs font-bold shrink-0"
+              >
+                {allChecked ? 'Kosongkan Semua' : 'Centang Semua'}
+              </Button>
+            </div>
+            <Progress value={pct} className="h-1.5" />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Right Column: Tight Member Checklist & Submit Action */}
+      <div className="space-y-3 lg:col-span-7">
+        {/* Tight Member Checklist Card */}
+        <Card className="overflow-hidden border border-border divide-y divide-border shadow-xs">
+          {team.members.map((m, idx) => {
+            const checked = selected.has(m.employeeId)
+            return (
+              <label
+                key={m.employeeId}
+                onClick={() => toggle(m.employeeId)}
+                className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition select-none ${
+                  checked ? 'bg-success/[0.08]' : 'bg-card hover:bg-muted/40'
+                }`}
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={() => toggle(m.employeeId)}
+                  className="shrink-0"
+                />
+                <span className="w-5 shrink-0 text-xs font-bold text-muted-foreground/70">
+                  {idx + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-foreground leading-snug">
+                    {m.nama}
+                  </span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">
+                    {m.divisi ?? '—'}
+                    {m.nip ? ` · ${m.nip}` : ''}
+                  </span>
+                </span>
+                <CheckCircle2
+                  size={18}
+                  className={`shrink-0 transition-colors ${
+                    checked ? 'text-success' : 'text-muted-foreground/20'
+                  }`}
+                />
+              </label>
+            )
+          })}
+        </Card>
+
+        {/* Submit Action */}
+        <div className="sticky bottom-0 z-40 -mx-4 -mb-4 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md sm:-mx-6 sm:-mb-6 lg:static lg:mx-0 lg:mb-0 lg:p-0 lg:bg-transparent lg:shadow-none lg:border-t-0">
+          <div className="space-y-1.5 w-full">
+            <Button
+              disabled={selected.size === 0 || submitting}
+              onClick={() => {
+                setConfirming(true)
+                onSubmit([...selected])
+              }}
+              size="lg"
+              className="w-full text-sm font-bold shadow-md shadow-primary/20"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                `Konfirmasi ${selected.size} Porsi`
+              )}
+            </Button>
+            {confirming && (
+              <p className="text-center text-[10px] font-medium text-muted-foreground">
+                Pastikan centang sesuai jumlah snack yang diserahkan.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

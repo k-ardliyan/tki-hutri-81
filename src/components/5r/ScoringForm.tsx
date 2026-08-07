@@ -1,24 +1,25 @@
 /**
  * ScoringForm — form isi penilaian 5R (mobile-first, ramah tim audit).
- *
- * UX yang DI-PERTAHANKAN (tidak boleh hilang saat migrasi):
- * - Sticky progress bar morph card ↔ full-bleed (GSAP)
- * - Submit bar auto-hide: scroll down → hide, up → show, bottom → show (GSAP)
- * - Draft auto-save localStorage + unsaved-form guard + beforeunload
- * - Score buttons dengan label (1=Tidak Ada .. 5=Sangat Baik)
- * - Kategori collapse + scroll-to kategori + auto-open yang belum lengkap
+ * Enhancements:
+ * 1. Auditor Name auto-populated from active session (getSession)
+ * 2. Category Section Cards (bulletproof, zero Accordion overlap bugs)
+ * 3. GSAP full-bleed morphing animation on scroll for sticky header
+ * 4. Full-width 5-column grid for category jump pills (A, B, C, D, E)
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { Check, CheckCircle2, Loader2 } from 'lucide-react'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
+import { Check, CheckCircle2, ChevronDown, Loader2, UserCheck, AlertTriangle } from 'lucide-react'
+import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import { Card, CardContent } from '../ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Input } from '../ui/input'
 import { Progress } from '../ui/progress'
+import { Alert, AlertDescription } from '../ui/alert'
 import type { FiveRSubmission } from '../../data/5r'
 import { getFiveRForm } from '../../data/5r'
 import { saveSubmission } from '../../server/functions/5r'
+import { getSession } from '../../server/functions/auth'
 import { gsap, shouldReduceMotion } from '../../lib/gsap'
 import { setFormDirty } from '../../lib/unsavedGuard'
 
@@ -50,7 +51,7 @@ function clearDraft(roomId: string, formId: string) {
   try { localStorage.removeItem(draftKey(roomId, formId)) } catch { /* noop */ }
 }
 
-// Score labels — shown under each button on mobile
+// Score labels — 1=Tidak Ada .. 5=Sangat Baik
 const SCORE_LABELS: Record<number, string> = {
   1: 'Tidak Ada',
   2: 'Sangat Kurang',
@@ -58,8 +59,6 @@ const SCORE_LABELS: Record<number, string> = {
   4: 'Baik',
   5: 'Sangat Baik',
 }
-
-// Component
 
 export default function ScoringForm({
   roomId,
@@ -77,27 +76,41 @@ export default function ScoringForm({
   const [answers, setAnswers] = useState<Record<string, number>>(draft?.answers ?? {})
   const [notes, setNotes] = useState<Record<string, string>>(draft?.notes ?? {})
   const [auditor, setAuditor] = useState(loadAuditor)
+  const [auditorRole, setAuditorRole] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showSummary, setShowSummary] = useState(false)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
-  // Initialize collapsed: first category open, rest collapsed
+  // Auto-populate Auditor Name from active logged-in user session
+  useEffect(() => {
+    void getSession().then((sess) => {
+      if (sess.username) {
+        setAuditor(sess.username)
+        setAuditorRole(sess.role ?? null)
+      }
+    })
+  }, [])
+
+  // Default EXPAND: semua kategori terbuka (false)
   useEffect(() => {
     if (!form || Object.keys(collapsed).length > 0) return
     const init: Record<string, boolean> = {}
-    form.categories.forEach((cat, i) => { init[cat.id] = i !== 0 })
+    form.categories.forEach((cat) => { init[cat.id] = false })
     setCollapsed(init)
   }, [form])
 
-  // ── Sticky progress bar morph: card (normal) ↔ full-bleed (stuck) ──
+  // ── GSAP sticky progress bar morph: card (normal) ↔ full-bleed (stuck) ──
   const progressBarRef = useRef<HTMLDivElement>(null)
   const [stuck, setStuck] = useState(false)
 
   useEffect(() => {
     const el = progressBarRef.current
     if (!el) return
-    const check = () => setStuck(el.getBoundingClientRect().top <= 56)
+    const check = () => {
+      const top = el.getBoundingClientRect().top
+      setStuck(top <= 64)
+    }
     check()
     window.addEventListener('scroll', check, { passive: true })
     window.addEventListener('resize', check)
@@ -110,23 +123,22 @@ export default function ScoringForm({
   useEffect(() => {
     const el = progressBarRef.current
     if (!el || shouldReduceMotion()) return
-    const mx = window.innerWidth >= 640 ? -24 : -16
+    const mx = window.innerWidth >= 1024 ? -24 : window.innerWidth >= 640 ? -24 : -16
+
     gsap.to(el, {
       marginLeft: stuck ? mx : 0,
       marginRight: stuck ? mx : 0,
-      borderRadius: stuck ? 0 : 16,
+      borderRadius: stuck ? 0 : 12,
       borderTopWidth: stuck ? 0 : 1,
-      borderRightWidth: stuck ? 0 : 1,
       borderLeftWidth: stuck ? 0 : 1,
+      borderRightWidth: stuck ? 0 : 1,
       borderBottomWidth: 1,
       duration: 0.3,
       ease: 'power2.out',
-      clearProps: stuck ? 'none' : 'all',
     })
   }, [stuck])
 
-  // ── Submit bar auto-hide: scroll down → hide, up → show, bottom → show ──
-  const submitBarRef = useRef<HTMLDivElement>(null)
+  // ── Submit bar auto-hide ──
   const [submitVisible, setSubmitVisible] = useState(true)
 
   useEffect(() => {
@@ -147,19 +159,6 @@ export default function ScoringForm({
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => {
-    const el = submitBarRef.current
-    if (!el || shouldReduceMotion()) {
-      if (el) el.style.transform = submitVisible ? 'translateY(0)' : 'translateY(100%)'
-      return
-    }
-    gsap.to(el, {
-      y: submitVisible ? 0 : '100%',
-      duration: 0.35,
-      ease: 'power3.out',
-    })
-  }, [submitVisible])
-
   const totalCriteria = form
     ? form.categories.reduce((s, c) => s + c.criteria.length, 0)
     : 0
@@ -174,7 +173,7 @@ export default function ScoringForm({
     return () => clearTimeout(t)
   }, [answers, notes, form, roomId, formId])
 
-  // ── Unsaved guard: notify shell + beforeunload + flush draft ──
+  // ── Unsaved guard ──
   const isDirty =
     answeredCount > 0 ||
     Object.keys(notes).some((k) => notes[k].trim() !== '') ||
@@ -202,9 +201,9 @@ export default function ScoringForm({
 
   if (!form) {
     return (
-      <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
+      <Card className="p-6 text-center text-muted-foreground">
         Pilih salah satu form di atas untuk mulai mengisi.
-      </div>
+      </Card>
     )
   }
 
@@ -221,19 +220,6 @@ export default function ScoringForm({
     return { ...cat, filled, done: filled === cat.criteria.length }
   })
 
-  // Accordion kategori — open ids di-derive dari state collapsed
-  const openCats = form.categories
-    .filter((c) => !(collapsed[c.id] ?? c.id !== form.categories[0]?.id))
-    .map((c) => c.id)
-
-  const handleAccordionChange = (ids: string[]) => {
-    setCollapsed((prev) => {
-      const next: Record<string, boolean> = { ...prev }
-      for (const c of form.categories) next[c.id] = !ids.includes(c.id)
-      return next
-    })
-  }
-
   const handleSubmit = () => {
     setError(null)
     if (answeredCount < totalCriteria) {
@@ -246,7 +232,7 @@ export default function ScoringForm({
       return
     }
     if (!auditor.trim()) {
-      setError('Isi nama auditor (penilai).')
+      setError('Akun auditor tidak terdeteksi. Silakan re-login.')
       return
     }
     setShowSummary(true)
@@ -288,205 +274,265 @@ export default function ScoringForm({
     setNotes({})
   }
 
+  const pctProgress = totalCriteria > 0 ? Math.round((answeredCount / totalCriteria) * 100) : 0
+
   return (
-    <section className="relative">
-      {/* Sticky progress bar — morph card ↔ full-bleed via GSAP */}
+    <section className="relative space-y-3.5">
+      {/* Compact Sticky Progress Header — Morphs full-bleed on scroll */}
       <div
         ref={progressBarRef}
-        className="sticky top-14 z-30 rounded-lg border border-border bg-white/95 px-4 py-2.5 shadow-sm shadow-slate-900/5 backdrop-blur-xl sm:px-6 lg:top-0"
+        className="sticky top-14 z-30 overflow-hidden border border-border bg-background/95 shadow-sm backdrop-blur-md transition-shadow lg:top-0 rounded-xl"
       >
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xs font-extrabold text-foreground sm:text-sm">{form.label}</h2>
-          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
-            {answeredCount}/{totalCriteria}
-          </span>
-        </div>
-        {/* Progress bar — thicker */}
-        <Progress
-          value={totalCriteria > 0 ? (answeredCount / totalCriteria) * 100 : 0}
-          className="mt-2 h-2 bg-muted"
-        />
+        <CardContent className="p-3.5 space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="truncate text-xs font-extrabold text-foreground sm:text-sm">{form.label}</h2>
+              <span className="text-[10px] text-muted-foreground hidden sm:inline">· Ruangan: <span className="font-semibold text-foreground">{roomId}</span></span>
+            </div>
+            <Badge variant={answeredCount === totalCriteria ? 'default' : 'outline'} className="font-mono text-xs shrink-0">
+              {answeredCount}/{totalCriteria} ({pctProgress}%)
+            </Badge>
+          </div>
 
-        {/* Category pills — larger on mobile */}
-        <div className="mt-2.5 flex gap-1.5 overflow-x-auto no-scrollbar">
-          {catProgress.map((cat) => (
-            <button
+          <Progress value={pctProgress} className="h-1.5" />
+
+          {/* Category quick navigation pills — Full-width 5-column grid */}
+          <div className="grid grid-cols-5 gap-1.5 pt-0.5">
+            {catProgress.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  setCollapsed((prev) => ({ ...prev, [cat.id]: false }))
+                  setTimeout(() => scrollTo(cat.id), 50)
+                }}
+                className={`flex items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-extrabold transition active:scale-95 ${
+                  cat.done
+                    ? 'bg-success/15 text-success hover:bg-success/20 border border-success/30'
+                    : collapsed[cat.id]
+                      ? 'bg-muted text-muted-foreground hover:bg-muted/80 border border-transparent'
+                      : 'bg-primary/15 text-primary hover:bg-primary/20 border border-primary/30'
+                }`}
+              >
+                {cat.done && <Check size={11} className="shrink-0" />}
+                <span>{cat.label.split('.')[0]}</span>
+                <span className="text-[10px] opacity-75 font-normal">({cat.filled}/{cat.criteria.length})</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </div>
+
+      {/* Auditor Info Card (Auto-filled from session) */}
+      <Card>
+        <CardContent className="p-3.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <UserCheck size={16} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Auditor / Penilai</p>
+              <p className="truncate text-xs font-bold text-foreground">{auditor || '—'}</p>
+            </div>
+          </div>
+          {auditorRole && (
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+              {auditorRole}
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Robust Category Section Cards (No Accordion Overlap Bugs) */}
+      <div className="space-y-3">
+        {form.categories.map((cat) => {
+          const cp = catProgress.find((c) => c.id === cat.id)!
+          const isCollapsed = collapsed[cat.id] ?? false
+
+          return (
+            <div
               key={cat.id}
-              type="button"
-              onClick={() => {
-                setCollapsed((prev) => ({ ...prev, [cat.id]: false }))
-                setTimeout(() => scrollTo(cat.id), 50)
-              }}
-              className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
-                cat.done
-                  ? 'bg-success/10 text-success'
-                  : collapsed[cat.id]
-                    ? 'bg-muted text-muted-foreground'
-                    : 'bg-primary/10 text-primary'
-              }`}
+              id={`cat-${cat.id}`}
+              className="scroll-mt-28 overflow-hidden rounded-xl border border-border bg-card shadow-xs"
             >
-              {cat.done && <Check size={9} />}
-              {cat.label.split('.')[0]}
-              <span className="text-[9px] opacity-60">{cat.filled}/{cat.criteria.length}</span>
-            </button>
-          ))}
+              {/* Category Header Bar */}
+              <button
+                type="button"
+                onClick={() => setCollapsed((prev) => ({ ...prev, [cat.id]: !isCollapsed }))}
+                className={`flex w-full items-center justify-between px-4 py-3 text-left transition ${
+                  cp.done ? 'bg-success/10 text-success hover:bg-success/15' : 'bg-muted/40 text-foreground hover:bg-muted/60'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-sm font-extrabold">
+                  {cp.done ? <CheckCircle2 size={16} className="text-success shrink-0" /> : null}
+                  <span>{cat.label}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={cp.done ? 'default' : 'outline'} className="text-xs font-mono">
+                    {cp.filled}/{cat.criteria.length}
+                  </Badge>
+                  <ChevronDown
+                    size={16}
+                    className={`text-muted-foreground transition-transform duration-200 ${
+                      !isCollapsed ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Category Criteria Body */}
+              {!isCollapsed && (
+                <div className="p-4 space-y-3 border-t border-border bg-card">
+                  {cat.criteria.map((c) => {
+                    const answered = answers[c.id] !== undefined
+                    const selectedScore = answers[c.id]
+                    const selectedOpt = c.options.find((o) => o.score === selectedScore)
+
+                    return (
+                      <div
+                        key={c.id}
+                        className={`rounded-xl border p-3.5 space-y-2.5 transition ${
+                          answered
+                            ? 'border-success/40 bg-success/[0.03]'
+                            : 'border-border bg-card'
+                        }`}
+                      >
+                        {/* Criterion title */}
+                        <div className="flex items-start gap-2">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                            {c.order}
+                          </span>
+                          <p className="text-sm font-semibold text-foreground leading-snug">
+                            {c.text}
+                          </p>
+                        </div>
+
+                        {/* Rating 1-5 Pills */}
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {c.options.map((opt) => {
+                            const selected = selectedScore === opt.score
+                            return (
+                              <button
+                                key={opt.score}
+                                type="button"
+                                onClick={() => setScore(c.id, opt.score)}
+                                aria-pressed={selected}
+                                className={`flex flex-col items-center justify-center rounded-lg border py-2 px-1 text-center transition active:scale-95 ${
+                                  selected
+                                    ? 'border-success bg-success text-white shadow-xs'
+                                    : 'border-border bg-background hover:border-muted-foreground/30 text-foreground'
+                                }`}
+                              >
+                                <span className="text-sm font-extrabold leading-none">{opt.score}</span>
+                                <span className={`mt-1 text-[9px] font-semibold leading-tight text-center ${selected ? 'text-white/90' : 'text-muted-foreground'}`}>
+                                  {SCORE_LABELS[opt.score]}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        {/* Selected option description snippet */}
+                        {answered && selectedOpt && (
+                          <div className="rounded-lg bg-success/10 px-3 py-1.5 text-xs font-medium text-success border border-success/20">
+                            <span className="font-bold">Skor {selectedScore}: </span>
+                            {selectedOpt.desc}
+                          </div>
+                        )}
+
+                        {/* Optional Note */}
+                        <Input
+                          type="text"
+                          value={notes[c.id] ?? ''}
+                          onChange={(e) => setNote(c.id, e.target.value)}
+                          placeholder="Catatan tambahan (opsional)..."
+                          className="h-8 bg-background/50 text-xs"
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Safe Sticky Bottom Submit Bar */}
+      <div
+        className={`sticky bottom-0 z-40 -mx-4 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md transition-transform duration-300 ease-in-out sm:-mx-6 sm:px-6 ${
+          submitVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="space-y-2 max-w-5xl mx-auto">
+          {error && (
+            <p className="rounded-lg bg-destructive/10 px-3.5 py-2 text-xs font-bold text-destructive">
+              {error}
+            </p>
+          )}
+          <Button
+            onClick={handleSubmit}
+            disabled={saving}
+            size="lg"
+            className="w-full text-sm font-bold shadow-md shadow-primary/20"
+          >
+            {saving ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              `Submit Penilaian (${answeredCount}/${totalCriteria})`
+            )}
+          </Button>
         </div>
       </div>
 
-      {/* Auditor */}
-      <div className="px-4 pt-5 sm:px-6">
-        <label className="block">
-          <span className="text-xs font-semibold text-muted-foreground">Nama Auditor</span>
-          <Input
-            type="text"
-            value={auditor}
-            onChange={(e) => setAuditor(e.target.value)}
-            placeholder="Nama penilai"
-            className="mt-1.5"
-          />
-        </label>
-      </div>
-
-      {/* Categories */}
-      <div className="space-y-3 px-4 pt-4 pb-5 sm:px-6">
-        <Accordion type="multiple" value={openCats} onValueChange={handleAccordionChange}>
-          {form.categories.map((cat) => {
-            const cp = catProgress.find((c) => c.id === cat.id)!
-            return (
-              <AccordionItem key={cat.id} value={cat.id} id={`cat-${cat.id}`} className="scroll-mt-[10rem] border-0 lg:scroll-mt-28">
-                <AccordionTrigger
-                  className={`rounded-md px-3.5 py-2.5 text-xs font-extrabold ${
-                    cp.done ? 'bg-success/10 text-success' : 'bg-muted text-foreground/80'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    {cat.label}
-                    {cp.done && <CheckCircle2 size={11} />}
-                  </span>
-                  <span className="text-[10px] font-bold opacity-60">
-                    {cp.filled}/{cat.criteria.length}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="pt-2">
-                  <div className="space-y-2.5">
-                    {cat.criteria.map((c) => {
-                      const answered = answers[c.id] !== undefined
-                      return (
-                        <div
-                          key={c.id}
-                          className={`rounded-md border p-3 transition ${
-                            answered
-                              ? 'border-success/30 bg-success/[0.06]'
-                              : 'border-dashed border-border'
-                          }`}
-                        >
-                          <p className="text-sm font-semibold text-foreground/90">
-                            <span className="text-muted-foreground/60">{c.order}.</span> {c.text}
-                          </p>
-
-                          {/* Score buttons with labels */}
-                          <div className="mt-2.5 grid grid-cols-5 gap-1.5">
-                            {c.options.map((opt) => {
-                              const selected = answers[c.id] === opt.score
-                              return (
-                                <button
-                                  key={opt.score}
-                                  type="button"
-                                  onClick={() => setScore(c.id, opt.score)}
-                                  aria-pressed={selected}
-                                  className={`flex h-auto min-h-[3rem] flex-col items-center justify-center gap-0.5 rounded-md border py-1.5 text-center transition active:scale-95 ${
-                                    selected
-                                      ? 'border-success bg-success text-white shadow-sm'
-                                      : 'border-border bg-white text-muted-foreground hover:border-muted-foreground/40'
-                                  }`}
-                                >
-                                  <span className="text-sm font-bold leading-none">{opt.score}</span>
-                                  <span className={`hidden text-[8px] font-semibold leading-tight sm:block ${selected ? 'text-white/80' : 'text-muted-foreground/70'}`}>
-                                    {SCORE_LABELS[opt.score]}
-                                  </span>
-                                </button>
-                              )
-                            })}
-                          </div>
-
-                          {/* Description */}
-                          {answered && (
-                            <p className="mt-2 rounded-md bg-success/10 px-2.5 py-1.5 text-xs text-muted-foreground">
-                              {c.options.find((o) => o.score === answers[c.id])?.desc}
-                            </p>
-                          )}
-
-                          {/* Note */}
-                          <Input
-                            type="text"
-                            value={notes[c.id] ?? ''}
-                            onChange={(e) => setNote(c.id, e.target.value)}
-                            placeholder="Catatan (opsional)"
-                            className="mt-2 h-8 bg-muted/50 text-xs"
-                          />
-                        </div>
-                      )
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            )
-          })}
-        </Accordion>
-      </div>
-
-      {/* Bottom submit — auto-hide via GSAP, di atas bottom nav (mobile) */}
-      <div
-        ref={submitBarRef}
-        style={{ pointerEvents: submitVisible ? 'auto' : 'none' }}
-        className="sticky bottom-[calc(3.25rem+env(safe-area-inset-bottom,0px))] z-40 -mx-4 border-t border-border bg-white/95 px-4 py-3.5 shadow-[0_-2px_10px_-4px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bottom-0"
-      >
-        {error && (
-          <p className="mb-2 rounded-md bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
-            {error}
-          </p>
-        )}
-        <Button
-          onClick={handleSubmit}
-          disabled={saving}
-          className="w-full py-3.5 text-sm font-bold shadow-lg shadow-primary/15"
-        >
-          {saving ? 'Menyimpan...' : `Submit Penilaian (${answeredCount}/${totalCriteria})`}
-        </Button>
-      </div>
-
-      {/* Summary dialog */}
+      {/* Summary Confirmation Dialog */}
       <Dialog open={showSummary} onOpenChange={(o) => { if (!o) setShowSummary(false) }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-base font-extrabold">Konfirmasi Submit</DialogTitle>
-            <DialogDescription>Pastikan semua jawaban sudah benar.</DialogDescription>
+            <DialogTitle className="text-base font-extrabold flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+              Konfirmasi Submit Penilaian
+            </DialogTitle>
+            <DialogDescription>Review hasil penilaian sebelum dikirim ke sistem.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Ruangan</span>
-              <span className="font-bold text-foreground">{roomId}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Form</span>
-              <span className="font-bold text-foreground">{form.label}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Auditor</span>
-              <span className="font-bold text-foreground">{auditor}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Kriteria diisi</span>
-              <span className="font-bold text-foreground">{answeredCount}/{totalCriteria}</span>
+
+          <div className="space-y-3">
+            <Alert className="border-warning/40 bg-warning/10 text-warning-foreground py-2.5">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+              <AlertDescription className="text-xs leading-relaxed">
+                Periksa kembali seluruh jawaban sebelum mengirim. Data penilaian yang sudah dikirim akan tersimpan ke sistem.
+              </AlertDescription>
+            </Alert>
+
+            <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Ruangan</span>
+                <span className="font-bold text-foreground">{roomId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Form Checklist</span>
+                <span className="font-bold text-foreground">{form.label}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Auditor / Penilai</span>
+                <span className="font-bold text-foreground">{auditor}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Kriteria</span>
+                <span className="font-bold text-foreground">{answeredCount}/{totalCriteria} diisi</span>
+              </div>
             </div>
 
-            <div className="mt-3 border-t border-border pt-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Skor per Kategori</p>
-              <div className="mt-2 grid grid-cols-5 gap-1.5">
+            <div className="border-t border-border pt-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">Progres per Kategori</p>
+              <div className="grid grid-cols-5 gap-1.5">
                 {catProgress.map((cat) => (
-                  <div key={cat.id} className="rounded-md bg-muted/60 p-1.5 text-center">
-                    <p className="text-[9px] font-bold text-muted-foreground">{cat.label.split('.')[0]}</p>
-                    <p className="text-xs font-bold text-foreground">
+                  <div key={cat.id} className="rounded-lg bg-muted p-2 text-center">
+                    <p className="text-[10px] font-bold text-muted-foreground">{cat.label.split('.')[0]}</p>
+                    <p className="text-xs font-extrabold text-foreground mt-0.5">
                       {cat.done ? `${Math.round((cat.filled / cat.criteria.length) * 100)}%` : '--'}
                     </p>
                   </div>
@@ -494,10 +540,20 @@ export default function ScoringForm({
               </div>
             </div>
           </div>
-          <DialogFooter className="flex gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setShowSummary(false)} className="flex-1">Batal</Button>
+
+          <DialogFooter className="flex gap-2 sm:flex-row mt-2">
+            <Button variant="outline" onClick={() => setShowSummary(false)} className="flex-1">
+              Review Kembali
+            </Button>
             <Button onClick={() => void doSubmit()} disabled={saving} className="flex-1">
-              {saving ? <Loader2 size={14} className="animate-spin" /> : 'Ya, Submit'}
+              {saving ? (
+                <>
+                  <Loader2 size={14} className="animate-spin mr-1.5" />
+                  Mengirim...
+                </>
+              ) : (
+                'Ya, Kirim Sekarang'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

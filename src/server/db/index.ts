@@ -2,6 +2,7 @@
  * Database connection — Aiven PostgreSQL via Drizzle ORM
  * Requires DATABASE_URL in .env
  */
+import 'dotenv/config'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'

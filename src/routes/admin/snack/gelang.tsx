@@ -1,16 +1,16 @@
-/**
- * GelangPage — pilih team → print gelang (QR tim, kartu per anggota).
- */
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { Printer } from 'lucide-react'
 import { Card, CardContent } from '../../../components/ui/card'
-import { NativeSelect, NativeSelectOption } from '../../../components/ui/native-select'
+import { PageHeader } from '../../../components/ui/page-header'
 import { getTeamsWithMembers } from '../../../server/functions/snack'
 import type { SnackTeam } from '../../../server/functions/snack'
 import GelangPrint from '../../../components/snack/GelangPrint'
 import BarcodeAll from '../../../components/snack/BarcodeAll'
+import { Skeleton } from '../../../components/ui/skeleton'
+
+import { Combobox, type ComboboxOption } from '../../../components/ui/combobox'
 
 const searchSchema = z.object({
   team: z.string().optional(),
@@ -25,38 +25,56 @@ function GelangPage() {
   const { team: teamParam } = Route.useSearch()
   const [teams, setTeams] = useState<SnackTeam[]>([])
   const [selected, setSelected] = useState<SnackTeam | null>(null)
+  const [teamsLoading, setTeamsLoading] = useState(true)
+
+  const teamOptions = useMemo<ComboboxOption[]>(
+    () => teams.map((t) => ({ value: t.kode, label: `${t.nama} (${t.members.length} org)` })),
+    [teams]
+  )
 
   useEffect(() => {
     void getTeamsWithMembers().then((t) => {
       setTeams(t)
       const found = t.find((x) => x.kode === teamParam) ?? null
       setSelected(found)
+      setTeamsLoading(false)
     })
   }, [teamParam])
 
-  return (
-    <div className="space-y-5">
-      <section className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Generate Gelang</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">QR = kode tim, dicetak per anggota. Ukuran A4 otomatis.</p>
+  if (teamsLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <Skeleton className="h-6 w-48 rounded" />
+            <Skeleton className="h-4 w-72 rounded" />
+          </div>
+          <Skeleton className="h-9 w-48 rounded-lg" />
         </div>
-        <NativeSelect
-          className="w-full sm:w-64"
-          value={selected?.kode ?? ''}
-          onChange={(e) => {
-            const t = teams.find((x) => x.kode === e.target.value)
-            setSelected(t ?? null)
-          }}
-        >
-          <NativeSelectOption value="">Pilih kelompok...</NativeSelectOption>
-          {teams.map((t) => (
-            <NativeSelectOption key={t.id} value={t.kode}>
-              {t.nama} ({t.members.length} org)
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </section>
+        <Skeleton className="h-48 w-full rounded-xl" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Generate & Cetak Gelang"
+        subtitle="QR = kode tim, dicetak per anggota. Ukuran A4 otomatis."
+        action={
+          <Combobox
+            options={teamOptions}
+            value={selected?.kode ?? ''}
+            onValueChange={(val) => {
+              const t = teams.find((x) => x.kode === val)
+              setSelected(t ?? null)
+            }}
+            placeholder="Pilih kelompok..."
+            searchPlaceholder="Cari kelompok..."
+            triggerClassName="w-full sm:w-64 h-9"
+          />
+        }
+      />
 
       {!selected && (
         <Card className="p-8 text-center">
