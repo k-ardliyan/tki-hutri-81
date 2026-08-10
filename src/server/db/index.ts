@@ -16,10 +16,14 @@ if (!connectionString) {
 }
 
 // postgres.js client — handles connection pooling
+// Aiven kecil: max_connections=20. Pool 10/proses + dev/test = gampang penuh
+// ("remaining connection slots are reserved"). Pakai pool kecil + idle timeout
+// supaya koneksi tidak menumpuk idle.
 const client = connectionString
   ? postgres(connectionString, {
       ssl: 'require',
-      max: 10,
+      max: 3,
+      idle_timeout: 20,
     })
   : null
 
