@@ -14,6 +14,7 @@ import {
   FieldLabel,
 } from "~/components/ui/field"
 import { Input } from "~/components/ui/input"
+import { Loader2, LogIn } from "lucide-react"
 
 export function LoginForm({
   username,
@@ -36,11 +37,11 @@ export function LoginForm({
 }) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Masuk Dashboard</CardTitle>
-          <CardDescription>
-            Gunakan akun yang dibagikan panitia
+      <Card className="border-border/80 bg-card/95 shadow-xl shadow-slate-900/5 backdrop-blur-sm">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-xl font-bold tracking-tight">Masuk Akun</CardTitle>
+          <CardDescription className="text-xs">
+            Gunakan akun panitia atau auditor yang telah dibagikan
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -61,7 +62,8 @@ export function LoginForm({
                   onChange={(e) => onUsernameChange(e.target.value)}
                   autoComplete="username"
                   required
-                  placeholder="Username"
+                  placeholder="Masukkan username"
+                  className="h-10"
                 />
               </Field>
               <Field>
@@ -74,16 +76,31 @@ export function LoginForm({
                   autoComplete="current-password"
                   required
                   placeholder="Masukkan password"
+                  className="h-10"
                 />
               </Field>
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert variant="destructive" className="py-2.5">
+                  <AlertDescription className="text-xs font-semibold">{error}</AlertDescription>
                 </Alert>
               )}
-              <Field>
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "Masuk..." : "Masuk"}
+              <Field className="pt-1">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-10 font-bold shadow-sm cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Memverifikasi...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Masuk Dashboard
+                    </>
+                  )}
                 </Button>
               </Field>
             </FieldGroup>
@@ -93,3 +110,4 @@ export function LoginForm({
     </div>
   )
 }
+

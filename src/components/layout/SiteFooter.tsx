@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { Link } from "@tanstack/react-router";
+import { Lock } from "lucide-react";
 import LogoTki from "../brand/LogoTki";
 import LogoFtp from "../brand/LogoFtp";
 import LogoHutRi81 from "../brand/LogoHutRi81";
@@ -136,17 +138,25 @@ export default function SiteFooter() {
             </p>
           </div>
 
-          {/* Clean Copyright Footer Divider */}
-          <div className="ft-item w-full border-t border-white/15 pt-5 mt-2">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[11px] sm:text-xs text-white/60 text-center font-medium leading-relaxed">
+          {/* Clean Copyright Footer Divider with Discrete Login Link */}
+          <div className="ft-item w-full border-t border-white/15 pt-5 mt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-[11px] sm:text-xs text-white/60 text-center sm:text-left font-medium leading-relaxed">
               <span>© 2026</span>
               <span className="hidden sm:inline text-white/30">•</span>
-              <div className="flex flex-wrap items-center justify-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
                 <span>PT Teknologi Kartu Indonesia</span>
                 <span className="text-white/40 font-light text-[10px] sm:text-xs">x</span>
                 <span>PT Fokus Teknologi Pembayaran</span>
               </div>
             </div>
+
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/50 transition-all hover:border-white/30 hover:bg-white/10 hover:text-white/90"
+            >
+              <Lock size={11} className="opacity-70" />
+              <span>Panel Panitia & Auditor</span>
+            </Link>
           </div>
         </div>
       </div>

@@ -24,7 +24,9 @@ import {
   timestamp,
   jsonb,
   unique,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 // ─── Events (1 baris — meta event) ───
 export const events = pgTable('events', {
@@ -144,6 +146,142 @@ export const teamMembers = pgTable(
   (t) => [unique('team_members_team_employee').on(t.teamId, t.employeeId)],
 )
 
+// ─── Lomba Prizes (juara & hadiah per lomba+kategori — jumlah juara = jumlah baris place 1..N) ───
+export const lombaPrizes = pgTable(
+  'lomba_prizes',
+  {
+    id: serial('id').primaryKey(),
+    competitionId: integer('competition_id')
+      .references(() => competitions.id, { onDelete: 'cascade' })
+      .notNull(),
+    kategori: text('kategori').$type<'putra' | 'putri'>().notNull(),
+    place: integer('place').notNull(), // 1..N = Juara 1..N
+    hadiah: text('hadiah').notNull(), // teks bebas: "Rp 500.000 + Sertifikat"
+  },
+  (t) => [unique('lomba_prizes_unique').on(t.competitionId, t.kategori, t.place)],
+)
+
+// ─── Tournament Bracket (single elimination — match sebagai source of truth) ───
+export const brackets = pgTable(
+  'brackets',
+  {
+    id: serial('id').primaryKey(),
+    competitionId: integer('competition_id')
+      .references(() => competitions.id, { onDelete: 'cascade' })
+      .notNull(),
+    kategori: text('kategori').$type<'putra' | 'putri'>().notNull(),
+    format: text('format').$type<'SINGLE_ELIMINATION' | 'HEAT_ELIMINATION'>().default('SINGLE_ELIMINATION').notNull(),
+    status: text('status').$type<'DRAFT' | 'PUBLISHED' | 'IN_PROGRESS' | 'COMPLETED' | 'ARCHIVED'>().default('DRAFT').notNull(),
+    seedingMethod: text('seeding_method').$type<'RANDOM' | 'MANUAL' | 'REGISTRATION_ORDER'>().default('RANDOM').notNull(),
+    thirdPlaceEnabled: boolean('third_place_enabled').default(true).notNull(),
+    participantCount: integer('participant_count').notNull(),
+    bracketSize: integer('bracket_size').notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('brackets_unique').on(t.competitionId, t.kategori)],
+)
+
+export const bracketParticipants = pgTable(
+  'bracket_participants',
+  {
+    id: serial('id').primaryKey(),
+    bracketId: integer('bracket_id')
+      .references(() => brackets.id, { onDelete: 'cascade' })
+      .notNull(),
+    teamId: integer('team_id')
+      .references(() => teams.id, { onDelete: 'cascade' })
+      .notNull(),
+    seed: integer('seed').notNull(),
+    initialSlot: integer('initial_slot').notNull(),
+    status: text('status').$type<'ACTIVE' | 'RESERVE' | 'WITHDRAWN'>().default('ACTIVE').notNull(),
+  },
+  (t) => [unique('bp_team_unique').on(t.bracketId, t.teamId), unique('bp_slot_unique').on(t.bracketId, t.initialSlot)],
+)
+
+export const bracketRounds = pgTable(
+  'bracket_rounds',
+  {
+    id: serial('id').primaryKey(),
+    bracketId: integer('bracket_id')
+      .references(() => brackets.id, { onDelete: 'cascade' })
+      .notNull(),
+    roundNumber: integer('round_number').notNull(),
+    roundType: text('round_type').$type<'MAIN' | 'THIRD_PLACE'>().default('MAIN').notNull(),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull(),
+  },
+  (t) => [unique('rounds_unique').on(t.bracketId, t.roundNumber)],
+)
+
+export const bracketMatches = pgTable(
+  'bracket_matches',
+  {
+    id: serial('id').primaryKey(),
+    bracketId: integer('bracket_id')
+      .references(() => brackets.id, { onDelete: 'cascade' })
+      .notNull(),
+    roundId: integer('round_id')
+      .references(() => bracketRounds.id, { onDelete: 'cascade' })
+      .notNull(),
+    matchNumber: integer('match_number').notNull(),
+    participant1Id: integer('participant1_id'),
+    participant2Id: integer('participant2_id'),
+    winnerId: integer('winner_id'),
+    loserId: integer('loser_id'),
+    status: text('status').$type<'WAITING' | 'READY' | 'IN_PROGRESS' | 'COMPLETED' | 'AUTO_ADVANCED' | 'CANCELLED'>().default('WAITING').notNull(),
+    nextMatchId: integer('next_match_id'),
+    nextMatchSlot: integer('next_match_slot').$type<1 | 2 | null>(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('matches_unique').on(t.bracketId, t.roundId, t.matchNumber)],
+)
+
+export const bracketMatchSlots = pgTable(
+  'bracket_match_slots',
+  {
+    id: serial('id').primaryKey(),
+    matchId: integer('match_id')
+      .references(() => bracketMatches.id, { onDelete: 'cascade' })
+      .notNull(),
+    slotNumber: integer('slot_number').notNull(),
+    sourceType: text('source_type').$type<'PARTICIPANT' | 'WINNER_OF' | 'LOSER_OF' | 'BYE'>().notNull(),
+    sourceMatchId: integer('source_match_id'),
+    sourceTeamId: integer('source_team_id'),
+    participantId: integer('participant_id'),
+  },
+  (t) => [unique('slots_unique').on(t.matchId, t.slotNumber)],
+)
+
+export const bracketMatchResults = pgTable('bracket_match_results', {
+  id: serial('id').primaryKey(),
+  matchId: integer('match_id')
+    .references(() => bracketMatches.id, { onDelete: 'cascade' })
+    .notNull(),
+  participant1Score: integer('participant1_score'),
+  participant2Score: integer('participant2_score'),
+  winnerId: integer('winner_id').notNull(),
+  resultType: text('result_type').$type<'NORMAL' | 'BYE' | 'WALKOVER' | 'DISQUALIFIED'>().default('NORMAL').notNull(),
+  notes: text('notes'),
+  enteredBy: integer('entered_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const bracketMatchHistory = pgTable('bracket_match_history', {
+  id: serial('id').primaryKey(),
+  matchId: integer('match_id')
+    .references(() => bracketMatches.id, { onDelete: 'cascade' })
+    .notNull(),
+  oldWinnerId: integer('old_winner_id'),
+  newWinnerId: integer('new_winner_id').notNull(),
+  changedBy: integer('changed_by'),
+  changedAt: timestamp('changed_at', { withTimezone: true }).defaultNow().notNull(),
+  reason: text('reason'),
+})
+
 // ─── Landing Highlights (4 baris) ───
 export const landingHighlights = pgTable('landing_highlights', {
   id: serial('id').primaryKey(),
@@ -209,17 +347,37 @@ export const redemptions = pgTable(
 )
 
 // ─── Five R Submissions (5R audit — migrasi dari localStorage) ───
-export const fiveRSubmissions = pgTable('five_r_submissions', {
-  id: text('id').primaryKey(), // uuid dari client
-  roomId: text('room_id').notNull(),
-  formId: text('form_id').notNull(),
-  auditor: text('auditor').notNull(),
-  answers: jsonb('answers').notNull(),
-  notes: jsonb('notes').notNull(),
-  submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
-  createdBy: text('created_by'), // username dari session login
+export const fiveRSubmissions = pgTable(
+  'five_r_submissions',
+  {
+    id: text('id').primaryKey(), // uuid dari client
+    roomId: text('room_id').notNull(),
+    formId: text('form_id').notNull(),
+    auditor: text('auditor').notNull(),
+    answers: jsonb('answers').notNull(),
+    notes: jsonb('notes').notNull(),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    createdBy: text('created_by'), // username dari session login
+  },
+  (t) => [
+    // Dekorasi: sekali per (ruangan, auditor). 5R lain bebas berulang per hari.
+    // Catatan: created_by nullable → unique index tidak berlaku utk NULL;
+    // aman karena route audit/admin wajib login (created_by selalu terisi).
+    uniqueIndex('five_r_submissions_dekorasi_once').on(t.roomId, t.createdBy).where(sql`${t.formId} = 'dekorasi'`),
+  ],
+)
+
+// ─── Assessment Deadlines (tenggat penilaian per lomba — dekor-5r) ───
+export const assessmentDeadlines = pgTable('assessment_deadlines', {
+  competitionId: integer('competition_id')
+    .primaryKey()
+    .references(() => competitions.id, { onDelete: 'cascade' }),
+  deadline: timestamp('deadline', { withTimezone: true }), // null = belum aktif
+  note: text('note'),
+  updatedBy: text('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 // ─── TS Types for JSONB columns ───

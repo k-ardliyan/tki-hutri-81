@@ -11,6 +11,7 @@
 import { useState } from 'react'
 import { useLoaderData } from '@tanstack/react-router'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
+import { isDekorasiSubmission } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
 
 export const STORAGE_KEY = 'tki5r:submissions' // legacy localStorage key (tidak dipakai lagi untuk baca)
@@ -32,7 +33,8 @@ export default function Hasil5RPage() {
 
   const roomScores = rooms
     .map((room) => {
-      const roomSubs = subs.filter((s) => s.roomId === room.id)
+      // Peringkat 5R SAJA — skor dekorasi tidak dicampur (lomba terpisah).
+      const roomSubs = subs.filter((s) => s.roomId === room.id && !isDekorasiSubmission(s.formId))
       const scores = roomSubs
         .map((s) => {
           const form = formMap.get(s.formId)

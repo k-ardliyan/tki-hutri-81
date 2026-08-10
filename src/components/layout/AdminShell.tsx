@@ -3,7 +3,7 @@
  * Nav grouped per section: Penilaian, Snack, Kelola (Users hanya superadmin).
  */
 import { useEffect, useState } from 'react'
-import { CalendarDays, Cookie, Gauge, IdCard, QrCode, SquarePen, Trophy, UserCog, Users } from 'lucide-react'
+import { CalendarDays, Cookie, Gauge, GitFork, IdCard, QrCode, SquarePen, Trophy, UserCog, Users } from 'lucide-react'
 import AppShell from './AppShell'
 import type { NavSection } from '../../lib/nav'
 import { getSession } from '../../server/functions/auth'
@@ -14,8 +14,9 @@ const BASE_SECTIONS: NavSection[] = [
     title: 'Penilaian',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: Gauge, path: '/admin' },
-      { id: 'isi', label: 'Isi', icon: SquarePen, path: '/admin/isi' },
-      { id: 'hasil', label: 'Hasil', icon: Trophy, path: '/admin/hasil' },
+      { id: 'bagan', label: 'Bagan', icon: GitFork, path: '/admin/bagan' },
+      { id: 'isi', label: 'Isi Penilaian', icon: SquarePen, path: '/admin/isi' },
+      { id: 'hasil', label: 'Hasil Penilaian', icon: Trophy, path: '/admin/hasil' },
     ],
   },
   {
@@ -31,6 +32,7 @@ const BASE_SECTIONS: NavSection[] = [
     title: 'Kelola',
     items: [
       { id: 'karyawan', label: 'Karyawan', icon: Users, path: '/admin/employees' },
+      { id: 'teams', label: 'Tim', icon: Users, path: '/admin/teams' },
     ],
   },
 ]

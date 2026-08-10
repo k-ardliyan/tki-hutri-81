@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
-import { CircleCheck, ClipboardList, SquarePen, TriangleAlert } from 'lucide-react'
+import { CircleCheck, ClipboardList, Paintbrush, SquarePen, TriangleAlert } from 'lucide-react'
 import { Badge } from '../../components/ui/badge'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
@@ -24,6 +24,7 @@ import {
 } from '../../components/ui/skeletons'
 import { getRooms, getForms } from '../../server/functions/5r'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
+import { isDekorasiSubmission } from '../../data/5r'
 import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
 import type { SubmissionScore } from '../../lib/scoring'
 import { useSubmissions } from '../../lib/queries'
@@ -48,10 +49,11 @@ function AdminDashboardPage() {
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
 
-  // ── Hitung semua skor ──
+  // ── Hitung semua skor 5R (dekorasi TIDAK dicampur ke statistik 5R) ──
   const scored = useMemo(() => {
     const list: SubmissionScore[] = []
     for (const s of submissions) {
+      if (isDekorasiSubmission(s.formId)) continue
       const form = formMap.get(s.formId)
       if (!form) continue
       try {
@@ -72,9 +74,9 @@ function AdminDashboardPage() {
   const todayKey = new Date().toDateString()
   const todayCount = submissions.filter((s) => new Date(s.createdAt).toDateString() === todayKey).length
 
-  // ── Room status ──
+  // ── Room status (hanya 5R — dekorasi tidak dicampur) ──
   const roomStatus = rooms.map((room) => {
-    const subs = submissions.filter((s) => s.roomId === room.id)
+    const subs = submissions.filter((s) => s.roomId === room.id && !isDekorasiSubmission(s.formId))
     const scores = subs
       .map((s) => {
         const form = formMap.get(s.formId)
@@ -200,10 +202,16 @@ function AdminDashboardPage() {
           title="Dashboard Audit 5R"
           subtitle={`${formatLongDate(new Date())} · Masa penilaian 10–27 Agustus`}
           action={
-            <Button onClick={() => navigate({ to: '/admin/isi' })} className="hidden shrink-0 sm:inline-flex">
-              <SquarePen size={14} className="mr-1.5" />
-              Isi Penilaian
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => navigate({ to: '/admin/isi' })} variant="outline" className="hidden shrink-0 sm:inline-flex">
+                <SquarePen size={14} className="mr-1.5" />
+                Isi 5R
+              </Button>
+              <Button onClick={() => navigate({ to: '/admin/isi', search: { form: 'dekorasi' } })} className="hidden shrink-0 sm:inline-flex">
+                <Paintbrush size={14} className="mr-1.5" />
+                Isi Dekorasi
+              </Button>
+            </div>
           }
         />
         <SectionCardsSkeleton count={4} />
@@ -228,10 +236,16 @@ function AdminDashboardPage() {
         title="Dashboard Audit 5R"
         subtitle={`${formatLongDate(new Date())} · Masa penilaian 10–27 Agustus`}
         action={
-          <Button onClick={() => navigate({ to: '/admin/isi' })} className="hidden shrink-0 sm:inline-flex">
-            <SquarePen size={14} className="mr-1.5" />
-            Isi Penilaian
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => navigate({ to: '/admin/isi' })} variant="outline" className="hidden shrink-0 sm:inline-flex">
+              <SquarePen size={14} className="mr-1.5" />
+              Isi 5R
+            </Button>
+            <Button onClick={() => navigate({ to: '/admin/isi', search: { form: 'dekorasi' } })} className="hidden shrink-0 sm:inline-flex">
+              <Paintbrush size={14} className="mr-1.5" />
+              Isi Dekorasi
+            </Button>
+          </div>
         }
       />
 
@@ -324,7 +338,7 @@ function AdminDashboardPage() {
         <CardContent className="p-4">
           <SectionHeader title="Form Tersedia" subtext="Jumlah kriteria per checklist" />
           <div className="mt-3 space-y-2">
-            {forms.map((f) => {
+            {forms.filter((f) => f.enabled !== false).map((f) => {
               const total = f.categories.reduce((s, c) => s + c.criteria.length, 0)
               return (
                 <div key={f.id} className="flex items-center justify-between text-sm">

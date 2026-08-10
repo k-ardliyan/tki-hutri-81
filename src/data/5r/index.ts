@@ -27,6 +27,12 @@ export interface FiveRForm {
   label: string
   source: string
   scale: { min: number; max: number }
+  /** false = disembunyikan dari picker (data lama tetap tersimpan). */
+  enabled?: boolean
+  /** 'uniform' (default) = rata-rata persen kategori; 'weighted' = totalRaw/totalMax*100. */
+  finalMode?: 'uniform' | 'weighted'
+  /** Label skala per nilai (fallback: 1=Tidak Ada..5=Sangat Baik). */
+  scaleLabels?: Record<number, string>
   categories: FiveRCategory[]
 }
 
@@ -55,9 +61,18 @@ import roomsData from './rooms.json'
 import produksi from './forms/produksi.json'
 import officeNonSmoking from './forms/office-non-smoking.json'
 import officeSmoking from './forms/office-smoking.json'
+import dekorasi from './forms/dekorasi.json'
 
 export const fiveRRooms: FiveRRoom[] = roomsData.rooms
-export const fiveRForms: FiveRForm[] = [produksi, officeNonSmoking, officeSmoking]
+export const fiveRForms: FiveRForm[] = [dekorasi, officeNonSmoking, officeSmoking, produksi]
+
+/** ID form lomba dekorasi — single source utk semua filter 5R vs dekorasi. */
+export const DEKORASI_FORM_ID = 'dekorasi'
+
+/** True bila submission utk form dekorasi (bukan 5R). */
+export function isDekorasiSubmission(formId: string): boolean {
+  return formId === DEKORASI_FORM_ID
+}
 
 export function getFiveRForm(id: string): FiveRForm | undefined {
   return fiveRForms.find((f) => f.id === id)

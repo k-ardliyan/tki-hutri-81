@@ -2,6 +2,7 @@
   "id": "produksi",
   "label": "Checklist 5R Produksi",
   "source": "checklist-5r-produksi.md",
+  "enabled": false,
   "scale": { "min": 1, "max": 5 },
   "categories": [
     {

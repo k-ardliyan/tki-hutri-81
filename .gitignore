@@ -25,6 +25,7 @@ src/routeTree.gen.ts
 .env
 .env.local
 .env.*.local
+.env.production
 
 # vercel CLI & deploy state
 .vercel/

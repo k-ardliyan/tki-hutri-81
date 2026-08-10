@@ -20,7 +20,8 @@ import type { FiveRSubmission } from '../../data/5r'
 import { getFiveRForm } from '../../data/5r'
 import { saveSubmission } from '../../server/functions/5r'
 import { getSession } from '../../server/functions/auth'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useQueryClient } from '@tanstack/react-query'
+import { qk } from '../../lib/queries'
 import { setFormDirty } from '../../lib/unsavedGuard'
 
 // Helpers
@@ -63,10 +64,14 @@ const SCORE_LABELS: Record<number, string> = {
 export default function ScoringForm({
   roomId,
   formId,
+  onSuccess,
 }: {
   roomId: string
   formId?: string
+  /** Dipanggil setelah submit sukses (mis. redirect balik ke daftar form). */
+  onSuccess?: () => void
 }) {
+  const queryClient = useQueryClient()
   const form = useMemo(() => (formId ? getFiveRForm(formId) : undefined), [formId])
 
   const draft = useMemo(
@@ -100,64 +105,8 @@ export default function ScoringForm({
     setCollapsed(init)
   }, [form])
 
-  // ── GSAP sticky progress bar morph: card (normal) ↔ full-bleed (stuck) ──
+  // Keep sticky progress bar clean & simple
   const progressBarRef = useRef<HTMLDivElement>(null)
-  const [stuck, setStuck] = useState(false)
-
-  useEffect(() => {
-    const el = progressBarRef.current
-    if (!el) return
-    const check = () => {
-      const top = el.getBoundingClientRect().top
-      setStuck(top <= 64)
-    }
-    check()
-    window.addEventListener('scroll', check, { passive: true })
-    window.addEventListener('resize', check)
-    return () => {
-      window.removeEventListener('scroll', check)
-      window.removeEventListener('resize', check)
-    }
-  }, [])
-
-  useEffect(() => {
-    const el = progressBarRef.current
-    if (!el || shouldReduceMotion()) return
-    const mx = window.innerWidth >= 1024 ? -24 : window.innerWidth >= 640 ? -24 : -16
-
-    gsap.to(el, {
-      marginLeft: stuck ? mx : 0,
-      marginRight: stuck ? mx : 0,
-      borderRadius: stuck ? 0 : 12,
-      borderTopWidth: stuck ? 0 : 1,
-      borderLeftWidth: stuck ? 0 : 1,
-      borderRightWidth: stuck ? 0 : 1,
-      borderBottomWidth: 1,
-      duration: 0.3,
-      ease: 'power2.out',
-    })
-  }, [stuck])
-
-  // ── Submit bar auto-hide ──
-  const [submitVisible, setSubmitVisible] = useState(true)
-
-  useEffect(() => {
-    let lastScrollY = window.scrollY
-    const onScroll = () => {
-      const y = window.scrollY
-      const delta = y - lastScrollY
-      const atBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 30
-      const atTop = y <= 40
-      if (atBottom || atTop) {
-        setSubmitVisible(true)
-      } else if (Math.abs(delta) > 8) {
-        setSubmitVisible(delta < 0)
-        lastScrollY = y
-      }
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const totalCriteria = form
     ? form.categories.reduce((s, c) => s + c.criteria.length, 0)
@@ -272,6 +221,12 @@ export default function ScoringForm({
     setShowSummary(false)
     setAnswers({})
     setNotes({})
+    // Reset dirty guard SEBELUM redirect, biar dialog "Keluar dari form?" tidak muncul.
+    setFormDirty(false)
+    // Refresh daftar submission supaya badge "Sudah dinilai"/"Selesai" langsung update.
+    void queryClient.invalidateQueries({ queryKey: qk.submissions })
+    // Redirect balik supaya user melihat status "Selesai"/"Sudah dinilai".
+    onSuccess?.()
   }
 
   const pctProgress = totalCriteria > 0 ? Math.round((answeredCount / totalCriteria) * 100) : 0
@@ -425,7 +380,7 @@ export default function ScoringForm({
                               >
                                 <span className="text-sm font-extrabold leading-none">{opt.score}</span>
                                 <span className={`mt-1 text-[9px] font-semibold leading-tight text-center ${selected ? 'text-white/90' : 'text-muted-foreground'}`}>
-                                  {SCORE_LABELS[opt.score]}
+                                  {(form.scaleLabels ?? SCORE_LABELS)[opt.score]}
                                 </span>
                               </button>
                             )
@@ -459,11 +414,7 @@ export default function ScoringForm({
       </div>
 
       {/* Safe Sticky Bottom Submit Bar */}
-      <div
-        className={`sticky bottom-0 z-40 -mx-4 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md transition-transform duration-300 ease-in-out sm:-mx-6 sm:px-6 ${
-          submitVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
-        }`}
-      >
+      <div className="sticky bottom-0 z-40 -mx-4 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md sm:-mx-6 sm:px-6">
         <div className="space-y-2 max-w-5xl mx-auto">
           {error && (
             <p className="rounded-lg bg-destructive/10 px-3.5 py-2 text-xs font-bold text-destructive">

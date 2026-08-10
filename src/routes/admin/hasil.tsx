@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Eye, Search, Trash2, X } from 'lucide-react'
+import { CalendarClock, Clock3, Eye, Search, Trash2, Trophy, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
@@ -22,9 +23,10 @@ import { StatusBadge } from '../../components/ui/status-badge'
 import { DataTable, features } from '../../components/data-table'
 import { HasilPageSkeleton } from '../../components/ui/skeletons'
 import { ResponsiveDialog } from '../../components/ui/responsive-dialog'
-import { getRooms, getForms, getSubmissions, deleteSubmission } from '../../server/functions/5r'
+import { getRooms, getForms, getDeadline, setDeadline, deleteSubmission } from '../../server/functions/5r'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
 import { scoreSubmission, round1 } from '../../lib/scoring'
+import { ScoreBoard } from '../../components/5r/ScoreBoard'
 import { qk, useSubmissions } from '../../lib/queries'
 
 import { Combobox, type ComboboxOption } from '../../components/ui/combobox'
@@ -32,20 +34,50 @@ import { useDebounce } from '../../hooks/use-debounce'
 
 export const Route = createFileRoute('/admin/hasil')({
   loader: async () => {
-    const [rooms, forms, submissions] = await Promise.all([getRooms(), getForms(), getSubmissions()])
-    return { rooms, forms, submissions }
+    const [rooms, forms, dl] = await Promise.all([getRooms(), getForms(), getDeadline()])
+    return { rooms, forms, deadline: dl.deadline }
   },
   component: AdminHasilPage,
 })
 
+/** ISO → value utk <input type="datetime-local"> (waktu lokal). */
+function toLocalInput(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+type TabKey = 'peringkat' | 'log' | 'tenggat'
+
 function AdminHasilPage() {
-  const { rooms, forms } = Route.useLoaderData()
+  const { rooms, forms, deadline } = Route.useLoaderData()
   const queryClient = useQueryClient()
   const { data: submissions = [], isLoading } = useSubmissions()
+  const [activeTab, setActiveTab] = useState<TabKey>('peringkat')
+
+  // Tenggat penilaian (admin set)
+  const [deadlineState, setDeadlineState] = useState<string | null>(deadline)
+  const [deadlineInput, setDeadlineInput] = useState(toLocalInput(deadline))
+  const [deadlineBusy, setDeadlineBusy] = useState(false)
+
+  const saveDeadline = async (raw: string) => {
+    setDeadlineBusy(true)
+    const value = raw.trim() ? new Date(raw).toISOString() : null
+    const res = await setDeadline({ data: { deadline: value } })
+    setDeadlineBusy(false)
+    if (!res.ok) {
+      toast.error(res.error ?? 'Gagal menyimpan tenggat')
+      return
+    }
+    setDeadlineState(res.deadline)
+    setDeadlineInput(toLocalInput(res.deadline))
+    toast.success(res.deadline ? 'Tenggat penilaian disimpan' : 'Tenggat penilaian dihapus')
+  }
 
   // Filters
-  const [filterRoom, setFilterRoom] = useState<string>("ALL")
-  const [filterForm, setFilterForm] = useState<string>("ALL")
+  const [filterRoom, setFilterRoom] = useState<string>('ALL')
+  const [filterForm, setFilterForm] = useState<string>('ALL')
   const [filterAuditor, setFilterAuditor] = useState('')
   const debouncedAuditor = useDebounce(filterAuditor, 300)
   const [filterDate, setFilterDate] = useState('')
@@ -59,24 +91,29 @@ function AdminHasilPage() {
 
   const roomOptions = useMemo<ComboboxOption[]>(
     () => [{ value: 'ALL', label: 'Semua Ruangan' }, ...rooms.map((r) => ({ value: r.id, label: r.name }))],
-    [rooms]
+    [rooms],
   )
 
   const formOptions = useMemo<ComboboxOption[]>(
     () => [{ value: 'ALL', label: 'Semua Form' }, ...forms.map((f) => ({ value: f.id, label: f.label }))],
-    [forms]
+    [forms],
   )
 
   const deleteSubmissionLocal = async (id: string) => {
-    await deleteSubmission({ data: { id } })
+    const res = await deleteSubmission({ data: { id } })
+    if (!res.ok) {
+      toast.error(res.error ?? 'Gagal menghapus submission')
+      return
+    }
     await queryClient.invalidateQueries({ queryKey: qk.submissions })
+    toast.success('Penilaian berhasil dihapus')
   }
 
   // Filtered sorted
   const sorted = useMemo(() => {
     let list = [...submissions].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    if (filterRoom && filterRoom !== "ALL") list = list.filter((s) => s.roomId === filterRoom)
-    if (filterForm && filterForm !== "ALL") list = list.filter((s) => s.formId === filterForm)
+    if (filterRoom && filterRoom !== 'ALL') list = list.filter((s) => s.roomId === filterRoom)
+    if (filterForm && filterForm !== 'ALL') list = list.filter((s) => s.formId === filterForm)
     if (debouncedAuditor) {
       const q = debouncedAuditor.toLowerCase()
       list = list.filter((s) => s.auditor.toLowerCase().includes(q) || (s.createdBy ?? '').toLowerCase().includes(q))
@@ -85,8 +122,14 @@ function AdminHasilPage() {
     return list
   }, [submissions, filterRoom, filterForm, debouncedAuditor, filterDate])
 
-  const hasFilter = (filterRoom && filterRoom !== "ALL") || (filterForm && filterForm !== "ALL") || filterAuditor || filterDate
-  const resetFilters = () => { setFilterRoom('ALL'); setFilterForm('ALL'); setFilterAuditor(''); setFilterDate('') }
+  const hasFilter =
+    (filterRoom && filterRoom !== 'ALL') || (filterForm && filterForm !== 'ALL') || filterAuditor || filterDate
+  const resetFilters = () => {
+    setFilterRoom('ALL')
+    setFilterForm('ALL')
+    setFilterAuditor('')
+    setFilterDate('')
+  }
 
   // Columns definition
   const columnHelper = createColumnHelper<typeof features, FiveRSubmission>()
@@ -129,7 +172,7 @@ function AdminHasilPage() {
     }),
     columnHelper.display({
       id: 'score',
-      header: 'Skor 5R',
+      header: 'Skor',
       cell: ({ row }) => {
         const s = row.original
         const form = formMap.get(s.formId)
@@ -174,77 +217,197 @@ function AdminHasilPage() {
   const detailScore = detailForm && detailTarget ? scoreSubmission(detailForm, detailTarget) : null
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <PageHeader
-        title="Hasil Penilaian 5R"
-        subtitle={`${sorted.length} submission ${hasFilter ? `(dari ${submissions.length})` : ''} · ${new Set(submissions.map((s) => s.roomId)).size} ruangan`}
+        title="Hasil Penilaian 5R & Dekorasi"
+        subtitle={`${submissions.length} submission tercatat · ${new Set(submissions.map((s) => s.roomId)).size} ruangan dinilai`}
       />
 
-      {/* Filter bar */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 items-end">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Ruangan</Label>
-              <Combobox
-                options={roomOptions}
-                value={filterRoom}
-                onValueChange={setFilterRoom}
-                placeholder="Semua Ruangan"
-                searchPlaceholder="Cari ruangan..."
-                triggerClassName="w-full h-9"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Form</Label>
-              <Combobox
-                options={formOptions}
-                value={filterForm}
-                onValueChange={setFilterForm}
-                placeholder="Semua Form"
-                searchPlaceholder="Cari form..."
-                triggerClassName="w-full h-9"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Cari Auditor / User</Label>
-              <div className="relative">
-                <Search size={14} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60" />
-                <Input
-                  type="text"
-                  value={filterAuditor}
-                  onChange={(e) => setFilterAuditor(e.target.value)}
-                  placeholder="Cari nama..."
-                  className="h-9 pl-9"
-                />
+      {/* Modern Main Tab Bar */}
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 flex-wrap">
+        <div className="inline-flex items-center gap-1 rounded-2xl border border-border/80 bg-muted/60 p-1 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setActiveTab('peringkat')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+              activeTab === 'peringkat'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Trophy size={14} className={activeTab === 'peringkat' ? 'text-amber-500' : 'text-muted-foreground'} />
+            <span>Papan Peringkat</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('log')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+              activeTab === 'log'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Clock3 size={14} className={activeTab === 'log' ? 'text-primary' : 'text-muted-foreground'} />
+            <span>Log Seluruh Penilaian</span>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${
+                activeTab === 'log'
+                  ? 'bg-primary/15 text-primary'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {submissions.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('tenggat')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+              activeTab === 'tenggat'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <CalendarClock size={14} className={activeTab === 'tenggat' ? 'text-rose-500' : 'text-muted-foreground'} />
+            <span>Tenggat Waktu</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Tab 1: Peringkat & Skor */}
+      {activeTab === 'peringkat' && (
+        <div className="space-y-4 pt-1">
+          <ScoreBoard submissions={submissions} rooms={rooms} forms={forms} deadline={deadlineState} mode="admin" />
+        </div>
+      )}
+
+      {/* Tab 2: Log & Data Table */}
+      {activeTab === 'log' && (
+        <div className="space-y-4 pt-1">
+          {/* Filter Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 items-end">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Ruangan</Label>
+                  <Combobox
+                    options={roomOptions}
+                    value={filterRoom}
+                    onValueChange={setFilterRoom}
+                    placeholder="Semua Ruangan"
+                    searchPlaceholder="Cari ruangan..."
+                    triggerClassName="w-full h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Form</Label>
+                  <Combobox
+                    options={formOptions}
+                    value={filterForm}
+                    onValueChange={setFilterForm}
+                    placeholder="Semua Form"
+                    searchPlaceholder="Cari form..."
+                    triggerClassName="w-full h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Cari Auditor / User</Label>
+                  <div className="relative">
+                    <Search size={14} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60" />
+                    <Input
+                      type="text"
+                      value={filterAuditor}
+                      onChange={(e) => setFilterAuditor(e.target.value)}
+                      placeholder="Cari nama..."
+                      className="h-9 pl-9"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-muted-foreground">Tanggal</Label>
+                  <Input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground">Tanggal</Label>
-              <Input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="h-9"
-              />
-            </div>
-          </div>
-          {hasFilter && (
-            <Button variant="ghost" size="sm" onClick={resetFilters} className="mt-3 h-7 text-xs font-bold text-primary">
-              <X size={12} className="mr-1" />Reset Filter
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+              {hasFilter && (
+                <Button variant="ghost" size="sm" onClick={resetFilters} className="mt-3 h-7 text-xs font-bold text-primary">
+                  <X size={12} className="mr-1" />Reset Filter
+                </Button>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* Data Table */}
-      <DataTable
-        data={sorted}
-        columns={columns}
-        getRowId={(s) => s.id}
-        pageSize={15}
-        toolbar={<span className="text-sm font-medium text-muted-foreground">{sorted.length} data ditampilkan</span>}
-      />
+          {/* DataTable */}
+          <DataTable
+            data={sorted}
+            columns={columns}
+            getRowId={(s) => s.id}
+            pageSize={15}
+            toolbar={
+              <span className="text-sm font-medium text-muted-foreground">
+                {sorted.length} data {hasFilter ? `(dari total ${submissions.length})` : 'ditampilkan'}
+              </span>
+            }
+          />
+        </div>
+      )}
+
+      {/* Tab 3: Tenggat Penilaian */}
+      {activeTab === 'tenggat' && (
+        <div className="space-y-4 pt-1">
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-start gap-3.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <CalendarClock size={20} />
+                </div>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h2 className="text-sm font-extrabold text-foreground">Pengaturan Tenggat Waktu Penilaian</h2>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {deadlineState
+                      ? `Tenggat aktif: ${new Date(deadlineState).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}. Setelah waktu ini tiba, seluruh form penilaian dekorasi & 5R otomatis terkunci untuk semua role.`
+                      : 'Belum ada tenggat waktu yang ditentukan. Penilaian terbuka bebas untuk semua auditor.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border/80 bg-muted/30 p-4 space-y-3">
+                <Label className="text-xs font-bold text-foreground">Pilih Tanggal & Jam Batas Akhir</Label>
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                  <Input
+                    type="datetime-local"
+                    value={deadlineInput}
+                    onChange={(e) => setDeadlineInput(e.target.value)}
+                    className="h-10 w-full sm:w-72 bg-card"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" className="h-10 text-xs font-bold" disabled={deadlineBusy} onClick={() => void saveDeadline(deadlineInput)}>
+                      {deadlineBusy ? 'Menyimpan...' : deadlineState ? 'Perbarui Tenggat' : 'Aktifkan Tenggat'}
+                    </Button>
+                    {deadlineState && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-10 text-xs font-bold text-destructive hover:bg-destructive/10"
+                        disabled={deadlineBusy}
+                        onClick={() => void saveDeadline('')}
+                      >
+                        Hapus Batas Waktu
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Detail Responsive Modal */}
       <ResponsiveDialog
@@ -283,7 +446,7 @@ function AdminHasilPage() {
             {detailScore && (
               <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3 border border-border">
                 <div>
-                  <p className="text-xs text-muted-foreground">Skor Akhir 5R</p>
+                  <p className="text-xs text-muted-foreground">Skor Akhir</p>
                   <p className="text-xs font-medium text-muted-foreground/70">{formatDate(detailTarget.createdAt)}</p>
                 </div>
                 <StatusBadge score={round1(detailScore.final)} showScoreMax />

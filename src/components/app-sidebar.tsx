@@ -92,7 +92,7 @@ export function AppSidebar({
                       onClick={() => go(item.path)}
                     >
                       <Icon />
-                      <span>{item.label}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -108,7 +108,7 @@ export function AppSidebar({
             <SidebarMenuButton asChild tooltip="Kembali ke Situs">
               <a href="/">
                 <ArrowLeft />
-                <span>Kembali ke Situs</span>
+                <span className="group-data-[collapsible=icon]:hidden">Kembali ke Situs</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

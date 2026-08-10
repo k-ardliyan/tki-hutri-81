@@ -74,6 +74,20 @@ export function RoomListSkeleton({
   )
 }
 
+/** Skeleton papan skor live */
+export function LiveScoreSkeleton() {
+  return (
+    <div className="space-y-3">
+      <Skeleton className="h-16 w-full rounded-xl" />
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-14 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Skeleton list vertikal untuk ruangan (tanpa grid) */
 export function RoomListStackSkeleton({ count = 5 }: { count?: number }) {
   return (
@@ -341,3 +355,4 @@ export function HasilPageSkeleton() {
     </div>
   )
 }
+

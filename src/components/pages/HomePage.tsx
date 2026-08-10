@@ -228,6 +228,14 @@ export default function HomePage() {
               </button>
               <button
                 type="button"
+                onClick={() => navigate("/live")}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                <i className="fa-solid fa-chart-line text-[11px] text-slate-500" />
+                <span>Live Score &amp; Bagan</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => navigate("/tim")}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >

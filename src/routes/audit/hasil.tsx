@@ -1,16 +1,13 @@
-/**
- * AuditHasilPage — hasil audit 5R dengan daily log + peringkat (menggunakan DataTable block).
- * Complete with ResponsiveDialog detail modal (mobile bottomsheet) with Hapus & Close buttons.
- */
 import { useState, useMemo } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Calendar, Clock3, Eye, Medal, Search, Trash2, Trophy, X } from 'lucide-react'
+import { Calendar, Clock3, Eye, Search, Trash2, Trophy, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { PageHeader } from '../../components/ui/page-header'
 import { StatusBadge } from '../../components/ui/status-badge'
 import { DataTable, features } from '../../components/data-table'
@@ -26,11 +23,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog'
-import { getRooms, getForms, deleteSubmission } from '../../server/functions/5r'
+import { getRooms, getForms, getDeadline, deleteSubmission } from '../../server/functions/5r'
 import type { FiveRForm, FiveRSubmission } from '../../data/5r'
-import { scoreSubmission, aggregateRoom, round1, type SubmissionScore } from '../../lib/scoring'
+import { scoreSubmission, round1 } from '../../lib/scoring'
+import { ScoreBoard } from '../../components/5r/ScoreBoard'
 import { todayPrefix } from '../../lib/dateUtils'
-import { useSubmissions } from '../../lib/queries'
+import { qk, useSubmissions } from '../../lib/queries'
 
 import { useDebounce } from '../../hooks/use-debounce'
 
@@ -41,26 +39,17 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/audit/hasil')({
   validateSearch: searchSchema,
   loader: async () => {
-    const [rooms, forms] = await Promise.all([getRooms(), getForms()])
-    return { rooms, forms }
+    const [rooms, forms, dl] = await Promise.all([getRooms(), getForms(), getDeadline()])
+    return { rooms, forms, deadline: dl.deadline }
   },
   component: AuditHasilPage,
 })
 
 type Tab = 'peringkat' | 'log'
 
-interface RoomScoreRow {
-  rank: number
-  id: string
-  name: string
-  pic: string
-  count: number
-  final: number
-}
-
 function AuditHasilPage() {
-  const { rooms, forms } = Route.useLoaderData()
-  const { room: selectedRoom } = Route.useSearch()
+  const { rooms, forms, deadline } = Route.useLoaderData()
+  const queryClient = useQueryClient()
   const { data: submissions = [], isLoading } = useSubmissions()
   const [tab, setTab] = useState<Tab>('peringkat')
   const [dateFilter, setDateFilter] = useState(todayPrefix())
@@ -69,37 +58,18 @@ function AuditHasilPage() {
   const [detailTarget, setDetailTarget] = useState<FiveRSubmission | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FiveRSubmission | null>(null)
 
+  const deleteSubmissionLocal = async (id: string) => {
+    const res = await deleteSubmission({ data: { id } })
+    if (!res.ok) {
+      toast.error(res.error ?? 'Gagal menghapus submission')
+      return
+    }
+    await queryClient.invalidateQueries({ queryKey: qk.submissions })
+    toast.success('Penilaian berhasil dihapus')
+  }
+
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
   const roomMap = useMemo(() => new Map(rooms.map((r) => [r.id, r])), [rooms])
-
-  // Room ranking data
-  const roomScores = useMemo<RoomScoreRow[]>(() => {
-    const list = rooms.map((room) => {
-      const roomSubs = submissions.filter((s) => s.roomId === room.id)
-      const scores = roomSubs
-        .map((s) => {
-          const form = formMap.get(s.formId)
-          return form ? scoreSubmission(form, s) : null
-        })
-        .filter((x): x is SubmissionScore => x !== null)
-      const agg = aggregateRoom(scores)
-      return {
-        rank: 0,
-        id: room.id,
-        name: room.name,
-        pic: room.pic,
-        count: roomSubs.length,
-        final: agg,
-      }
-    })
-    list.sort((a, b) => b.final - a.final)
-    return list.map((r, i) => ({ ...r, rank: i + 1 }))
-  }, [rooms, submissions, formMap])
-
-  const filteredRooms = useMemo(() => {
-    if (!selectedRoom) return roomScores
-    return roomScores.filter((r) => r.id === selectedRoom)
-  }, [roomScores, selectedRoom])
 
   // Daily log
   const todayCount = useMemo(() => {
@@ -123,47 +93,6 @@ function AuditHasilPage() {
     list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     return list
   }, [submissions, dateFilter, debouncedQLog, roomMap])
-
-  // Columns Ranking
-  const rankColumnHelper = createColumnHelper<typeof features, RoomScoreRow>()
-  const rankColumns = rankColumnHelper.columns([
-    rankColumnHelper.accessor('rank', {
-      header: 'Peringkat',
-      cell: ({ row }) => {
-        const r = row.original.rank
-        return (
-          <div className="flex items-center gap-1.5 font-bold">
-            {r === 1 && <Medal size={16} className="text-amber-500 shrink-0" />}
-            {r === 2 && <Medal size={16} className="text-slate-400 shrink-0" />}
-            {r === 3 && <Medal size={16} className="text-amber-700 shrink-0" />}
-            <span className="tabular-nums">#{r}</span>
-          </div>
-        )
-      },
-    }),
-    rankColumnHelper.accessor('name', {
-      header: 'Ruangan & PIC',
-      cell: ({ row }) => (
-        <div>
-          <div className="font-bold text-foreground text-sm">{row.original.name}</div>
-          <div className="text-xs text-muted-foreground">PIC: {row.original.pic}</div>
-        </div>
-      ),
-    }),
-    rankColumnHelper.accessor('count', {
-      header: 'Jumlah Penilaian',
-      cell: ({ row }) => (
-        <span className="text-xs font-semibold text-muted-foreground">{row.original.count}x dinilai</span>
-      ),
-    }),
-    rankColumnHelper.display({
-      id: 'finalScore',
-      header: 'Skor Akhir 5R',
-      cell: ({ row }) => (
-        <StatusBadge score={row.original.count > 0 ? round1(row.original.final) : null} />
-      ),
-    }),
-  ])
 
   // Columns Log
   const logColumnHelper = createColumnHelper<typeof features, FiveRSubmission>()
@@ -254,33 +183,68 @@ function AuditHasilPage() {
         subtitle={`${submissions.length} penilaian total · ${todayCount} hari ini`}
       />
 
-      {/* Tab bar */}
-      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="peringkat">
-            <Trophy size={14} className="mr-1" />Peringkat Ruangan
-          </TabsTrigger>
-          <TabsTrigger value="log">
-            <Clock3 size={14} className="mr-1" />Log Penilaian
-            {todayCount > 0 && (
-              <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-[9px] text-primary-foreground">{todayCount}</span>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      {/* Modern Main Tab Bar */}
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 flex-wrap">
+        <div className="inline-flex items-center gap-1 rounded-2xl border border-border/80 bg-muted/60 p-1">
+          <button
+            type="button"
+            onClick={() => setTab('peringkat')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+              tab === 'peringkat'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Trophy size={14} className={tab === 'peringkat' ? 'text-amber-500' : 'text-muted-foreground'} />
+            <span>Papan Peringkat</span>
+          </button>
 
-        {/* Tab: Peringkat */}
-        <TabsContent value="peringkat" className="mt-4 space-y-4">
-          <DataTable
-            data={filteredRooms}
-            columns={rankColumns}
-            getRowId={(r) => r.id}
-            pageSize={10}
-            toolbar={<span className="text-sm font-medium text-muted-foreground">{filteredRooms.length} ruangan terdaftar</span>}
+          <button
+            type="button"
+            onClick={() => setTab('log')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+              tab === 'log'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Clock3 size={14} className={tab === 'log' ? 'text-primary' : 'text-muted-foreground'} />
+            <span>Log Seluruh Penilaian</span>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${
+                tab === 'log'
+                  ? 'bg-primary/15 text-primary'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {submissions.length}
+            </span>
+          </button>
+        </div>
+
+        <div className="text-xs text-muted-foreground flex items-center gap-2">
+          <span>
+            Hari ini: <strong className="text-foreground font-bold">{todayCount}</strong> penilaian
+          </span>
+        </div>
+      </div>
+
+      {/* Tab: Peringkat */}
+      {tab === 'peringkat' && (
+        <div className="space-y-4 pt-1">
+          <ScoreBoard
+            submissions={submissions}
+            rooms={rooms}
+            forms={forms}
+            deadline={deadline}
+            mode="admin"
           />
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Tab: Log Penilaian */}
-        <TabsContent value="log" className="mt-4 space-y-4">
+      {/* Tab: Log Penilaian */}
+      {tab === 'log' && (
+        <div className="space-y-4 pt-1">
           {/* Date filter & Search */}
           <Card>
             <CardContent className="p-4">
@@ -328,8 +292,8 @@ function AuditHasilPage() {
             pageSize={15}
             toolbar={<span className="text-sm font-medium text-muted-foreground">{dailyLog.length} log penilaian</span>}
           />
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
       {/* Detail Responsive Modal (Mobile BottomSheet / Desktop Dialog) */}
       <ResponsiveDialog
@@ -368,7 +332,7 @@ function AuditHasilPage() {
             {detailScore && (
               <div className="flex items-center justify-between rounded-lg bg-muted/40 p-3 border border-border">
                 <div>
-                  <p className="text-xs text-muted-foreground">Skor Akhir 5R</p>
+                  <p className="text-xs text-muted-foreground">Skor Akhir</p>
                   <p className="text-[11px] font-mono text-muted-foreground/80">{formatDate(detailTarget.createdAt)}</p>
                 </div>
                 <StatusBadge score={round1(detailScore.final)} showScoreMax />
@@ -417,7 +381,7 @@ function AuditHasilPage() {
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (deleteTarget) void deleteSubmission({ data: { id: deleteTarget.id } })
+                if (deleteTarget) void deleteSubmissionLocal(deleteTarget.id)
                 setDeleteTarget(null)
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

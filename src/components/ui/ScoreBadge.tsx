@@ -20,3 +20,5 @@ export default function ScoreBadge({ value, showMax = true, className = '' }: Sc
     </Badge>
   )
 }
+
+export { ScoreBadge }

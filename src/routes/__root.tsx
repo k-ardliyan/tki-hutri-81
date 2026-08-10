@@ -123,13 +123,13 @@ function AppLayout() {
     return () => ctx.revert()
   }, [pathname])
 
-  // Scroll to top on route change (skip first paint)
+  // Scroll to top instantly on route change
   useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true
       return
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo(0, 0)
   }, [pathname])
 
   return (

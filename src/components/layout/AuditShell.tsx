@@ -11,8 +11,8 @@ const NAV: NavSection[] = [
     title: 'Penilaian',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: Gauge, path: '/audit' },
-      { id: 'isi', label: 'Isi', icon: SquarePen, path: '/audit/isi' },
-      { id: 'hasil', label: 'Hasil', icon: Trophy, path: '/audit/hasil' },
+      { id: 'isi', label: 'Isi Penilaian', icon: SquarePen, path: '/audit/isi' },
+      { id: 'hasil', label: 'Hasil Audit', icon: Trophy, path: '/audit/hasil' },
     ],
   },
 ]

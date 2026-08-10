@@ -11,6 +11,7 @@ const NAV = [
     icon: "fa-calendar-days",
     path: "/rundown",
   },
+  { id: "live", label: "Live Score", icon: "fa-chart-line", path: "/live" },
   { id: "tim", label: "Tim", icon: "fa-users", path: "/tim" },
 ];
 
@@ -30,7 +31,7 @@ export default function BottomNav() {
           : "translate-y-[calc(100%+1.5rem)] pointer-events-none"
       }`}
     >
-      <nav className="mx-auto grid max-w-lg grid-cols-4 gap-1 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-2xl shadow-slate-900/10 backdrop-blur-xl isolate">
+      <nav className="mx-auto grid max-w-lg grid-cols-5 gap-1 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-2xl shadow-slate-900/10 backdrop-blur-xl isolate">
         {NAV.map((item) => {
           const active = activeId === item.id;
           return (

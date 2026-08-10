@@ -67,7 +67,11 @@ export function scoreSubmission(
   const final =
     categories.length === 0
       ? 0
-      : categories.reduce((s, c) => s + c.percent, 0) / categories.length
+      : form.finalMode === 'weighted'
+        ? totalMax === 0
+          ? 0
+          : (totalRaw / totalMax) * 100
+        : categories.reduce((s, c) => s + c.percent, 0) / categories.length
 
   return {
     submissionId: sub.id,
@@ -92,4 +96,12 @@ export function aggregateRoom(scores: SubmissionScore[]): number {
 /** Bulatkan 1 desimal untuk tampilan. */
 export function round1(n: number): number {
   return Math.round(n * 10) / 10
+}
+
+/**
+ * Gabung skor 5R + dekorasi utk total akhir lomba dekor-5r.
+ * Bobot default: 5R 70% / dekorasi 30% (keputusan panitia).
+ */
+export function combineFinal(fiveR: number, dekorasi: number, weight5R = 0.7): number {
+  return fiveR * weight5R + dekorasi * (1 - weight5R)
 }

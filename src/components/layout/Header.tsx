@@ -13,6 +13,7 @@ const NAV = [
   { id: "beranda", label: "Beranda", path: "/" },
   { id: "lomba", label: "Lomba", path: "/lomba" },
   { id: "rundown", label: "Rundown", path: "/rundown" },
+  { id: "live", label: "Live Score", path: "/live" },
   { id: "tim", label: "Tim", path: "/tim" },
 ];
 
@@ -34,12 +35,15 @@ export default function SiteHeader() {
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.fromTo(
-        headerRef.current,
-        { y: -20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.45, clearProps: "all" },
-      )
-        .fromTo(
+      if (headerRef.current) {
+        tl.fromTo(
+          headerRef.current,
+          { y: -20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.45, clearProps: "all" },
+        );
+      }
+      if (logosRef.current) {
+        tl.fromTo(
           logosRef.current,
           { scale: 0.85, opacity: 0 },
           {
@@ -50,42 +54,34 @@ export default function SiteHeader() {
             clearProps: "all",
           },
           "-=0.2",
-        )
-        .fromTo(
-          brandRef.current?.querySelectorAll(".hdr-text") || [],
-          { x: -10, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 0.35,
-            stagger: 0.05,
-            clearProps: "all",
-          },
-          "-=0.25",
-        )
-        .fromTo(
+        );
+      }
+      if (navRef.current) {
+        tl.fromTo(
           navRef.current,
           { opacity: 0, y: -6 },
           { opacity: 1, y: 0, duration: 0.3, clearProps: "all" },
           "-=0.2",
-        )
-        .fromTo(
+        );
+      }
+      if (chipRef.current) {
+        tl.fromTo(
           chipRef.current,
           { opacity: 0, scale: 0.85 },
           { opacity: 1, scale: 1, duration: 0.3, clearProps: "all" },
           "-=0.2",
         );
-
-      const liveDot = chipRef.current?.querySelector(".live-dot");
-      if (liveDot) {
-        gsap.to(liveDot, {
-          scale: 1.35,
-          opacity: 0.55,
-          duration: 1.1,
-          yoyo: true,
-          repeat: -1,
-          ease: "sine.inOut",
-        });
+        const liveDot = chipRef.current.querySelector(".live-dot");
+        if (liveDot) {
+          gsap.to(liveDot, {
+            scale: 1.35,
+            opacity: 0.55,
+            duration: 1.1,
+            yoyo: true,
+            repeat: -1,
+            ease: "sine.inOut",
+          });
+        }
       }
     }, headerRef);
 
