@@ -1,15 +1,15 @@
-import { useEffect, useRef } from 'react'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useRef } from 'react';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 export default function MonasRibbonSvg({ className = 'h-full w-full' }) {
-  const containerRef = useRef(null)
-  const peakRef = useRef(null)
-  const ribbonRedRef = useRef(null)
-  const ribbonWhiteRef = useRef(null)
-  const particlesRef = useRef<SVGGElement>(null)
+  const containerRef = useRef(null);
+  const peakRef = useRef(null);
+  const ribbonRedRef = useRef(null);
+  const ribbonWhiteRef = useRef(null);
+  const particlesRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || shouldReduceMotion()) return undefined
+    if (!containerRef.current || shouldReduceMotion()) return undefined;
 
     const ctx = gsap.context(() => {
       // Monas Golden Peak Pulsing Glow
@@ -22,7 +22,7 @@ export default function MonasRibbonSvg({ className = 'h-full w-full' }) {
           yoyo: true,
           ease: 'sine.inOut',
           transformOrigin: 'center center',
-        })
+        });
       }
 
       // Ribbon dynamic wave movement
@@ -34,7 +34,7 @@ export default function MonasRibbonSvg({ className = 'h-full w-full' }) {
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
-        })
+        });
         gsap.to(ribbonWhiteRef.current, {
           y: 10,
           skewX: -2,
@@ -43,12 +43,12 @@ export default function MonasRibbonSvg({ className = 'h-full w-full' }) {
           yoyo: true,
           ease: 'sine.inOut',
           delay: 0.3,
-        })
+        });
       }
 
       // Golden sparkle particles float
       if (particlesRef.current) {
-        const dots = particlesRef.current.querySelectorAll('.particle-dot')
+        const dots = particlesRef.current.querySelectorAll('.particle-dot');
         dots.forEach((dot: Element, i: number) => {
           gsap.to(dot, {
             y: `-=${15 + (i % 3) * 10}`,
@@ -59,13 +59,13 @@ export default function MonasRibbonSvg({ className = 'h-full w-full' }) {
             yoyo: true,
             ease: 'sine.inOut',
             delay: i * 0.2,
-          })
-        })
+          });
+        });
       }
-    }, containerRef)
+    }, containerRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div ref={containerRef} className={`pointer-events-none ${className}`}>
@@ -143,5 +143,5 @@ export default function MonasRibbonSvg({ className = 'h-full w-full' }) {
         </g>
       </svg>
     </div>
-  )
+  );
 }

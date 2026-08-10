@@ -3,7 +3,13 @@
   "label": "Penilaian Lomba Dekorasi",
   "source": "FORM PENILAIAN LOMBA DEKORASI.md",
   "scale": { "min": 1, "max": 5 },
-  "scaleLabels": { "1": "Sangat Kurang", "2": "Kurang", "3": "Cukup", "4": "Baik", "5": "Sangat Baik" },
+  "scaleLabels": {
+    "1": "Sangat Kurang",
+    "2": "Kurang",
+    "3": "Cukup",
+    "4": "Baik",
+    "5": "Sangat Baik"
+  },
   "finalMode": "weighted",
   "categories": [
     {

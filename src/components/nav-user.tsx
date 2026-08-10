@@ -1,16 +1,7 @@
-import * as React from "react"
-import {
-  ChevronsUpDown,
-  LogOut,
-  Moon,
-  Sun,
-} from "lucide-react"
+import { ChevronsUpDown, LogOut, Moon, Sun } from 'lucide-react';
+import * as React from 'react';
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "~/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,13 +10,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
+} from '~/components/ui/dropdown-menu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "~/components/ui/sidebar"
+} from '~/components/ui/sidebar';
 
 export function NavUser({
   user,
@@ -34,24 +25,24 @@ export function NavUser({
   onLogout,
 }: {
   user: {
-    name: string
-    role?: string
-    avatar?: string
-  }
-  dark: boolean
-  onToggleDark: () => void
-  onLogout: () => void
+    name: string;
+    role?: string;
+    avatar?: string;
+  };
+  dark: boolean;
+  onToggleDark: () => void;
+  onLogout: () => void;
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   const initials = user.name
     ? user.name
-        .split(" ")
+        .split(' ')
         .map((n) => n[0])
-        .join("")
+        .join('')
         .toUpperCase()
         .slice(0, 2)
-    : "U"
+    : 'U';
 
   return (
     <SidebarMenu>
@@ -71,7 +62,7 @@ export function NavUser({
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-semibold">{user.name}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user.role ?? "User"}
+                  {user.role ?? 'User'}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
@@ -79,7 +70,7 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -94,7 +85,7 @@ export function NavUser({
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user.role ?? "User"}
+                    {user.role ?? 'User'}
                   </span>
                 </div>
               </div>
@@ -103,7 +94,7 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={onToggleDark}>
                 {dark ? <Sun className="mr-2 size-4" /> : <Moon className="mr-2 size-4" />}
-                <span>{dark ? "Mode Terang" : "Mode Gelap"}</span>
+                <span>{dark ? 'Mode Terang' : 'Mode Gelap'}</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -118,5 +109,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

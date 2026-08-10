@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef } from 'react'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useId, useRef } from 'react';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 /**
  * Logo PT TKI (vector) — tight crop viewBox for equal visual height alignment.
@@ -11,21 +11,21 @@ export default function LogoTki({
   variant = 'default',
   title = 'Logo PT Teknologi Kartu Indonesia',
 }) {
-  const svgRef = useRef<SVGSVGElement>(null)
-  const uid = useId().replace(/:/g, '')
+  const svgRef = useRef<SVGSVGElement>(null);
+  const uid = useId().replace(/:/g, '');
 
-  const isWhite = variant === 'white'
-  const fill = isWhite ? '#ffffff' : '#054ad3'
+  const isWhite = variant === 'white';
+  const fill = isWhite ? '#ffffff' : '#054ad3';
 
   useEffect(() => {
-    if (!animate || !svgRef.current || shouldReduceMotion()) return undefined
+    if (!animate || !svgRef.current || shouldReduceMotion()) return undefined;
 
-    const paths = svgRef.current.querySelectorAll('path')
-    if (!paths.length) return undefined
+    const paths = svgRef.current.querySelectorAll('path');
+    if (!paths.length) return undefined;
 
     const ctx = gsap.context(() => {
       paths.forEach((p: SVGPathElement) => {
-        const len = p.getTotalLength?.() || 120
+        const len = p.getTotalLength?.() || 120;
         gsap.set(p, {
           fillOpacity: 0,
           stroke: fill,
@@ -34,10 +34,10 @@ export default function LogoTki({
           strokeLinejoin: 'round',
           strokeDasharray: len,
           strokeDashoffset: len,
-        })
-      })
+        });
+      });
 
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
       tl.to(paths, {
         strokeDashoffset: 0,
         duration: 0.85,
@@ -50,8 +50,8 @@ export default function LogoTki({
           duration: 0.35,
           stagger: 0.02,
         },
-        '-=0.35',
-      )
+        '-=0.35'
+      );
 
       gsap.to(svgRef.current, {
         scale: 1.03,
@@ -61,11 +61,11 @@ export default function LogoTki({
         ease: 'sine.inOut',
         transformOrigin: '50% 50%',
         delay: 1.1,
-      })
-    }, svgRef)
+      });
+    }, svgRef);
 
-    return () => ctx.revert()
-  }, [animate, fill])
+    return () => ctx.revert();
+  }, [animate, fill]);
 
   return (
     <svg
@@ -110,5 +110,5 @@ export default function LogoTki({
         <path d="M 1099.46 684.12 C 1099.70 682.96 1100.43 681.26 1101.92 681.61 C 1109.37 681.52 1116.82 681.55 1124.27 681.80 C 1128.98 701.17 1133.10 720.79 1137.85 740.26 C 1138.47 743.27 1139.43 746.40 1138.58 749.47 C 1134.27 749.40 1129.97 749.46 1125.68 749.43 C 1124.60 745.43 1123.73 741.38 1122.72 737.37 C 1115.68 737.45 1108.63 737.30 1101.60 737.38 C 1100.69 741.42 1099.98 745.53 1098.56 749.45 C 1094.16 749.39 1089.76 749.54 1085.37 749.38 C 1086.28 740.82 1088.78 732.51 1090.59 724.11 C 1093.56 710.78 1096.42 697.43 1099.46 684.12 M 1110.90 694.57 C 1108.87 704.33 1106.98 714.12 1104.43 723.76 C 1109.49 724.56 1114.62 724.20 1119.73 724.26 C 1117.62 714.25 1115.42 704.26 1113.20 694.28 C 1124.27 681.80 1124.27 681.80 1110.90 694.57 Z" />
       </g>
     </svg>
-  )
+  );
 }

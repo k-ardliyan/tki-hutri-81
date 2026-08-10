@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
-import { assets } from '../../assets'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useRef } from 'react';
+import { assets } from '../../assets';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 /**
  * Logo resmi HUT RI ke-81 — Uses 100% authentic original SVG file with CSS color filter.
@@ -12,15 +12,15 @@ export default function LogoHutRi81({
   variant = 'default',
   title = 'Logo resmi HUT RI ke-81',
 }) {
-  const containerRef = useRef(null)
-  const isWhite = variant === 'white'
+  const containerRef = useRef(null);
+  const isWhite = variant === 'white';
 
   useEffect(() => {
-    if (!animate || !containerRef.current || shouldReduceMotion()) return undefined
+    if (!animate || !containerRef.current || shouldReduceMotion()) return undefined;
 
     // ✅ FIX: Kill any stale tween from a previous render before creating a new one.
     // This prevents duplicate infinite tweens when the component re-mounts (e.g. tab switches).
-    gsap.killTweensOf(containerRef.current)
+    gsap.killTweensOf(containerRef.current);
 
     const ctx = gsap.context(() => {
       // Smooth idle breathing pulse
@@ -31,11 +31,11 @@ export default function LogoHutRi81({
         repeat: -1,
         ease: 'sine.inOut',
         transformOrigin: 'center center',
-      })
-    }, containerRef)
+      });
+    }, containerRef);
 
-    return () => ctx.revert()
-  }, [animate])
+    return () => ctx.revert();
+  }, [animate]);
 
   return (
     <div
@@ -51,5 +51,5 @@ export default function LogoHutRi81({
         }`}
       />
     </div>
-  )
+  );
 }

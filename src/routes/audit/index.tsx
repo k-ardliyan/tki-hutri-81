@@ -1,86 +1,79 @@
-import { useState, useEffect, useMemo } from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { z } from 'zod'
-import {
-  CalendarCheck,
-  Check,
-  ChevronRight,
-  ClipboardList,
-  Sparkles,
-  Trophy,
-} from 'lucide-react'
-import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
-import { Card, CardContent } from '../../components/ui/card'
-import RoomIcon from '../../components/ui/RoomIcon'
-import { PageHeader } from '../../components/ui/page-header'
-import { InteractiveCard } from '../../components/ui/interactive-card'
-import ScoreBadge from '../../components/ui/ScoreBadge'
-import { AuditDashboardSkeleton } from '../../components/ui/skeletons'
-import { getRooms, getForms } from '../../server/functions/5r'
-import { getSession } from '../../server/functions/auth'
-import type { FiveRForm } from '../../data/5r'
-import { isDekorasiSubmission } from '../../data/5r'
-import { scoreSubmission, aggregateRoom, round1 } from '../../lib/scoring'
-import { todayPrefix } from '../../lib/dateUtils'
-import { useSubmissions } from '../../lib/queries'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { CalendarCheck, Check, ChevronRight, ClipboardList, Sparkles, Trophy } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { InteractiveCard } from '../../components/ui/interactive-card';
+import { PageHeader } from '../../components/ui/page-header';
+import RoomIcon from '../../components/ui/RoomIcon';
+import ScoreBadge from '../../components/ui/ScoreBadge';
+import { AuditDashboardSkeleton } from '../../components/ui/skeletons';
+import type { FiveRForm } from '../../data/5r';
+import { isDekorasiSubmission } from '../../data/5r';
+import { todayPrefix } from '../../lib/dateUtils';
+import { useSubmissions } from '../../lib/queries';
+import { aggregateRoom, round1, scoreSubmission } from '../../lib/scoring';
+import { getForms, getRooms } from '../../server/functions/5r';
+import { getSession } from '../../server/functions/auth';
 
-const searchSchema = z.object({})
+const searchSchema = z.object({});
 
 export const Route = createFileRoute('/audit/')({
   validateSearch: searchSchema,
   loader: async () => {
-    const [rooms, forms] = await Promise.all([getRooms(), getForms()])
-    return { rooms, forms }
+    const [rooms, forms] = await Promise.all([getRooms(), getForms()]);
+    return { rooms, forms };
   },
   component: AuditDashboardPage,
-})
+});
 
 function AuditDashboardPage() {
-  const { rooms, forms } = Route.useLoaderData()
-  const navigate = useNavigate()
-  const { data: submissions = [], isLoading } = useSubmissions()
+  const { rooms, forms } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const { data: submissions = [], isLoading } = useSubmissions();
 
-  const [me, setMe] = useState<string | null>(null)
+  const [me, setMe] = useState<string | null>(null);
   useEffect(() => {
-    void getSession().then((s) => setMe(s.username ?? null))
-  }, [])
+    void getSession().then((s) => setMe(s.username ?? null));
+  }, []);
 
-  const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
-  const today = todayPrefix()
+  const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
+  const today = todayPrefix();
 
   // User-specific stats
-  const mySubs = useMemo(() => submissions.filter((s) => s.createdBy === me), [submissions, me])
+  const mySubs = useMemo(() => submissions.filter((s) => s.createdBy === me), [submissions, me]);
   const myTodaySubs = useMemo(
     () => mySubs.filter((s) => s.createdAt.startsWith(today)),
-    [mySubs, today],
-  )
+    [mySubs, today]
+  );
   const myToday5RSubs = useMemo(
     () => myTodaySubs.filter((s) => !isDekorasiSubmission(s.formId)),
-    [myTodaySubs],
-  )
+    [myTodaySubs]
+  );
   const my5RRoomsTodayCount = useMemo(
     () => new Set(myToday5RSubs.map((s) => s.roomId)).size,
-    [myToday5RSubs],
-  )
+    [myToday5RSubs]
+  );
   const myDekorasiRoomsCount = useMemo(
     () => new Set(mySubs.filter((s) => isDekorasiSubmission(s.formId)).map((s) => s.roomId)).size,
-    [mySubs],
-  )
+    [mySubs]
+  );
 
   // Global team stats
   const todaySubs = useMemo(
     () => submissions.filter((s) => s.createdAt.startsWith(today)),
-    [submissions, today],
-  )
+    [submissions, today]
+  );
   const today5RSubs = useMemo(
     () => todaySubs.filter((s) => !isDekorasiSubmission(s.formId)),
-    [todaySubs],
-  )
+    [todaySubs]
+  );
   const roomsDoneTodayCount = useMemo(
     () => new Set(today5RSubs.map((s) => s.roomId)).size,
-    [today5RSubs],
-  )
+    [today5RSubs]
+  );
 
   // Average 5R score
   const all5RScores = useMemo(
@@ -88,43 +81,43 @@ function AuditDashboardPage() {
       submissions
         .filter((s) => !isDekorasiSubmission(s.formId))
         .map((s) => {
-          const form = formMap.get(s.formId)
-          return form ? scoreSubmission(form, s) : null
+          const form = formMap.get(s.formId);
+          return form ? scoreSubmission(form, s) : null;
         })
         .filter((x): x is NonNullable<typeof x> => x !== null),
-    [submissions, formMap],
-  )
+    [submissions, formMap]
+  );
   const avg5RScore =
     all5RScores.length > 0
       ? round1(all5RScores.reduce((s, x) => s + x.final, 0) / all5RScores.length)
-      : 0
+      : 0;
 
   // Per-room calculations
   const roomStatus = useMemo(() => {
     return rooms.map((room) => {
-      const roomSubs = submissions.filter((s) => s.roomId === room.id)
-      const myRoomSubs = roomSubs.filter((s) => s.createdBy === me)
-      const myTodayRoomSubs = myRoomSubs.filter((s) => s.createdAt.startsWith(today))
+      const roomSubs = submissions.filter((s) => s.roomId === room.id);
+      const myRoomSubs = roomSubs.filter((s) => s.createdBy === me);
+      const myTodayRoomSubs = myRoomSubs.filter((s) => s.createdAt.startsWith(today));
       const otherTodayRoomSubs = roomSubs.filter(
-        (s) => s.createdBy !== me && s.createdAt.startsWith(today),
-      )
-      const myDekorasiDone = myRoomSubs.some((s) => isDekorasiSubmission(s.formId))
+        (s) => s.createdBy !== me && s.createdAt.startsWith(today)
+      );
+      const myDekorasiDone = myRoomSubs.some((s) => isDekorasiSubmission(s.formId));
 
       const myTodayFormsList = myTodayRoomSubs.map((s) => {
-        const f = formMap.get(s.formId)
-        return f ? f.label.replace('Checklist 5R ', '') : s.formId
-      })
+        const f = formMap.get(s.formId);
+        return f ? f.label.replace('Checklist 5R ', '') : s.formId;
+      });
 
       // Overall 5R score for this room
       const room5RScores = roomSubs
         .filter((s) => !isDekorasiSubmission(s.formId))
         .map((s) => {
-          const form = formMap.get(s.formId)
-          return form ? scoreSubmission(form, s) : null
+          const form = formMap.get(s.formId);
+          return form ? scoreSubmission(form, s) : null;
         })
-        .filter((x): x is NonNullable<typeof x> => x !== null)
+        .filter((x): x is NonNullable<typeof x> => x !== null);
 
-      const final5R = aggregateRoom(room5RScores)
+      const final5R = aggregateRoom(room5RScores);
 
       return {
         room,
@@ -136,11 +129,11 @@ function AuditDashboardPage() {
         hasOtherActivityToday: otherTodayRoomSubs.length > 0,
         room5RCount: room5RScores.length,
         final5R,
-      }
-    })
-  }, [rooms, submissions, me, today, formMap])
+      };
+    });
+  }, [rooms, submissions, me, today, formMap]);
 
-  if (isLoading) return <AuditDashboardSkeleton />
+  if (isLoading) return <AuditDashboardSkeleton />;
 
   return (
     <div className="space-y-5">
@@ -178,12 +171,15 @@ function AuditDashboardPage() {
           </div>
           <div className="min-w-0">
             <p className="text-xs font-extrabold text-foreground">
-              {my5RRoomsTodayCount === rooms.length && myDekorasiRoomsCount === rooms.length && rooms.length > 0
+              {my5RRoomsTodayCount === rooms.length &&
+              myDekorasiRoomsCount === rooms.length &&
+              rooms.length > 0
                 ? '🎉 Luar biasa! Seluruh ruangan telah selesai kamu nilai hari ini.'
                 : `Status Pengisian Kamu: ${my5RRoomsTodayCount}/${rooms.length} ruang 5R telah dinilai hari ini.`}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              {me ? `Login sebagai ${me}` : 'Auditor'} &middot; Total {todaySubs.length} form terisi oleh tim hari ini.
+              {me ? `Login sebagai ${me}` : 'Auditor'} &middot; Total {todaySubs.length} form terisi
+              oleh tim hari ini.
             </p>
           </div>
         </div>
@@ -207,7 +203,10 @@ function AuditDashboardPage() {
                 5R Kamu Hari Ini
               </span>
               {my5RRoomsTodayCount === rooms.length && rooms.length > 0 ? (
-                <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold">
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold"
+                >
                   Lengkap ✓
                 </Badge>
               ) : (
@@ -218,7 +217,9 @@ function AuditDashboardPage() {
             </div>
             <p className="text-xl font-extrabold text-foreground tracking-tight">
               {my5RRoomsTodayCount}{' '}
-              <span className="text-xs font-normal text-muted-foreground">/ {rooms.length} ruang</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                / {rooms.length} ruang
+              </span>
             </p>
             <p className="text-[11px] text-muted-foreground truncate">
               {my5RRoomsTodayCount === rooms.length && rooms.length > 0
@@ -236,7 +237,10 @@ function AuditDashboardPage() {
                 Dekorasi Kamu
               </span>
               {myDekorasiRoomsCount === rooms.length && rooms.length > 0 ? (
-                <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold">
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold"
+                >
                   Lengkap ✓
                 </Badge>
               ) : (
@@ -248,7 +252,9 @@ function AuditDashboardPage() {
             </div>
             <p className="text-xl font-extrabold text-foreground tracking-tight">
               {myDekorasiRoomsCount}{' '}
-              <span className="text-xs font-normal text-muted-foreground">/ {rooms.length} ruang</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                / {rooms.length} ruang
+              </span>
             </p>
             <p className="text-[11px] text-muted-foreground truncate">
               {myDekorasiRoomsCount === rooms.length && rooms.length > 0
@@ -291,8 +297,12 @@ function AuditDashboardPage() {
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
           <div>
-            <h2 className="text-sm font-extrabold tracking-tight text-foreground">Status Ruangan Kerja</h2>
-            <p className="text-xs text-muted-foreground">Klik kartu ruangan untuk langsung mengisi checklist penilaian.</p>
+            <h2 className="text-sm font-extrabold tracking-tight text-foreground">
+              Status Ruangan Kerja
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Klik kartu ruangan untuk langsung mengisi checklist penilaian.
+            </p>
           </div>
           <Button
             variant="ghost"
@@ -343,7 +353,9 @@ function AuditDashboardPage() {
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="truncate font-bold text-foreground text-sm">{room.name}</h3>
+                          <h3 className="truncate font-bold text-foreground text-sm">
+                            {room.name}
+                          </h3>
                           {hasMyActivityToday ? (
                             <Badge
                               variant="outline"
@@ -367,7 +379,10 @@ function AuditDashboardPage() {
                               {otherTodayRoomSubs.length}x Juri Lain
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-muted text-muted-foreground px-1.5 py-0 text-[9px]">
+                            <Badge
+                              variant="outline"
+                              className="bg-muted text-muted-foreground px-1.5 py-0 text-[9px]"
+                            >
                               Belum dinilai
                             </Badge>
                           )}
@@ -378,7 +393,11 @@ function AuditDashboardPage() {
 
                       <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
                         {room5RCount > 0 && (
-                          <ScoreBadge value={round1(final5R)} showMax={false} className="min-w-8 justify-center font-bold" />
+                          <ScoreBadge
+                            value={round1(final5R)}
+                            showMax={false}
+                            className="min-w-8 justify-center font-bold"
+                          />
                         )}
                         <ChevronRight
                           size={16}
@@ -391,7 +410,9 @@ function AuditDashboardPage() {
                     {hasMyActivityToday && (
                       <div className="rounded-lg bg-emerald-100/60 px-2.5 py-1.5 text-[11px] text-emerald-900 flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold">Sudah kamu isi hari ini:</span>
-                        <span className="text-emerald-800 truncate">{myTodayFormsList.join(', ')}</span>
+                        <span className="text-emerald-800 truncate">
+                          {myTodayFormsList.join(', ')}
+                        </span>
                         {hasOtherActivityToday && (
                           <span className="text-[10px] text-emerald-700/80 font-medium">
                             (+ {otherTodayRoomSubs.length} juri lain)
@@ -408,13 +429,13 @@ function AuditDashboardPage() {
                     )}
                   </CardContent>
                 </InteractiveCard>
-              )
-            },
+              );
+            }
           )}
         </div>
       </section>
     </div>
-  )
+  );
 }
 
 function formatLongDate(d: Date): string {
@@ -423,5 +444,5 @@ function formatLongDate(d: Date): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
+  });
 }

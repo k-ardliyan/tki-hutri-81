@@ -6,21 +6,22 @@
  * 3. Unified left column card for Team Info & Portion Counter
  * 4. Refined desktop & mobile submit bar
  */
-import { useState } from 'react'
-import { ArrowLeft, CheckCircle2, Loader2, Users } from 'lucide-react'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
-import { Card, CardContent } from '../ui/card'
-import { Checkbox } from '../ui/checkbox'
-import { Progress } from '../ui/progress'
-import type { SnackTeam } from '../../server/functions/snack'
+
+import { ArrowLeft, CheckCircle2, Loader2, Users } from 'lucide-react';
+import { useState } from 'react';
+import type { SnackTeam } from '../../server/functions/snack';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Checkbox } from '../ui/checkbox';
+import { Progress } from '../ui/progress';
 
 interface ConfirmFormProps {
-  team: SnackTeam
-  sessionName: string
-  submitting: boolean
-  onSubmit: (employeeIds: number[]) => void
-  onBack: () => void
+  team: SnackTeam;
+  sessionName: string;
+  submitting: boolean;
+  onSubmit: (employeeIds: number[]) => void;
+  onBack: () => void;
 }
 
 export default function ConfirmForm({
@@ -31,31 +32,27 @@ export default function ConfirmForm({
   onBack,
 }: ConfirmFormProps) {
   // Default: kosong semua — petugas centang manual
-  const [selected, setSelected] = useState<Set<number>>(new Set())
-  const [confirming, setConfirming] = useState(false)
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [confirming, setConfirming] = useState(false);
 
   const toggle = (id: number) => {
     setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const toggleAll = () => {
     setSelected((prev) => {
-      if (prev.size === team.members.length) return new Set()
-      return new Set(team.members.map((m) => m.employeeId))
-    })
-  }
+      if (prev.size === team.members.length) return new Set();
+      return new Set(team.members.map((m) => m.employeeId));
+    });
+  };
 
-  const allChecked =
-    team.members.length > 0 && selected.size === team.members.length
-  const pct =
-    team.members.length > 0
-      ? Math.round((selected.size / team.members.length) * 100)
-      : 0
+  const allChecked = team.members.length > 0 && selected.size === team.members.length;
+  const pct = team.members.length > 0 ? Math.round((selected.size / team.members.length) * 100) : 0;
 
   return (
     <div className="w-full space-y-3 lg:grid lg:grid-cols-12 lg:gap-5 lg:space-y-0 lg:items-start">
@@ -79,10 +76,7 @@ export default function ConfirmForm({
                 <span>{team.members.length} Anggota</span>
                 <span>·</span>
                 <span>
-                  Kode:{' '}
-                  <strong className="font-mono text-foreground">
-                    {team.kode}
-                  </strong>
+                  Kode: <strong className="font-mono text-foreground">{team.kode}</strong>
                 </span>
               </p>
             </div>
@@ -131,7 +125,7 @@ export default function ConfirmForm({
         {/* Tight Member Checklist Card */}
         <Card className="overflow-hidden border border-border divide-y divide-border shadow-xs">
           {team.members.map((m, idx) => {
-            const checked = selected.has(m.employeeId)
+            const checked = selected.has(m.employeeId);
             return (
               <label
                 key={m.employeeId}
@@ -164,7 +158,7 @@ export default function ConfirmForm({
                   }`}
                 />
               </label>
-            )
+            );
           })}
         </Card>
 
@@ -174,8 +168,8 @@ export default function ConfirmForm({
             <Button
               disabled={selected.size === 0 || submitting}
               onClick={() => {
-                setConfirming(true)
-                onSubmit([...selected])
+                setConfirming(true);
+                onSubmit([...selected]);
               }}
               size="lg"
               className="w-full text-sm font-bold shadow-md shadow-primary/20"
@@ -198,5 +192,5 @@ export default function ConfirmForm({
         </div>
       </div>
     </div>
-  )
+  );
 }

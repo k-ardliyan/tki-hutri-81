@@ -19,7 +19,10 @@
             { "score": 2, "desc": "Pemisahan sudah ada namun masih sering tercampur" },
             { "score": 3, "desc": "Kartu cacat sudah cukup dipisahkan tetapi belum rapi" },
             { "score": 4, "desc": "Hampir semua kartu cacat/reject sudah dipisahkan dengan baik" },
-            { "score": 5, "desc": "Semua kartu cacat/reject dipisahkan jelas dari produk good dan terkontrol" }
+            {
+              "score": 5,
+              "desc": "Semua kartu cacat/reject dipisahkan jelas dari produk good dan terkontrol"
+            }
           ]
         },
         {
@@ -31,7 +34,10 @@
             { "score": 2, "desc": "Bahan baku cukup menumpuk dan mengganggu area kerja" },
             { "score": 3, "desc": "Bahan baku mulai tertata namun masih ada penumpukan" },
             { "score": 4, "desc": "Stok bahan baku terjaga dan tidak berlebihan" },
-            { "score": 5, "desc": "Bahan baku tertata rapi, terkontrol, dan sesuai kebutuhan produksi" }
+            {
+              "score": 5,
+              "desc": "Bahan baku tertata rapi, terkontrol, dan sesuai kebutuhan produksi"
+            }
           ]
         },
         {
@@ -43,7 +49,10 @@
             { "score": 2, "desc": "Pemisahan tinta belum jelas dan tanpa label" },
             { "score": 3, "desc": "Sebagian tinta sudah dipisahkan tetapi label belum lengkap" },
             { "score": 4, "desc": "Tinta sudah dipisahkan dan sebagian besar sudah berlabel" },
-            { "score": 5, "desc": "Semua jenis tinta dipisahkan jelas, diberi label, dan tertata rapi" }
+            {
+              "score": 5,
+              "desc": "Semua jenis tinta dipisahkan jelas, diberi label, dan tertata rapi"
+            }
           ]
         },
         {
@@ -55,7 +64,10 @@
             { "score": 2, "desc": "Sebagian file lama belum dihapus atau diarsipkan" },
             { "score": 3, "desc": "File lama sudah sebagian diarsipkan namun belum rapi" },
             { "score": 4, "desc": "File lama sudah diarsipkan dengan cukup baik" },
-            { "score": 5, "desc": "Semua file desain lama sudah diarsipkan rapi dan mudah ditelusuri" }
+            {
+              "score": 5,
+              "desc": "Semua file desain lama sudah diarsipkan rapi dan mudah ditelusuri"
+            }
           ]
         },
         {
@@ -86,7 +98,10 @@
             { "score": 2, "desc": "Pemisahan sudah ada namun masih sering tercampur" },
             { "score": 3, "desc": "Kartu sudah cukup dipisahkan tetapi belum rapi" },
             { "score": 4, "desc": "Hampir semua kartu sudah dipisahkan dengan jelas" },
-            { "score": 5, "desc": "Semua kartu (blank, proses, jadi) dipisahkan rapi, jelas, dan terkontrol" }
+            {
+              "score": 5,
+              "desc": "Semua kartu (blank, proses, jadi) dipisahkan rapi, jelas, dan terkontrol"
+            }
           ]
         },
         {
@@ -97,8 +112,14 @@
             { "score": 1, "desc": "Ribbon/tinta tidak teratur dan tanpa label" },
             { "score": 2, "desc": "Sebagian ribbon/tinta sudah disusun namun belum sesuai jenis" },
             { "score": 3, "desc": "Ribbon/tinta cukup tersusun tetapi label belum lengkap" },
-            { "score": 4, "desc": "Ribbon/tinta sudah disusun sesuai jenis dan sebagian besar berlabel" },
-            { "score": 5, "desc": "Semua ribbon/tinta tersusun rapi sesuai jenis dan diberi label jelas" }
+            {
+              "score": 4,
+              "desc": "Ribbon/tinta sudah disusun sesuai jenis dan sebagian besar berlabel"
+            },
+            {
+              "score": 5,
+              "desc": "Semua ribbon/tinta tersusun rapi sesuai jenis dan diberi label jelas"
+            }
           ]
         },
         {
@@ -110,7 +131,10 @@
             { "score": 2, "desc": "Sebagian tools memiliki tempat namun tidak konsisten" },
             { "score": 3, "desc": "Tools cukup memiliki tempat tetap tetapi belum rapi" },
             { "score": 4, "desc": "Tools memiliki tempat tetap dan sebagian besar tertata" },
-            { "score": 5, "desc": "Semua tools memiliki tempat tetap, tertata rapi, dan selalu dikembalikan" }
+            {
+              "score": 5,
+              "desc": "Semua tools memiliki tempat tetap, tertata rapi, dan selalu dikembalikan"
+            }
           ]
         },
         {
@@ -122,7 +146,10 @@
             { "score": 2, "desc": "Label ada tetapi tidak jelas atau tidak lengkap" },
             { "score": 3, "desc": "Sebagian tray/box sudah berlabel namun belum konsisten" },
             { "score": 4, "desc": "Label tray/box jelas dan hampir semua sudah sesuai kategori" },
-            { "score": 5, "desc": "Semua tray/box (Good, Reject, WIP) berlabel jelas, lengkap, dan mudah dipahami" }
+            {
+              "score": 5,
+              "desc": "Semua tray/box (Good, Reject, WIP) berlabel jelas, lengkap, dan mudah dipahami"
+            }
           ]
         },
         {
@@ -134,7 +161,10 @@
             { "score": 2, "desc": "Alur kerja ada tetapi tidak dipahami dengan baik" },
             { "score": 3, "desc": "Alur kerja cukup jelas namun belum dijalankan konsisten" },
             { "score": 4, "desc": "Alur kerja jelas dan sebagian besar sudah dijalankan" },
-            { "score": 5, "desc": "Alur kerja sangat jelas, dipahami semua karyawan, dan dijalankan konsisten" }
+            {
+              "score": 5,
+              "desc": "Alur kerja sangat jelas, dipahami semua karyawan, dan dijalankan konsisten"
+            }
           ]
         },
         {
@@ -163,7 +193,10 @@
           "options": [
             { "score": 1, "desc": "Area printer sangat kotor, penuh debu dan serpihan plastik" },
             { "score": 2, "desc": "Area printer masih banyak debu dan serpihan plastik" },
-            { "score": 3, "desc": "Area printer cukup bersih namun masih ada sedikit debu/serpihan" },
+            {
+              "score": 3,
+              "desc": "Area printer cukup bersih namun masih ada sedikit debu/serpihan"
+            },
             { "score": 4, "desc": "Area printer bersih dengan sedikit kotoran" },
             { "score": 5, "desc": "Area printer sangat bersih, bebas debu dan serpihan plastik" }
           ]
@@ -177,7 +210,10 @@
             { "score": 2, "desc": "Roller jarang dibersihkan dan kotor" },
             { "score": 3, "desc": "Roller dibersihkan sesekali namun tidak konsisten" },
             { "score": 4, "desc": "Roller dibersihkan sesuai jadwal dan cukup terjaga" },
-            { "score": 5, "desc": "Roller selalu dibersihkan sesuai jadwal dan dalam kondisi optimal" }
+            {
+              "score": 5,
+              "desc": "Roller selalu dibersihkan sesuai jadwal dan dalam kondisi optimal"
+            }
           ]
         },
         {
@@ -213,7 +249,10 @@
             { "score": 2, "desc": "Tempat sampah hampir penuh" },
             { "score": 3, "desc": "Tempat sampah cukup terisi namun masih layak" },
             { "score": 4, "desc": "Tempat sampah tidak penuh dan terkontrol" },
-            { "score": 5, "desc": "Tempat sampah selalu terkelola, tidak penuh, dan terjadwal pengosongan" }
+            {
+              "score": 5,
+              "desc": "Tempat sampah selalu terkelola, tidak penuh, dan terjadwal pengosongan"
+            }
           ]
         },
         {
@@ -244,7 +283,10 @@
             { "score": 2, "desc": "SOP ada tetapi tidak dipahami operator" },
             { "score": 3, "desc": "SOP cukup tersedia namun pemahaman belum merata" },
             { "score": 4, "desc": "SOP tersedia dan sebagian besar operator memahaminya" },
-            { "score": 5, "desc": "SOP lengkap, jelas, dan dipahami serta dijalankan semua operator" }
+            {
+              "score": 5,
+              "desc": "SOP lengkap, jelas, dan dipahami serta dijalankan semua operator"
+            }
           ]
         },
         {
@@ -256,7 +298,10 @@
             { "score": 2, "desc": "Checklist ada tetapi tidak dijalankan" },
             { "score": 3, "desc": "Checklist dijalankan sesekali" },
             { "score": 4, "desc": "Checklist dijalankan rutin namun belum konsisten penuh" },
-            { "score": 5, "desc": "Checklist harian selalu dijalankan, lengkap, dan terdokumentasi" }
+            {
+              "score": 5,
+              "desc": "Checklist harian selalu dijalankan, lengkap, dan terdokumentasi"
+            }
           ]
         },
         {
@@ -268,7 +313,10 @@
             { "score": 2, "desc": "Standar ada tetapi tidak digunakan" },
             { "score": 3, "desc": "Standar tersedia namun penerapan belum konsisten" },
             { "score": 4, "desc": "Standar warna digunakan dan cukup terkontrol" },
-            { "score": 5, "desc": "Standar warna cetak jelas, digunakan konsisten, dan terkalibrasi baik" }
+            {
+              "score": 5,
+              "desc": "Standar warna cetak jelas, digunakan konsisten, dan terkalibrasi baik"
+            }
           ]
         },
         {
@@ -292,7 +340,10 @@
             { "score": 2, "desc": "Label ada tetapi tidak digunakan" },
             { "score": 3, "desc": "Label digunakan sebagian mesin" },
             { "score": 4, "desc": "Label digunakan hampir di semua mesin" },
-            { "score": 5, "desc": "Semua mesin menggunakan label status dengan jelas dan konsisten" }
+            {
+              "score": 5,
+              "desc": "Semua mesin menggunakan label status dengan jelas dan konsisten"
+            }
           ]
         },
         {
@@ -304,7 +355,10 @@
             { "score": 2, "desc": "Layout ada tetapi tidak diterapkan" },
             { "score": 3, "desc": "Layout cukup ada namun belum tertata baik" },
             { "score": 4, "desc": "Layout standar diterapkan di sebagian besar area" },
-            { "score": 5, "desc": "Layout standar diterapkan penuh, jelas, dan konsisten di seluruh area kerja" }
+            {
+              "score": 5,
+              "desc": "Layout standar diterapkan penuh, jelas, dan konsisten di seluruh area kerja"
+            }
           ]
         }
       ]
@@ -323,7 +377,10 @@
             { "score": 2, "desc": "Kerapihan jarang dijaga dan sering berantakan" },
             { "score": 3, "desc": "Kerapihan cukup dijaga namun belum konsisten" },
             { "score": 4, "desc": "Karyawan umumnya menjaga kerapihan setelah bekerja" },
-            { "score": 5, "desc": "Semua karyawan selalu menjaga kerapihan setelah bekerja tanpa diingatkan" }
+            {
+              "score": 5,
+              "desc": "Semua karyawan selalu menjaga kerapihan setelah bekerja tanpa diingatkan"
+            }
           ]
         },
         {
@@ -333,7 +390,10 @@
           "options": [
             { "score": 1, "desc": "Banyak karyawan membuang sampah sembarangan" },
             { "score": 2, "desc": "Masih sering ditemukan sampah tidak pada tempatnya" },
-            { "score": 3, "desc": "Kebiasaan membuang sampah pada tempatnya cukup baik namun belum konsisten" },
+            {
+              "score": 3,
+              "desc": "Kebiasaan membuang sampah pada tempatnya cukup baik namun belum konsisten"
+            },
             { "score": 4, "desc": "Sebagian besar karyawan membuang sampah pada tempatnya" },
             { "score": 5, "desc": "Semua karyawan disiplin membuang sampah pada tempatnya" }
           ]

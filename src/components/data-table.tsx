@@ -1,41 +1,36 @@
-import * as React from "react"
 import {
+  type ColumnDef,
+  type ColumnVisibilityState,
   columnVisibilityFeature,
   createPaginatedRowModel,
   createSortedRowModel,
   FlexRender,
   rowPaginationFeature,
   rowSortingFeature,
+  type SortingState,
   tableFeatures,
   useTable,
-  type ColumnDef,
-  type ColumnVisibilityState,
-  type SortingState,
-} from "@tanstack/react-table"
+} from '@tanstack/react-table';
+import * as React from 'react';
 
-import { Button } from "~/components/ui/button"
+import { Button } from '~/components/ui/button';
+import { Combobox, type ComboboxOption } from '~/components/ui/combobox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
-import { Label } from "~/components/ui/label"
-import { Combobox, type ComboboxOption } from "~/components/ui/combobox"
+} from '~/components/ui/dropdown-menu';
+import { Label } from '~/components/ui/label';
 
 const pageSizeOptions: ComboboxOption[] = [10, 15, 20, 30, 50].map((ps) => ({
   value: `${ps}`,
   label: `${ps}`,
-}))
+}));
+
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table"
-import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -43,9 +38,15 @@ import {
   ChevronsRightIcon,
   ChevronsUpDownIcon,
   Columns3Icon,
-  ArrowDownIcon,
-  ArrowUpIcon,
-} from "lucide-react"
+} from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table';
 
 // v9: only the features used here are registered — the rest is tree-shaken.
 export const features = tableFeatures({
@@ -54,10 +55,13 @@ export const features = tableFeatures({
   rowSortingFeature,
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-})
+});
 
-export type DataTableColumn<T extends Record<string, any> | Array<any> = any> =
-  ColumnDef<typeof features, T, any>
+export type DataTableColumn<T extends Record<string, any> | Array<any> = any> = ColumnDef<
+  typeof features,
+  T,
+  any
+>;
 
 export function DataTable<TData extends Record<string, any> | Array<any> = any>({
   data,
@@ -66,19 +70,18 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
   getRowId,
   pageSize = 10,
 }: {
-  data: TData[]
-  columns: DataTableColumn<TData>[]
-  toolbar?: React.ReactNode
-  getRowId?: (row: TData, index: number) => string
-  pageSize?: number
+  data: TData[];
+  columns: DataTableColumn<TData>[];
+  toolbar?: React.ReactNode;
+  getRowId?: (row: TData, index: number) => string;
+  pageSize?: number;
 }) {
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<ColumnVisibilityState>({})
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({});
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize,
-  })
+  });
 
   const table = useTable<typeof features, any>({
     features,
@@ -90,12 +93,12 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
       pagination,
     },
     getRowId: getRowId
-      ? ((row: unknown, index: number) => getRowId(row as TData, index))
-      : ((_, index) => String(index)),
+      ? (row: unknown, index: number) => getRowId(row as TData, index)
+      : (_, index) => String(index),
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
-  })
+  });
 
   return (
     <div className="w-full space-y-4">
@@ -119,9 +122,7 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
                     key={column.id}
                     className="capitalize text-xs"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -140,7 +141,11 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} colSpan={header.colSpan} className="text-xs font-bold text-foreground">
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className="text-xs font-bold text-foreground"
+                    >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
                         <button
                           type="button"
@@ -148,9 +153,9 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
                           className="flex items-center gap-1.5 font-bold hover:text-primary transition-colors"
                         >
                           <FlexRender header={header} />
-                          {header.column.getIsSorted() === "asc" ? (
+                          {header.column.getIsSorted() === 'asc' ? (
                             <ArrowUpIcon className="size-3.5 text-primary" />
-                          ) : header.column.getIsSorted() === "desc" ? (
+                          ) : header.column.getIsSorted() === 'desc' ? (
                             <ArrowDownIcon className="size-3.5 text-primary" />
                           ) : (
                             <ChevronsUpDownIcon className="size-3.5 opacity-40" />
@@ -194,7 +199,10 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
       <div className="flex flex-col-reverse items-center justify-between gap-4 pt-1 sm:flex-row px-1">
         <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
           <div className="flex items-center gap-2">
-            <Label htmlFor="rows-per-page" className="flex items-center text-xs font-medium text-muted-foreground leading-none">
+            <Label
+              htmlFor="rows-per-page"
+              className="flex items-center text-xs font-medium text-muted-foreground leading-none"
+            >
               Baris per halaman
             </Label>
             <Combobox
@@ -207,8 +215,11 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
             />
           </div>
           <div className="flex items-center leading-none">
-            Halaman <span className="font-bold text-foreground mx-1">{pagination.pageIndex + 1}</span> dari{" "}
-            <span className="font-bold text-foreground ml-1">{Math.max(1, table.getPageCount())}</span>
+            Halaman{' '}
+            <span className="font-bold text-foreground mx-1">{pagination.pageIndex + 1}</span> dari{' '}
+            <span className="font-bold text-foreground ml-1">
+              {Math.max(1, table.getPageCount())}
+            </span>
           </div>
         </div>
 
@@ -256,5 +267,5 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
         </div>
       </div>
     </div>
-  )
+  );
 }

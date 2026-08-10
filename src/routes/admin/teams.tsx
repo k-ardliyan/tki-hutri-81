@@ -1,31 +1,24 @@
-import { useEffect, useMemo, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { createColumnHelper } from '@tanstack/react-table'
+import { createFileRoute } from '@tanstack/react-router';
+import { createColumnHelper } from '@tanstack/react-table';
 import {
   Edit2,
-  Plus,
-  Trash2,
-  Users,
-  Search,
-  LayoutGrid,
-  Table as TableIcon,
-  Mars,
-  Venus,
-  ShieldAlert,
-  QrCode,
-  UserPlus,
   Layers,
-} from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
-import { Label } from '../../components/ui/label'
-import { Alert, AlertDescription } from '../../components/ui/alert'
-import { PageHeader } from '../../components/ui/page-header'
-import { StatusBadge } from '../../components/ui/status-badge'
-import { DataTable, features } from '../../components/data-table'
-import { DataTableSkeleton } from '../../components/ui/skeletons'
-import { ResponsiveDialog } from '../../components/ui/responsive-dialog'
+  LayoutGrid,
+  Mars,
+  Plus,
+  QrCode,
+  Search,
+  ShieldAlert,
+  Table as TableIcon,
+  Trash2,
+  UserPlus,
+  Users,
+  Venus,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { DataTable, type features } from '../../components/data-table';
+import { Alert, AlertDescription } from '../../components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,67 +28,78 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../../components/ui/alert-dialog'
+} from '../../components/ui/alert-dialog';
+import { Button } from '../../components/ui/button';
+import { Combobox, type ComboboxOption } from '../../components/ui/combobox';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { PageHeader } from '../../components/ui/page-header';
+import { ResponsiveDialog } from '../../components/ui/responsive-dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../components/ui/select'
-import { Combobox, type ComboboxOption } from '../../components/ui/combobox'
+} from '../../components/ui/select';
+import { DataTableSkeleton } from '../../components/ui/skeletons';
+import { StatusBadge } from '../../components/ui/status-badge';
+import { requireRole } from '../../lib/routeGuard';
+import { listEmployees } from '../../server/functions/admin';
 import {
-  listTeams,
-  createTeam,
-  updateTeam,
-  deleteTeam,
   addTeamMember,
+  createTeam,
+  deleteTeam,
+  listTeams,
   removeTeamMember,
-} from '../../server/functions/teams'
-import { listEmployees } from '../../server/functions/admin'
-import { requireRole } from '../../lib/routeGuard'
+  updateTeam,
+} from '../../server/functions/teams';
 
 export const Route = createFileRoute('/admin/teams')({
   beforeLoad: async () => {
-    await requireRole(['superadmin', 'admin'])
+    await requireRole(['superadmin', 'admin']);
   },
   component: AdminTeams,
-})
+});
 
-type Kategori = 'putra' | 'putri' | 'panitia'
+type Kategori = 'putra' | 'putri' | 'panitia';
 
 interface TeamMemberRow {
-  id: number
-  employeeId: number
-  sortOrder: number
-  nama: string
-  nip: string | null
-  divisi: string | null
+  id: number;
+  employeeId: number;
+  sortOrder: number;
+  nama: string;
+  nip: string | null;
+  divisi: string | null;
 }
 
 interface TeamRow {
-  id: number
-  kategori: Kategori
-  nomor: number | null
-  nama: string
-  kode: string | null
-  members: TeamMemberRow[]
+  id: number;
+  kategori: Kategori;
+  nomor: number | null;
+  nama: string;
+  kode: string | null;
+  members: TeamMemberRow[];
 }
 
 interface EmployeeRow {
-  id: number
-  nama: string
-  nip: string | null
+  id: number;
+  nama: string;
+  nip: string | null;
 }
 
-const KATEGORI_LABEL: Record<Kategori, string> = { putra: 'Putra', putri: 'Putri', panitia: 'Panitia' }
+const KATEGORI_LABEL: Record<Kategori, string> = {
+  putra: 'Putra',
+  putri: 'Putri',
+  panitia: 'Panitia',
+};
 
 function kategoriBadge(k: Kategori) {
   return (
     <StatusBadge status={k === 'putra' ? 'info' : k === 'putri' ? 'warning' : 'muted'}>
       {KATEGORI_LABEL[k]}
     </StatusBadge>
-  )
+  );
 }
 
 function getInitials(name: string): string {
@@ -104,201 +108,210 @@ function getInitials(name: string): string {
     .filter(Boolean)
     .slice(0, 2)
     .map((n) => n[0].toUpperCase())
-    .join('')
+    .join('');
 }
 
 function errMsg(err: unknown, fallback: string): string {
-  return err instanceof Error && err.message ? err.message : fallback
+  return err instanceof Error && err.message ? err.message : fallback;
 }
 
 function AdminTeams() {
-  const [rows, setRows] = useState<TeamRow[]>([])
-  const [rowsLoading, setRowsLoading] = useState(true)
-  const [err, setErr] = useState<string | null>(null)
+  const [rows, setRows] = useState<TeamRow[]>([]);
+  const [rowsLoading, setRowsLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
 
   // Filters & View modes
-  const [searchQuery, setSearchQuery] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<'all' | Kategori>('all')
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | Kategori>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   // Team dialog
-  const [showTeamDialog, setShowTeamDialog] = useState(false)
-  const [editId, setEditId] = useState<number | null>(null)
-  const [kategori, setKategori] = useState<Kategori>('putra')
-  const [nomor, setNomor] = useState('')
-  const [nama, setNama] = useState('')
-  const [kode, setKode] = useState('')
+  const [showTeamDialog, setShowTeamDialog] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [kategori, setKategori] = useState<Kategori>('putra');
+  const [nomor, setNomor] = useState('');
+  const [nama, setNama] = useState('');
+  const [kode, setKode] = useState('');
 
   // Member dialog
-  const [memberTeam, setMemberTeam] = useState<TeamRow | null>(null)
-  const [employees, setEmployees] = useState<EmployeeRow[]>([])
-  const [selectedEmp, setSelectedEmp] = useState<string>('')
+  const [memberTeam, setMemberTeam] = useState<TeamRow | null>(null);
+  const [employees, setEmployees] = useState<EmployeeRow[]>([]);
+  const [selectedEmp, setSelectedEmp] = useState<string>('');
 
   // Delete confirms
-  const [deleteTarget, setDeleteTarget] = useState<TeamRow | null>(null)
-  const [deleteMemberTarget, setDeleteMemberTarget] = useState<TeamMemberRow | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<TeamRow | null>(null);
+  const [deleteMemberTarget, setDeleteMemberTarget] = useState<TeamMemberRow | null>(null);
 
   const load = async (): Promise<TeamRow[]> => {
     try {
-      const data = await listTeams()
-      setRows(data)
-      return data
+      const data = await listTeams();
+      setRows(data);
+      return data;
     } catch (e) {
-      setErr(errMsg(e, 'Gagal memuat tim'))
-      return []
+      setErr(errMsg(e, 'Gagal memuat tim'));
+      return [];
     } finally {
-      setRowsLoading(false)
+      setRowsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    void load()
-  }, [])
+    void load();
+  }, []);
 
   // Metrics KPI
   const metrics = useMemo(() => {
-    const totalTeams = rows.length
-    const totalMembers = rows.reduce((s, r) => s + r.members.length, 0)
-    const putraCount = rows.filter((r) => r.kategori === 'putra').length
-    const putriCount = rows.filter((r) => r.kategori === 'putri').length
-    const panitiaCount = rows.filter((r) => r.kategori === 'panitia').length
+    const totalTeams = rows.length;
+    const totalMembers = rows.reduce((s, r) => s + r.members.length, 0);
+    const putraCount = rows.filter((r) => r.kategori === 'putra').length;
+    const putriCount = rows.filter((r) => r.kategori === 'putri').length;
+    const panitiaCount = rows.filter((r) => r.kategori === 'panitia').length;
 
-    return { totalTeams, totalMembers, putraCount, putriCount, panitiaCount }
-  }, [rows])
+    return { totalTeams, totalMembers, putraCount, putriCount, panitiaCount };
+  }, [rows]);
 
   // Filtered rows
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
-      const matchCat = categoryFilter === 'all' || r.kategori === categoryFilter
-      const q = searchQuery.toLowerCase().trim()
-      if (!q) return matchCat
+      const matchCat = categoryFilter === 'all' || r.kategori === categoryFilter;
+      const q = searchQuery.toLowerCase().trim();
+      if (!q) return matchCat;
 
-      const matchName = r.nama.toLowerCase().includes(q)
-      const matchCode = r.kode?.toLowerCase().includes(q) ?? false
-      const matchMember = r.members.some((m) => m.nama.toLowerCase().includes(q) || (m.nip && m.nip.includes(q)))
+      const matchName = r.nama.toLowerCase().includes(q);
+      const matchCode = r.kode?.toLowerCase().includes(q) ?? false;
+      const matchMember = r.members.some(
+        (m) => m.nama.toLowerCase().includes(q) || (m.nip && m.nip.includes(q))
+      );
 
-      return matchCat && (matchName || matchCode || matchMember)
-    })
-  }, [rows, categoryFilter, searchQuery])
+      return matchCat && (matchName || matchCode || matchMember);
+    });
+  }, [rows, categoryFilter, searchQuery]);
 
   const nextNomor = useMemo(() => {
-    const nums = rows.filter((r) => r.kategori === kategori).map((r) => r.nomor ?? 0)
-    return nums.length ? Math.max(...nums) + 1 : 1
-  }, [rows, kategori])
+    const nums = rows.filter((r) => r.kategori === kategori).map((r) => r.nomor ?? 0);
+    return nums.length ? Math.max(...nums) + 1 : 1;
+  }, [rows, kategori]);
 
   const openCreate = () => {
-    setEditId(null)
-    setKategori('putra')
-    setNomor(String(nextNomor))
-    setNama('')
-    setKode('')
-    setErr(null)
-    setShowTeamDialog(true)
-  }
+    setEditId(null);
+    setKategori('putra');
+    setNomor(String(nextNomor));
+    setNama('');
+    setKode('');
+    setErr(null);
+    setShowTeamDialog(true);
+  };
 
   const openEdit = (r: TeamRow) => {
-    setEditId(r.id)
-    setKategori(r.kategori)
-    setNomor(r.nomor !== null ? String(r.nomor) : '')
-    setNama(r.nama)
-    setKode(r.kode ?? '')
-    setErr(null)
-    setShowTeamDialog(true)
-  }
+    setEditId(r.id);
+    setKategori(r.kategori);
+    setNomor(r.nomor !== null ? String(r.nomor) : '');
+    setNama(r.nama);
+    setKode(r.kode ?? '');
+    setErr(null);
+    setShowTeamDialog(true);
+  };
 
   const submitTeam = async () => {
-    setErr(null)
-    const namaTrim = nama.trim()
+    setErr(null);
+    const namaTrim = nama.trim();
     if (!namaTrim) {
-      setErr('Nama tim wajib diisi')
-      return
+      setErr('Nama tim wajib diisi');
+      return;
     }
-    const nomorNum = kategori === 'panitia' ? null : nomor.trim() === '' ? nextNomor : Number(nomor.trim())
+    const nomorNum =
+      kategori === 'panitia' ? null : nomor.trim() === '' ? nextNomor : Number(nomor.trim());
     if (kategori !== 'panitia' && (!Number.isInteger(nomorNum) || (nomorNum as number) < 1)) {
-      setErr('Nomor tim wajib angka positif')
-      return
+      setErr('Nomor tim wajib angka positif');
+      return;
     }
     try {
       if (editId !== null) {
-        await updateTeam({ data: { id: editId, kategori, nomor: nomorNum, nama: namaTrim, kode: kode || null } })
-        toast.success('Tim berhasil diupdate!')
+        await updateTeam({
+          data: { id: editId, kategori, nomor: nomorNum, nama: namaTrim, kode: kode || null },
+        });
+        toast.success('Tim berhasil diupdate!');
       } else {
-        await createTeam({ data: { kategori, nomor: nomorNum, nama: namaTrim, kode: kode || null } })
-        toast.success('Tim baru berhasil ditambah!')
+        await createTeam({
+          data: { kategori, nomor: nomorNum, nama: namaTrim, kode: kode || null },
+        });
+        toast.success('Tim baru berhasil ditambah!');
       }
-      setShowTeamDialog(false)
-      await load()
+      setShowTeamDialog(false);
+      await load();
     } catch (e) {
-      setErr(errMsg(e, 'Gagal menyimpan tim'))
+      setErr(errMsg(e, 'Gagal menyimpan tim'));
     }
-  }
+  };
 
   const submitDeleteTeam = async () => {
-    if (!deleteTarget) return
+    if (!deleteTarget) return;
     try {
-      await deleteTeam({ data: { id: deleteTarget.id } })
-      setDeleteTarget(null)
-      await load()
-      toast.success('Tim berhasil dihapus')
+      await deleteTeam({ data: { id: deleteTarget.id } });
+      setDeleteTarget(null);
+      await load();
+      toast.success('Tim berhasil dihapus');
     } catch (e) {
-      toast.error(errMsg(e, 'Gagal menghapus tim'))
-      setDeleteTarget(null)
+      toast.error(errMsg(e, 'Gagal menghapus tim'));
+      setDeleteTarget(null);
     }
-  }
+  };
 
   // ── Member management ──
 
   const openMembers = async (r: TeamRow) => {
-    setMemberTeam(r)
-    setSelectedEmp('')
+    setMemberTeam(r);
+    setSelectedEmp('');
     try {
-      setEmployees(await listEmployees({ data: { q: '', limit: 500 } }))
+      setEmployees(await listEmployees({ data: { q: '', limit: 500 } }));
     } catch (e) {
-      toast.error(errMsg(e, 'Gagal memuat daftar karyawan'))
+      toast.error(errMsg(e, 'Gagal memuat daftar karyawan'));
     }
-  }
+  };
 
   const employeeOptions = useMemo<ComboboxOption[]>(() => {
-    if (!memberTeam) return []
-    const existing = new Set(memberTeam.members.map((m) => m.employeeId))
+    if (!memberTeam) return [];
+    const existing = new Set(memberTeam.members.map((m) => m.employeeId));
     return employees
       .filter((e) => !existing.has(e.id))
-      .map((e) => ({ value: String(e.id), label: e.nip ? `${e.nama} · ${e.nip}` : e.nama }))
-  }, [employees, memberTeam])
+      .map((e) => ({ value: String(e.id), label: e.nip ? `${e.nama} · ${e.nip}` : e.nama }));
+  }, [employees, memberTeam]);
 
   const submitAddMember = async () => {
-    if (!memberTeam || !selectedEmp) return
+    if (!memberTeam || !selectedEmp) return;
     try {
-      await addTeamMember({ data: { teamId: memberTeam.id, employeeId: Number(selectedEmp) } })
-      toast.success('Anggota berhasil ditambahkan')
-      setSelectedEmp('')
-      const fresh = (await load()).find((r) => r.id === memberTeam.id)
-      if (fresh) setMemberTeam(fresh)
+      await addTeamMember({ data: { teamId: memberTeam.id, employeeId: Number(selectedEmp) } });
+      toast.success('Anggota berhasil ditambahkan');
+      setSelectedEmp('');
+      const fresh = (await load()).find((r) => r.id === memberTeam.id);
+      if (fresh) setMemberTeam(fresh);
     } catch (e) {
-      toast.error(errMsg(e, 'Gagal menambah anggota'))
+      toast.error(errMsg(e, 'Gagal menambah anggota'));
     }
-  }
+  };
 
   const submitDeleteMember = async () => {
-    if (!deleteMemberTarget) return
+    if (!deleteMemberTarget) return;
     try {
-      await removeTeamMember({ data: { id: deleteMemberTarget.id } })
-      toast.success('Anggota berhasil dihapus')
-      setDeleteMemberTarget(null)
-      const fresh = (await load()).find((r) => r.id === memberTeam?.id)
-      if (fresh) setMemberTeam(fresh)
+      await removeTeamMember({ data: { id: deleteMemberTarget.id } });
+      toast.success('Anggota berhasil dihapus');
+      setDeleteMemberTarget(null);
+      const fresh = (await load()).find((r) => r.id === memberTeam?.id);
+      if (fresh) setMemberTeam(fresh);
     } catch (e) {
-      toast.error(errMsg(e, 'Gagal menghapus anggota'))
-      setDeleteMemberTarget(null)
+      toast.error(errMsg(e, 'Gagal menghapus anggota'));
+      setDeleteMemberTarget(null);
     }
-  }
+  };
 
   const kodeHint = useMemo(() => {
-    if (editId !== null) return 'Kosongkan untuk memakai kode lama'
-    return kategori === 'panitia' ? 'Otomatis: PANITIA' : `Otomatis: ${kategori.toUpperCase()}-${nomor.trim() || nextNomor}`
-  }, [kategori, nomor, nextNomor, editId])
+    if (editId !== null) return 'Kosongkan untuk memakai kode lama';
+    return kategori === 'panitia'
+      ? 'Otomatis: PANITIA'
+      : `Otomatis: ${kategori.toUpperCase()}-${nomor.trim() || nextNomor}`;
+  }, [kategori, nomor, nextNomor, editId]);
 
-  const columnHelper = createColumnHelper<typeof features, TeamRow>()
+  const columnHelper = createColumnHelper<typeof features, TeamRow>();
 
   const columns = columnHelper.columns([
     columnHelper.accessor('kategori', {
@@ -308,11 +321,19 @@ function AdminTeams() {
     }),
     columnHelper.accessor('nomor', {
       header: 'Nomor',
-      cell: ({ row }) => <span className="font-mono text-xs font-bold">{row.original.nomor ? `#${row.original.nomor}` : '—'}</span>,
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-bold">
+          {row.original.nomor ? `#${row.original.nomor}` : '—'}
+        </span>
+      ),
     }),
     columnHelper.accessor('nama', {
       header: 'Nama Tim',
-      cell: ({ row }) => <div className="font-heading text-sm font-extrabold text-foreground">{row.original.nama}</div>,
+      cell: ({ row }) => (
+        <div className="font-heading text-sm font-extrabold text-foreground">
+          {row.original.nama}
+        </div>
+      ),
     }),
     columnHelper.accessor('kode', {
       header: 'Kode QR',
@@ -338,25 +359,40 @@ function AdminTeams() {
       header: () => <span className="sr-only">Aksi</span>,
       enableHiding: false,
       cell: ({ row }) => {
-        const r = row.original
+        const r = row.original;
         return (
           <div className="flex items-center justify-end gap-1">
-            <Button variant="outline" size="sm" onClick={() => void openMembers(r)} className="h-8 px-2.5 text-xs font-bold rounded-lg">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void openMembers(r)}
+              className="h-8 px-2.5 text-xs font-bold rounded-lg"
+            >
               <Users size={13} className="mr-1 text-brand-red" />
               Anggota ({r.members.length})
             </Button>
-            <Button variant="outline" size="sm" onClick={() => openEdit(r)} className="h-8 px-2.5 text-xs font-bold rounded-lg">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openEdit(r)}
+              className="h-8 px-2.5 text-xs font-bold rounded-lg"
+            >
               <Edit2 size={13} className="mr-1" />
               Edit
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(r)} className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-lg">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDeleteTarget(r)}
+              className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-lg"
+            >
               <Trash2 size={14} />
             </Button>
           </div>
-        )
+        );
       },
     }),
-  ])
+  ]);
 
   if (rowsLoading) {
     return (
@@ -373,7 +409,7 @@ function AdminTeams() {
         />
         <DataTableSkeleton rows={10} cols={6} />
       </div>
-    )
+    );
   }
 
   return (
@@ -382,7 +418,10 @@ function AdminTeams() {
         title="Kelola Tim & Anggota"
         subtitle="Kelola registrasi tim peserta perlombaan putra, putri, dan tim panitia."
         action={
-          <Button onClick={openCreate} className="rounded-xl font-bold shadow-md shadow-brand-red/20">
+          <Button
+            onClick={openCreate}
+            className="rounded-xl font-bold shadow-md shadow-brand-red/20"
+          >
             <Plus size={16} className="mr-1.5" />
             Tambah Tim Baru
           </Button>
@@ -404,8 +443,12 @@ function AdminTeams() {
               <Layers size={16} />
             </span>
           </div>
-          <p className="mt-2 font-heading text-2xl font-black text-foreground">{metrics.totalTeams}</p>
-          <p className="text-[11px] text-muted-foreground">{metrics.totalMembers} total karyawan terdaftar</p>
+          <p className="mt-2 font-heading text-2xl font-black text-foreground">
+            {metrics.totalTeams}
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            {metrics.totalMembers} total karyawan terdaftar
+          </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-4 shadow-xs">
@@ -415,7 +458,9 @@ function AdminTeams() {
               <Mars size={16} />
             </span>
           </div>
-          <p className="mt-2 font-heading text-2xl font-black text-foreground">{metrics.putraCount}</p>
+          <p className="mt-2 font-heading text-2xl font-black text-foreground">
+            {metrics.putraCount}
+          </p>
           <p className="text-[11px] text-muted-foreground">Kategori Putra</p>
         </div>
 
@@ -426,7 +471,9 @@ function AdminTeams() {
               <Venus size={16} />
             </span>
           </div>
-          <p className="mt-2 font-heading text-2xl font-black text-foreground">{metrics.putriCount}</p>
+          <p className="mt-2 font-heading text-2xl font-black text-foreground">
+            {metrics.putriCount}
+          </p>
           <p className="text-[11px] text-muted-foreground">Kategori Putri</p>
         </div>
 
@@ -437,7 +484,9 @@ function AdminTeams() {
               <ShieldAlert size={16} />
             </span>
           </div>
-          <p className="mt-2 font-heading text-2xl font-black text-foreground">{metrics.panitiaCount}</p>
+          <p className="mt-2 font-heading text-2xl font-black text-foreground">
+            {metrics.panitiaCount}
+          </p>
           <p className="text-[11px] text-muted-foreground">Tim Kerja Event</p>
         </div>
       </div>
@@ -447,8 +496,8 @@ function AdminTeams() {
         {/* Category Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           {(['all', 'putra', 'putri', 'panitia'] as const).map((cat) => {
-            const isActive = categoryFilter === cat
-            const label = cat === 'all' ? 'Semua Tim' : KATEGORI_LABEL[cat]
+            const isActive = categoryFilter === cat;
+            const label = cat === 'all' ? 'Semua Tim' : KATEGORI_LABEL[cat];
             return (
               <button
                 key={cat}
@@ -462,14 +511,17 @@ function AdminTeams() {
               >
                 {label}
               </button>
-            )
+            );
           })}
         </div>
 
         {/* Right side: Live Search & Grid/Table Toggle */}
         <div className="flex flex-1 items-center justify-end gap-2.5 min-w-[240px]">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={14}
+            />
             <Input
               type="text"
               placeholder="Cari tim, kode, atau anggota..."
@@ -510,8 +562,12 @@ function AdminTeams() {
         filteredRows.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-12 text-center bg-card">
             <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
-            <h4 className="font-heading text-sm font-bold text-foreground">Tidak Ada Tim Ditemukan</h4>
-            <p className="mt-1 text-xs text-muted-foreground">Tidak ada tim yang cocok dengan kata kunci pencarian atau filter pilihan Anda.</p>
+            <h4 className="font-heading text-sm font-bold text-foreground">
+              Tidak Ada Tim Ditemukan
+            </h4>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Tidak ada tim yang cocok dengan kata kunci pencarian atau filter pilihan Anda.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -532,9 +588,7 @@ function AdminTeams() {
                   </div>
 
                   {/* Team Title & Kode QR */}
-                  <h4 className="font-heading text-base font-black text-foreground">
-                    {r.nama}
-                  </h4>
+                  <h4 className="font-heading text-base font-black text-foreground">{r.nama}</h4>
                   {r.kode && (
                     <p className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
                       <QrCode size={12} />
@@ -545,11 +599,15 @@ function AdminTeams() {
                   {/* Member Stack Avatars */}
                   <div className="mt-4 pt-3 border-t border-border/60">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-muted-foreground">Anggota Tim ({r.members.length})</span>
+                      <span className="text-xs font-bold text-muted-foreground">
+                        Anggota Tim ({r.members.length})
+                      </span>
                     </div>
 
                     {r.members.length === 0 ? (
-                      <p className="text-xs text-muted-foreground/80 italic py-1">Belum ada anggota dimasukkan</p>
+                      <p className="text-xs text-muted-foreground/80 italic py-1">
+                        Belum ada anggota dimasukkan
+                      </p>
                     ) : (
                       <div className="flex items-center gap-1.5 overflow-hidden">
                         <div className="flex -space-x-2">
@@ -614,7 +672,11 @@ function AdminTeams() {
           columns={columns}
           getRowId={(r) => String(r.id)}
           pageSize={15}
-          toolbar={<span className="text-xs font-bold text-muted-foreground">{filteredRows.length} tim ditampilkan</span>}
+          toolbar={
+            <span className="text-xs font-bold text-muted-foreground">
+              {filteredRows.length} tim ditampilkan
+            </span>
+          }
         />
       )}
 
@@ -626,8 +688,19 @@ function AdminTeams() {
         description="Data tim peserta lomba lapangan."
         footer={
           <div className="flex w-full gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setShowTeamDialog(false)} className="flex-1 sm:flex-none rounded-xl">Batal</Button>
-            <Button onClick={() => void submitTeam()} className="flex-1 sm:flex-none rounded-xl font-bold">{editId !== null ? 'Simpan Perubahan' : 'Tambah Tim'}</Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowTeamDialog(false)}
+              className="flex-1 sm:flex-none rounded-xl"
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={() => void submitTeam()}
+              className="flex-1 sm:flex-none rounded-xl font-bold"
+            >
+              {editId !== null ? 'Simpan Perubahan' : 'Tambah Tim'}
+            </Button>
           </div>
         }
       >
@@ -637,8 +710,8 @@ function AdminTeams() {
             <Select
               value={kategori}
               onValueChange={(v) => {
-                setKategori(v as Kategori)
-                if (editId === null) setNomor(v === 'panitia' ? '' : '')
+                setKategori(v as Kategori);
+                if (editId === null) setNomor(v === 'panitia' ? '' : '');
               }}
             >
               <SelectTrigger className="w-full rounded-xl">
@@ -663,7 +736,9 @@ function AdminTeams() {
                 placeholder={`Otomatis: ${nextNomor}`}
                 className="rounded-xl"
               />
-              <p className="text-[11px] text-muted-foreground">Kosongkan untuk memakai nomor berikutnya ({nextNomor}).</p>
+              <p className="text-[11px] text-muted-foreground">
+                Kosongkan untuk memakai nomor berikutnya ({nextNomor}).
+              </p>
             </div>
           )}
           <div className="space-y-1.5">
@@ -696,7 +771,7 @@ function AdminTeams() {
       <ResponsiveDialog
         open={!!memberTeam}
         onOpenChange={(o) => {
-          if (!o) setMemberTeam(null)
+          if (!o) setMemberTeam(null);
         }}
         title={memberTeam ? `Kelola Anggota: ${memberTeam.nama}` : 'Anggota'}
         description={`${memberTeam?.members.length ?? 0} Anggota · Kategori ${memberTeam ? KATEGORI_LABEL[memberTeam.kategori] : ''}`}
@@ -704,7 +779,9 @@ function AdminTeams() {
         <div className="space-y-5">
           {/* Add member section */}
           <div className="rounded-2xl border border-border bg-muted/20 p-3.5 space-y-2">
-            <Label htmlFor="emp-search" className="text-xs font-bold">Cari & Tambah Karyawan</Label>
+            <Label htmlFor="emp-search" className="text-xs font-bold">
+              Cari & Tambah Karyawan
+            </Label>
             <div className="flex gap-2">
               <div className="min-w-0 flex-1">
                 <Combobox
@@ -713,11 +790,19 @@ function AdminTeams() {
                   onValueChange={setSelectedEmp}
                   placeholder="Cari nama karyawan..."
                   searchPlaceholder="Ketik nama / NIP..."
-                  emptyText={employees.length === 0 ? 'Gagal memuat karyawan' : 'Semua karyawan sudah masuk / tidak ditemukan'}
+                  emptyText={
+                    employees.length === 0
+                      ? 'Gagal memuat karyawan'
+                      : 'Semua karyawan sudah masuk / tidak ditemukan'
+                  }
                   triggerClassName="w-full rounded-xl"
                 />
               </div>
-              <Button onClick={() => void submitAddMember()} disabled={!selectedEmp} className="shrink-0 rounded-xl font-bold">
+              <Button
+                onClick={() => void submitAddMember()}
+                disabled={!selectedEmp}
+                className="shrink-0 rounded-xl font-bold"
+              >
                 <Plus size={14} className="mr-1" />
                 Tambah
               </Button>
@@ -729,7 +814,9 @@ function AdminTeams() {
 
           {/* Member List */}
           <div className="space-y-2">
-            <Label className="text-xs font-bold">Daftar Anggota Saat Ini ({memberTeam?.members.length ?? 0})</Label>
+            <Label className="text-xs font-bold">
+              Daftar Anggota Saat Ini ({memberTeam?.members.length ?? 0})
+            </Label>
             {memberTeam && memberTeam.members.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
                 Belum ada anggota di tim ini. Gunakan pencarian di atas untuk menambahkan karyawan.
@@ -737,14 +824,19 @@ function AdminTeams() {
             ) : (
               <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
                 {memberTeam?.members.map((m) => (
-                  <div key={m.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-2xs">
+                  <div
+                    key={m.id}
+                    className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-2xs"
+                  >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-red/10 text-xs font-black text-brand-red">
                       {getInitials(m.nama)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-foreground">{m.nama}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {[m.nip && `NIP: ${m.nip}`, m.divisi && `Divisi: ${m.divisi}`].filter(Boolean).join(' · ') || '—'}
+                        {[m.nip && `NIP: ${m.nip}`, m.divisi && `Divisi: ${m.divisi}`]
+                          .filter(Boolean)
+                          .join(' · ') || '—'}
                       </p>
                     </div>
                     <Button
@@ -764,23 +856,39 @@ function AdminTeams() {
       </ResponsiveDialog>
 
       {/* Delete team confirm */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => {
+          if (!o) setDeleteTarget(null);
+        }}
+      >
         <AlertDialogContent className="rounded-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus tim {deleteTarget?.nama}?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tim ({deleteTarget?.members.length ?? 0} anggota) akan dihapus dari sistem dan bagan pertandingan. Tindakan ini tidak dapat dibatalkan.
+              Tim ({deleteTarget?.members.length ?? 0} anggota) akan dihapus dari sistem dan bagan
+              pertandingan. Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void submitDeleteTeam()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold">Hapus</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => void submitDeleteTeam()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold"
+            >
+              Hapus
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Delete member confirm */}
-      <AlertDialog open={!!deleteMemberTarget} onOpenChange={(o) => { if (!o) setDeleteMemberTarget(null) }}>
+      <AlertDialog
+        open={!!deleteMemberTarget}
+        onOpenChange={(o) => {
+          if (!o) setDeleteMemberTarget(null);
+        }}
+      >
         <AlertDialogContent className="rounded-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Keluarkaan anggota dari tim?</AlertDialogTitle>
@@ -790,11 +898,15 @@ function AdminTeams() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void submitDeleteMember()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold">Hapus</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => void submitDeleteMember()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold"
+            >
+              Hapus
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
-

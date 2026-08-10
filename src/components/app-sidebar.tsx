@@ -2,11 +2,11 @@
  * AppSidebar — sidebar block (sidebar-07 pattern) dengan nav grouped per section.
  * Collapse-to-icon di desktop, Sheet drawer di mobile.
  */
-import * as React from 'react'
-import { useLocation } from '@tanstack/react-router'
-import { ArrowLeft, ClipboardCheck } from 'lucide-react'
-import type { NavSection } from '~/lib/nav'
-import { NavUser } from '~/components/nav-user'
+
+import { useLocation } from '@tanstack/react-router';
+import { ArrowLeft, ClipboardCheck } from 'lucide-react';
+import type * as React from 'react';
+import { NavUser } from '~/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +19,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from '~/components/ui/sidebar'
+} from '~/components/ui/sidebar';
+import type { NavSection } from '~/lib/nav';
 
 export function AppSidebar({
   sections,
@@ -33,34 +34,32 @@ export function AppSidebar({
   onLogout,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  sections: NavSection[]
-  title: string
-  subtitle?: string
-  userName?: string
-  roleLabel?: string
-  dark: boolean
-  onToggleDark: () => void
-  onNav: (path: string) => void
-  onLogout: () => void
+  sections: NavSection[];
+  title: string;
+  subtitle?: string;
+  userName?: string;
+  roleLabel?: string;
+  dark: boolean;
+  onToggleDark: () => void;
+  onNav: (path: string) => void;
+  onLogout: () => void;
 }) {
-  const { pathname } = useLocation()
-  const { setOpenMobile } = useSidebar()
+  const { pathname } = useLocation();
+  const { setOpenMobile } = useSidebar();
 
   const active =
     sections
       .flatMap((s) => s.items)
       .filter(
         (n) =>
-          pathname === n.path ||
-          pathname.startsWith(`${n.path}/`) ||
-          pathname.startsWith(n.path),
+          pathname === n.path || pathname.startsWith(`${n.path}/`) || pathname.startsWith(n.path)
       )
-      .sort((a, b) => b.path.length - a.path.length)[0]?.id ?? null
+      .sort((a, b) => b.path.length - a.path.length)[0]?.id ?? null;
 
   const go = (path: string) => {
-    setOpenMobile(false)
-    onNav(path)
-  }
+    setOpenMobile(false);
+    onNav(path);
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border" {...props}>
@@ -82,8 +81,8 @@ export function AppSidebar({
             <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
             <SidebarMenu>
               {section.items.map((item) => {
-                const Icon = item.icon
-                const isActive = active === item.id
+                const Icon = item.icon;
+                const isActive = active === item.id;
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
@@ -95,7 +94,7 @@ export function AppSidebar({
                       <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroup>
@@ -125,6 +124,5 @@ export function AppSidebar({
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
-

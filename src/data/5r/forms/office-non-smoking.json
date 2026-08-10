@@ -15,10 +15,19 @@
           "text": "Barang yang tidak digunakan sudah disingkirkan dari area kerja",
           "options": [
             { "score": 1, "desc": "Banyak barang tidak digunakan masih menumpuk di area kerja" },
-            { "score": 2, "desc": "Sebagian barang tidak digunakan sudah dipindahkan namun masih mengganggu" },
-            { "score": 3, "desc": "Barang tidak digunakan mulai berkurang tetapi masih ada beberapa" },
+            {
+              "score": 2,
+              "desc": "Sebagian barang tidak digunakan sudah dipindahkan namun masih mengganggu"
+            },
+            {
+              "score": 3,
+              "desc": "Barang tidak digunakan mulai berkurang tetapi masih ada beberapa"
+            },
             { "score": 4, "desc": "Hampir semua barang tidak digunakan sudah disingkirkan" },
-            { "score": 5, "desc": "Semua barang tidak digunakan sudah disingkirkan dan area kerja rapi" }
+            {
+              "score": 5,
+              "desc": "Semua barang tidak digunakan sudah disingkirkan dan area kerja rapi"
+            }
           ]
         },
         {
@@ -39,9 +48,18 @@
           "text": "Peralatan rusak dipisahkan dan diberi tanda",
           "options": [
             { "score": 1, "desc": "Peralatan rusak bercampur dengan peralatan normal tanpa tanda" },
-            { "score": 2, "desc": "Sebagian peralatan rusak dipisahkan namun belum diberi tanda jelas" },
-            { "score": 3, "desc": "Peralatan rusak cukup terpisah dan sebagian sudah diberi tanda" },
-            { "score": 4, "desc": "Hampir semua peralatan rusak dipisahkan dan diberi tanda jelas" },
+            {
+              "score": 2,
+              "desc": "Sebagian peralatan rusak dipisahkan namun belum diberi tanda jelas"
+            },
+            {
+              "score": 3,
+              "desc": "Peralatan rusak cukup terpisah dan sebagian sudah diberi tanda"
+            },
+            {
+              "score": 4,
+              "desc": "Hampir semua peralatan rusak dipisahkan dan diberi tanda jelas"
+            },
             { "score": 5, "desc": "Semua peralatan rusak dipisahkan, diberi tanda, dan aman" }
           ]
         },
@@ -52,7 +70,10 @@
           "options": [
             { "score": 1, "desc": "Banyak barang pribadi memenuhi area kerja" },
             { "score": 2, "desc": "Barang pribadi masih cukup banyak dan mengganggu" },
-            { "score": 3, "desc": "Barang pribadi mulai tertata namun masih ada beberapa yang berlebihan" },
+            {
+              "score": 3,
+              "desc": "Barang pribadi mulai tertata namun masih ada beberapa yang berlebihan"
+            },
             { "score": 4, "desc": "Barang pribadi sedikit dan tidak mengganggu pekerjaan" },
             { "score": 5, "desc": "Area kerja tertata rapi tanpa barang pribadi berlebihan" }
           ]
@@ -64,9 +85,15 @@
           "options": [
             { "score": 1, "desc": "Banyak sampah dan barang tidak perlu berserakan" },
             { "score": 2, "desc": "Sampah dan barang tidak perlu masih cukup banyak" },
-            { "score": 3, "desc": "Area kerja cukup bersih namun masih ada sedikit sampah/barang tidak perlu" },
+            {
+              "score": 3,
+              "desc": "Area kerja cukup bersih namun masih ada sedikit sampah/barang tidak perlu"
+            },
             { "score": 4, "desc": "Area kerja bersih dan hanya ada sedikit barang tidak perlu" },
-            { "score": 5, "desc": "Area kerja sangat bersih, rapi, dan bebas sampah/barang tidak perlu" }
+            {
+              "score": 5,
+              "desc": "Area kerja sangat bersih, rapi, dan bebas sampah/barang tidak perlu"
+            }
           ]
         }
       ]
@@ -85,7 +112,10 @@
             { "score": 2, "desc": "Sebagian dokumen tersusun namun label masih minim" },
             { "score": 3, "desc": "Dokumen cukup tersusun, beberapa sudah berlabel" },
             { "score": 4, "desc": "Dokumen tersusun rapi dan sebagian besar sudah berlabel" },
-            { "score": 5, "desc": "Semua dokumen tersusun rapi dan diberi label lengkap sehingga mudah dicari" }
+            {
+              "score": 5,
+              "desc": "Semua dokumen tersusun rapi dan diberi label lengkap sehingga mudah dicari"
+            }
           ]
         },
         {
@@ -95,9 +125,18 @@
           "options": [
             { "score": 1, "desc": "Peralatan kerja tidak memiliki tempat tetap" },
             { "score": 2, "desc": "Sebagian peralatan memiliki tempat tetapi tidak konsisten" },
-            { "score": 3, "desc": "Peralatan kerja cukup memiliki tempat khusus namun belum rapi sepenuhnya" },
-            { "score": 4, "desc": "Peralatan kerja memiliki tempat khusus dan sebagian besar tertata" },
-            { "score": 5, "desc": "Semua peralatan kerja memiliki tempat khusus yang jelas dan selalu dikembalikan" }
+            {
+              "score": 3,
+              "desc": "Peralatan kerja cukup memiliki tempat khusus namun belum rapi sepenuhnya"
+            },
+            {
+              "score": 4,
+              "desc": "Peralatan kerja memiliki tempat khusus dan sebagian besar tertata"
+            },
+            {
+              "score": 5,
+              "desc": "Semua peralatan kerja memiliki tempat khusus yang jelas dan selalu dikembalikan"
+            }
           ]
         },
         {
@@ -121,7 +160,10 @@
             { "score": 2, "desc": "Sebagian lemari/rak memiliki label namun tidak jelas" },
             { "score": 3, "desc": "Label cukup ada namun belum lengkap" },
             { "score": 4, "desc": "Lemari/rak memiliki identitas yang jelas dan mudah dibaca" },
-            { "score": 5, "desc": "Semua lemari/rak memiliki identitas lengkap, jelas, dan terstandar" }
+            {
+              "score": 5,
+              "desc": "Semua lemari/rak memiliki identitas lengkap, jelas, dan terstandar"
+            }
           ]
         },
         {
@@ -133,7 +175,10 @@
             { "score": 2, "desc": "Barang sering sulit ditemukan karena penataan buruk" },
             { "score": 3, "desc": "Barang cukup mudah ditemukan namun masih memerlukan waktu" },
             { "score": 4, "desc": "Barang mudah ditemukan dengan penataan yang baik" },
-            { "score": 5, "desc": "Semua barang sangat mudah ditemukan karena sistem penyimpanan rapi dan terstruktur" }
+            {
+              "score": 5,
+              "desc": "Semua barang sangat mudah ditemukan karena sistem penyimpanan rapi dan terstruktur"
+            }
           ]
         },
         {
@@ -143,9 +188,18 @@
           "options": [
             { "score": 1, "desc": "Tempat sampah tidak tersedia" },
             { "score": 2, "desc": "Tempat sampah ada namun jauh dan tidak strategis" },
-            { "score": 3, "desc": "Tempat sampah cukup tersedia tetapi belum semua mudah dijangkau" },
-            { "score": 4, "desc": "Tempat sampah tersedia dan mudah dijangkau di sebagian besar area" },
-            { "score": 5, "desc": "Tempat sampah tersedia lengkap, strategis, dan sangat mudah dijangkau di seluruh area" }
+            {
+              "score": 3,
+              "desc": "Tempat sampah cukup tersedia tetapi belum semua mudah dijangkau"
+            },
+            {
+              "score": 4,
+              "desc": "Tempat sampah tersedia dan mudah dijangkau di sebagian besar area"
+            },
+            {
+              "score": 5,
+              "desc": "Tempat sampah tersedia lengkap, strategis, dan sangat mudah dijangkau di seluruh area"
+            }
           ]
         }
       ]
@@ -303,7 +357,10 @@
             { "score": 2, "desc": "Kondisi sering kotor/tidak konsisten" },
             { "score": 3, "desc": "Kondisi cukup terjaga namun masih fluktuatif" },
             { "score": 4, "desc": "Kondisi area kerja terjaga dengan baik dan relatif stabil" },
-            { "score": 5, "desc": "Kondisi area kerja sangat terjaga, rapi, dan konsisten setiap waktu" }
+            {
+              "score": 5,
+              "desc": "Kondisi area kerja sangat terjaga, rapi, dan konsisten setiap waktu"
+            }
           ]
         }
       ]
@@ -322,7 +379,10 @@
             { "score": 2, "desc": "Kerapihan jarang dijaga dan sering berantakan" },
             { "score": 3, "desc": "Kerapihan cukup dijaga namun belum konsisten" },
             { "score": 4, "desc": "Karyawan umumnya menjaga kerapihan setelah bekerja" },
-            { "score": 5, "desc": "Semua karyawan selalu menjaga kerapihan setelah bekerja tanpa diingatkan" }
+            {
+              "score": 5,
+              "desc": "Semua karyawan selalu menjaga kerapihan setelah bekerja tanpa diingatkan"
+            }
           ]
         },
         {
@@ -332,7 +392,10 @@
           "options": [
             { "score": 1, "desc": "Banyak karyawan membuang sampah sembarangan" },
             { "score": 2, "desc": "Masih sering ditemukan sampah tidak pada tempatnya" },
-            { "score": 3, "desc": "Kebiasaan membuang sampah pada tempatnya cukup baik namun belum konsisten" },
+            {
+              "score": 3,
+              "desc": "Kebiasaan membuang sampah pada tempatnya cukup baik namun belum konsisten"
+            },
             { "score": 4, "desc": "Sebagian besar karyawan membuang sampah pada tempatnya" },
             { "score": 5, "desc": "Semua karyawan disiplin membuang sampah pada tempatnya" }
           ]
@@ -344,9 +407,15 @@
           "options": [
             { "score": 1, "desc": "Banyak kerusakan/kelalaian dalam penggunaan fasilitas" },
             { "score": 2, "desc": "Fasilitas sering digunakan tidak sesuai aturan" },
-            { "score": 3, "desc": "Penggunaan fasilitas cukup baik namun masih ada pelanggaran kecil" },
+            {
+              "score": 3,
+              "desc": "Penggunaan fasilitas cukup baik namun masih ada pelanggaran kecil"
+            },
             { "score": 4, "desc": "Karyawan umumnya disiplin menjaga fasilitas kantor" },
-            { "score": 5, "desc": "Semua karyawan sangat disiplin dan bertanggung jawab menjaga fasilitas kantor" }
+            {
+              "score": 5,
+              "desc": "Semua karyawan sangat disiplin dan bertanggung jawab menjaga fasilitas kantor"
+            }
           ]
         },
         {

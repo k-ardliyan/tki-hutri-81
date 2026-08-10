@@ -2,20 +2,24 @@
  * DuplicateWarning — layar merah anti-duplikasi.
  * Muncul saat team/employee sudah pernah ambil snack di sesi ini.
  */
-import { Clock, TriangleAlert, User } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Card, CardContent } from '../ui/card'
-import type { SnackTeam } from '../../server/functions/snack'
-import type { RedemptionInfo } from '../../server/functions/snack'
+import { Clock, TriangleAlert, User } from 'lucide-react';
+import type { RedemptionInfo, SnackTeam } from '../../server/functions/snack';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
 
 interface DuplicateWarningProps {
-  team: SnackTeam
-  sessionName: string
-  skipped: RedemptionInfo[]
-  onReset: () => void
+  team: SnackTeam;
+  sessionName: string;
+  skipped: RedemptionInfo[];
+  onReset: () => void;
 }
 
-export default function DuplicateWarning({ team, sessionName, skipped, onReset }: DuplicateWarningProps) {
+export default function DuplicateWarning({
+  team,
+  sessionName,
+  skipped,
+  onReset,
+}: DuplicateWarningProps) {
   return (
     <div className="space-y-3">
       <Card className="border-destructive/40 bg-destructive/[0.03]">
@@ -42,7 +46,10 @@ export default function DuplicateWarning({ team, sessionName, skipped, onReset }
             </p>
             <div className="mt-2 space-y-2">
               {skipped.map((r) => (
-                <div key={r.id} className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs">
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs"
+                >
                   <span className="inline-flex items-center gap-1 font-semibold text-foreground/70">
                     <Clock size={12} className="text-muted-foreground/60" />
                     {formatDate(r.claimedAt)}
@@ -62,7 +69,7 @@ export default function DuplicateWarning({ team, sessionName, skipped, onReset }
         Scan Kelompok Lain
       </Button>
     </div>
-  )
+  );
 }
 
 function formatDate(iso: string): string {
@@ -71,5 +78,5 @@ function formatDate(iso: string): string {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }

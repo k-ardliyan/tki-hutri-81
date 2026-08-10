@@ -19,9 +19,21 @@ export const phasesSeed = [
     targetLabel: 'Menuju Sosialisasi Lomba',
     themeColor: 'red' as const,
     reminders: [
-      { icon: 'fa-bullhorn', title: 'Sosialisasi Lomba', text: 'Senin, 3 Agustus 2026 jam 09.00 WIB.' },
-      { icon: 'fa-users', title: 'Pembentukan Tim', text: 'Pastikan anggota tim ruanganmu sudah siap.' },
-      { icon: 'fa-book-open', title: 'Pelajari Panduan', text: 'Baca aturan teknis lomba di menu Lomba.' },
+      {
+        icon: 'fa-bullhorn',
+        title: 'Sosialisasi Lomba',
+        text: 'Senin, 3 Agustus 2026 jam 09.00 WIB.',
+      },
+      {
+        icon: 'fa-users',
+        title: 'Pembentukan Tim',
+        text: 'Pastikan anggota tim ruanganmu sudah siap.',
+      },
+      {
+        icon: 'fa-book-open',
+        title: 'Pelajari Panduan',
+        text: 'Baca aturan teknis lomba di menu Lomba.',
+      },
     ],
     actionLabel: 'Lihat Jadwal Lengkap',
     actionLink: '/rundown',
@@ -40,9 +52,21 @@ export const phasesSeed = [
     targetLabel: 'Mulai Masa Dekorasi (Besok)',
     themeColor: 'blue' as const,
     reminders: [
-      { icon: 'fa-clipboard-list', title: 'Aturan Perlombaan', text: 'Pahami syarat & teknis 3 cabang lomba tahun ini.' },
-      { icon: 'fa-paint-roller', title: 'Persiapan Bahan Dekor', text: 'Siapkan hiasan aman (foam tape) untuk dekorasi besok.' },
-      { icon: 'fa-user-check', title: 'Cek Kelompok', text: 'Pastikan nama kamu terdaftar di daftar tim.' },
+      {
+        icon: 'fa-clipboard-list',
+        title: 'Aturan Perlombaan',
+        text: 'Pahami syarat & teknis 3 cabang lomba tahun ini.',
+      },
+      {
+        icon: 'fa-paint-roller',
+        title: 'Persiapan Bahan Dekor',
+        text: 'Siapkan hiasan aman (foam tape) untuk dekorasi besok.',
+      },
+      {
+        icon: 'fa-user-check',
+        title: 'Cek Kelompok',
+        text: 'Pastikan nama kamu terdaftar di daftar tim.',
+      },
     ],
     actionLabel: 'Pelajari Panduan Lomba',
     actionLink: '/lomba',
@@ -61,9 +85,21 @@ export const phasesSeed = [
     targetLabel: 'Sisa Waktu Dekorasi Ruangan',
     themeColor: 'amber' as const,
     reminders: [
-      { icon: 'fa-tape', title: 'Perekat Aman', text: 'Wajib pakai foam tape. Dilarang keras paku & cat!' },
-      { icon: 'fa-video-slash', title: 'Bebas Menutupi CCTV', text: 'Dekorasi TIDAK boleh menghalangi sudut pandang kamera CCTV.' },
-      { icon: 'fa-broom', title: 'Jaga Kebersihan (5R)', text: 'Bersihkan sisa sampah hiasan setelah selesai menghias.' },
+      {
+        icon: 'fa-tape',
+        title: 'Perekat Aman',
+        text: 'Wajib pakai foam tape. Dilarang keras paku & cat!',
+      },
+      {
+        icon: 'fa-video-slash',
+        title: 'Bebas Menutupi CCTV',
+        text: 'Dekorasi TIDAK boleh menghalangi sudut pandang kamera CCTV.',
+      },
+      {
+        icon: 'fa-broom',
+        title: 'Jaga Kebersihan (5R)',
+        text: 'Bersihkan sisa sampah hiasan setelah selesai menghias.',
+      },
     ],
     actionLabel: 'Panduan Lomba Dekorasi',
     actionLink: '/lomba/dekor-5r',
@@ -82,9 +118,21 @@ export const phasesSeed = [
     targetLabel: 'Menuju Hari Puncak Lomba',
     themeColor: 'emerald' as const,
     reminders: [
-      { icon: 'fa-sparkles', title: '5R Terinci', text: 'Ringkas, Rapi, Resik, Rawat, dan Rajin jaga harian.' },
-      { icon: 'fa-clipboard-check', title: 'Sidak Tanpa Pemberitahuan', text: 'Penilaian dilakukan acak saat jam kerja.' },
-      { icon: 'fa-plug', title: 'Rapikan Kabel & Meja', text: 'Gunakan cable tie dan susun dokumen meja dengan rapi.' },
+      {
+        icon: 'fa-sparkles',
+        title: '5R Terinci',
+        text: 'Ringkas, Rapi, Resik, Rawat, dan Rajin jaga harian.',
+      },
+      {
+        icon: 'fa-clipboard-check',
+        title: 'Sidak Tanpa Pemberitahuan',
+        text: 'Penilaian dilakukan acak saat jam kerja.',
+      },
+      {
+        icon: 'fa-plug',
+        title: 'Rapikan Kabel & Meja',
+        text: 'Gunakan cable tie dan susun dokumen meja dengan rapi.',
+      },
     ],
     actionLabel: 'Kriteria Penilaian 5R',
     actionLink: '/lomba/dekor-5r',
@@ -104,8 +152,16 @@ export const phasesSeed = [
     themeColor: 'red' as const,
     reminders: [
       { icon: 'fa-clock', title: 'Mulai 12.45 WIB', text: 'Kumpul di Halaman TKI tepat waktu.' },
-      { icon: 'fa-shirt', title: 'Pakaian Siap Basah', text: 'Gunakan kostum tim/kaos yang nyaman & siap terkena air.' },
-      { icon: 'fa-flag-checkered', title: 'Estafet Balon & Air', text: 'Siapkan strategi kelompok Putra & Putri terbaikmu!' },
+      {
+        icon: 'fa-shirt',
+        title: 'Pakaian Siap Basah',
+        text: 'Gunakan kostum tim/kaos yang nyaman & siap terkena air.',
+      },
+      {
+        icon: 'fa-flag-checkered',
+        title: 'Estafet Balon & Air',
+        text: 'Siapkan strategi kelompok Putra & Putri terbaikmu!',
+      },
     ],
     actionLabel: 'Lihat Schedule Puncak',
     actionLink: '/rundown',
@@ -124,9 +180,21 @@ export const phasesSeed = [
     targetLabel: 'Perkiraan Acara Selesai',
     themeColor: 'emerald' as const,
     reminders: [
-      { icon: 'fa-heart-pulse', title: 'Semangat Bertanding!', text: 'Jaga sportifitas dan kebersamaan tim.' },
-      { icon: 'fa-shield-halved', title: 'Utamakan Keselamatan', text: 'Hati-hati lantai licin saat estafet air.' },
-      { icon: 'fa-bullhorn', title: 'Dukung Timmu', text: 'Beri sorakan terbaik untuk perwakilan kelompokmu!' },
+      {
+        icon: 'fa-heart-pulse',
+        title: 'Semangat Bertanding!',
+        text: 'Jaga sportifitas dan kebersamaan tim.',
+      },
+      {
+        icon: 'fa-shield-halved',
+        title: 'Utamakan Keselamatan',
+        text: 'Hati-hati lantai licin saat estafet air.',
+      },
+      {
+        icon: 'fa-bullhorn',
+        title: 'Dukung Timmu',
+        text: 'Beri sorakan terbaik untuk perwakilan kelompokmu!',
+      },
     ],
     actionLabel: 'Panduan Lomba Lapangan',
     actionLink: '/lomba',
@@ -145,9 +213,21 @@ export const phasesSeed = [
     targetLabel: 'Menuju Pengumuman Pemenang',
     themeColor: 'purple' as const,
     reminders: [
-      { icon: 'fa-broom', title: 'Pertahankan 5R', text: 'Juri masih merekap poin 5R di setiap ruangan.' },
-      { icon: 'fa-trophy', title: 'Pengumuman 28 Agustus', text: 'Pengumuman pemenang dilaksanakan Jumat, 28 Agustus.' },
-      { icon: 'fa-mosque', title: 'Lokasi Pengumuman', text: 'Dilaksanakan setelah kajian Jumat di Mushola TKI.' },
+      {
+        icon: 'fa-broom',
+        title: 'Pertahankan 5R',
+        text: 'Juri masih merekap poin 5R di setiap ruangan.',
+      },
+      {
+        icon: 'fa-trophy',
+        title: 'Pengumuman 28 Agustus',
+        text: 'Pengumuman pemenang dilaksanakan Jumat, 28 Agustus.',
+      },
+      {
+        icon: 'fa-mosque',
+        title: 'Lokasi Pengumuman',
+        text: 'Dilaksanakan setelah kajian Jumat di Mushola TKI.',
+      },
     ],
     actionLabel: 'Cek Daftar Tim',
     actionLink: '/tim',
@@ -161,14 +241,27 @@ export const phasesSeed = [
     badgeColor: 'bg-amber-500 text-white border-amber-300 animate-pulse shadow-md',
     statusType: 'live',
     title: 'Hari Pengumuman Pemenang & Hadiah!',
-    subtitle: 'Jumat, 28 Agustus 2026 · Pengumuman dilaksanakan pukul 13.00 WIB (setelah kajian Jumat).',
+    subtitle:
+      'Jumat, 28 Agustus 2026 · Pengumuman dilaksanakan pukul 13.00 WIB (setelah kajian Jumat).',
     targetDate: new Date('2026-08-28T13:00:00'),
     targetLabel: 'Mulai Pengumuman Juara (13.00 WIB)',
     themeColor: 'amber' as const,
     reminders: [
-      { icon: 'fa-mosque', title: 'Kajian Jumat', text: 'Ikuti kajian Jumat terlebih dahulu di Mushola TKI.' },
-      { icon: 'fa-gift', title: 'Pembagian Hadiah', text: 'Penyerahan trofi & hadiah untuk semua pemenang cabang lomba.' },
-      { icon: 'fa-camera', title: 'Foto Bersama', text: 'Sesi dokumentasi bersama seluruh peserta & panitia.' },
+      {
+        icon: 'fa-mosque',
+        title: 'Kajian Jumat',
+        text: 'Ikuti kajian Jumat terlebih dahulu di Mushola TKI.',
+      },
+      {
+        icon: 'fa-gift',
+        title: 'Pembagian Hadiah',
+        text: 'Penyerahan trofi & hadiah untuk semua pemenang cabang lomba.',
+      },
+      {
+        icon: 'fa-camera',
+        title: 'Foto Bersama',
+        text: 'Sesi dokumentasi bersama seluruh peserta & panitia.',
+      },
     ],
     actionLabel: 'Lihat Detail Rundown',
     actionLink: '/rundown',
@@ -188,11 +281,15 @@ export const phasesSeed = [
     targetLabel: 'Acara Selesai',
     themeColor: 'slate' as const,
     reminders: [
-      { icon: 'fa-heart', title: 'Semangat Kemerdekaan', text: 'Terus jaga kekompakan & kebersihan 5R di tempat kerja.' },
+      {
+        icon: 'fa-heart',
+        title: 'Semangat Kemerdekaan',
+        text: 'Terus jaga kekompakan & kebersihan 5R di tempat kerja.',
+      },
       { icon: 'fa-flag', title: 'Merdeka!', text: 'Indonesia Berdaulat, Adil, dan Makmur.' },
     ],
     actionLabel: 'Lihat Semua Tim',
     actionLink: '/tim',
     sortOrder: 9,
   },
-]
+];

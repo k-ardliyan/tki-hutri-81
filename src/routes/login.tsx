@@ -1,40 +1,40 @@
-import { useState, useEffect, useRef } from 'react'
-import { createFileRoute, redirect, useNavigate, Link } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { ArrowLeft, ShieldCheck } from 'lucide-react'
-import LogoHutRi81 from '../components/brand/LogoHutRi81'
-import LogoTki from '../components/brand/LogoTki'
-import LogoFtp from '../components/brand/LogoFtp'
-import { LoginForm } from '../components/login-form'
-import { getSession, login } from '../server/functions/auth'
-import type { UserRole } from '../lib/auth'
-import { gsap, shouldReduceMotion } from '../lib/gsap'
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import LogoFtp from '../components/brand/LogoFtp';
+import LogoHutRi81 from '../components/brand/LogoHutRi81';
+import LogoTki from '../components/brand/LogoTki';
+import { LoginForm } from '../components/login-form';
+import type { UserRole } from '../lib/auth';
+import { gsap, shouldReduceMotion } from '../lib/gsap';
+import { getSession, login } from '../server/functions/auth';
 
 function homeForRole(role: UserRole): string {
-  if (role === 'petugas') return '/petugas'
-  if (role === 'audit') return '/audit'
-  return '/admin'
+  if (role === 'petugas') return '/petugas';
+  if (role === 'audit') return '/audit';
+  return '/admin';
 }
 
 export const Route = createFileRoute('/login')({
   loader: async () => {
-    const { role } = await getSession()
-    if (role) throw redirect({ to: homeForRole(role) })
-    return {}
+    const { role } = await getSession();
+    if (role) throw redirect({ to: homeForRole(role) });
+    return {};
   },
   component: LoginPage,
-})
+});
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || shouldReduceMotion()) return undefined
+    if (!containerRef.current || shouldReduceMotion()) return undefined;
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -48,30 +48,30 @@ export default function LoginPage() {
           stagger: 0.08,
           ease: 'power3.out',
           clearProps: 'all',
-        },
-      )
-    }, containerRef)
+        }
+      );
+    }, containerRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   const handleSubmit = async () => {
-    setError('')
-    setLoading(true)
+    setError('');
+    setLoading(true);
     try {
-      const res = await login({ data: { username, password } })
+      const res = await login({ data: { username, password } });
       if (res.ok && res.role) {
-        toast.success(`Login berhasil · ${res.role}`)
-        navigate({ to: homeForRole(res.role) })
+        toast.success(`Login berhasil · ${res.role}`);
+        navigate({ to: homeForRole(res.role) });
       } else {
-        setError(res.error ?? 'Login gagal. Periksa username dan password.')
+        setError(res.error ?? 'Login gagal. Periksa username dan password.');
       }
     } catch {
-      setError('Terjadi kesalahan jaringan. Silakan coba lagi.')
+      setError('Terjadi kesalahan jaringan. Silakan coba lagi.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div
@@ -133,6 +133,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

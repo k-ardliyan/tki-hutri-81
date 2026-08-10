@@ -1,27 +1,27 @@
-import { useEffect, useRef, useState } from 'react'
-import { useCountdown } from '../../hooks/useCountdown'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useRef, useState } from 'react';
+import { useCountdown } from '../../hooks/useCountdown';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 function Cell({ label, value }: { label: string; value: string | number }) {
-  const numRef = useRef(null)
+  const numRef = useRef(null);
 
   useEffect(() => {
-    if (!numRef.current || shouldReduceMotion()) return
+    if (!numRef.current || shouldReduceMotion()) return;
 
     // Kill any existing tweens on this element before creating a new one
-    gsap.killTweensOf(numRef.current)
+    gsap.killTweensOf(numRef.current);
 
     gsap.fromTo(
       numRef.current,
       { scale: 1.15, opacity: 0.7 },
-      { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out' },
-    )
+      { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out' }
+    );
 
-    const el = numRef.current
+    const el = numRef.current;
     return () => {
-      gsap.killTweensOf(el)
-    }
-  }, [value])
+      gsap.killTweensOf(el);
+    };
+  }, [value]);
 
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/70 bg-slate-50/80 px-2 py-3.5 shadow-inner transition hover:border-red-200 hover:bg-red-50/30">
@@ -35,7 +35,7 @@ function Cell({ label, value }: { label: string; value: string | number }) {
         {label}
       </div>
     </div>
-  )
+  );
 }
 
 export default function Countdown({
@@ -44,17 +44,17 @@ export default function Countdown({
   awardTarget = '2026-08-28T13:00:00',
   awardEndTarget = '2026-08-28T17:00:00',
 }) {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(timer)
-  }, [])
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const peakTime = new Date(peakTarget).getTime()
-  const eventEndTime = new Date(eventEndTarget).getTime()
-  const awardTime = new Date(awardTarget).getTime()
-  const awardEndTime = new Date(awardEndTarget).getTime()
+  const peakTime = new Date(peakTarget).getTime();
+  const eventEndTime = new Date(eventEndTarget).getTime();
+  const awardTime = new Date(awardTarget).getTime();
+  const awardEndTime = new Date(awardEndTarget).getTime();
 
   // Dynamic Phase Handling:
   // 1. PRE_EVENT: Countdown to Peak Event (13 Ags 12.45 WIB)
@@ -62,25 +62,25 @@ export default function Countdown({
   // 3. COUNTDOWN_AWARD: Automatic countdown to Award Announcement (28 Ags 13.00 WIB)
   // 4. FINISHED: All August events fully completed (After 28 Ags 17.00 WIB)
 
-  let activeTarget = peakTarget
-  let phase = 'PRE_EVENT'
+  let activeTarget = peakTarget;
+  let phase = 'PRE_EVENT';
 
   if (now < peakTime) {
-    phase = 'PRE_EVENT'
-    activeTarget = peakTarget
+    phase = 'PRE_EVENT';
+    activeTarget = peakTarget;
   } else if (now >= peakTime && now < eventEndTime) {
-    phase = 'EVENT_IN_PROGRESS'
+    phase = 'EVENT_IN_PROGRESS';
   } else if (now >= eventEndTime && now < awardTime) {
-    phase = 'COUNTDOWN_AWARD'
-    activeTarget = awardTarget
+    phase = 'COUNTDOWN_AWARD';
+    activeTarget = awardTarget;
   } else if (now >= awardEndTime) {
-    phase = 'FINISHED'
+    phase = 'FINISHED';
   } else {
-    phase = 'COUNTDOWN_AWARD'
-    activeTarget = awardEndTarget
+    phase = 'COUNTDOWN_AWARD';
+    activeTarget = awardEndTarget;
   }
 
-  const { days, hours, mins, secs } = useCountdown(activeTarget)
+  const { days, hours, mins, secs } = useCountdown(activeTarget);
 
   if (phase === 'EVENT_IN_PROGRESS') {
     return (
@@ -96,7 +96,7 @@ export default function Countdown({
           Hari Puncak Lomba Kemerdekaan HUT RI ke-81 sedang dilaksanakan. Selamat bertanding!
         </p>
       </div>
-    )
+    );
   }
 
   if (phase === 'FINISHED') {
@@ -109,10 +109,11 @@ export default function Countdown({
           Rangkaian Acara Telah Selesai
         </h4>
         <p className="mt-1 text-xs font-semibold text-amber-800">
-          Seluruh event Agustusan & pengumuman pemenang telah terlaksana. Terima kasih atas partisipasinya!
+          Seluruh event Agustusan & pengumuman pemenang telah terlaksana. Terima kasih atas
+          partisipasinya!
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -133,5 +134,5 @@ export default function Countdown({
         <Cell label="Detik" value={secs} />
       </div>
     </div>
-  )
+  );
 }

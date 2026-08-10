@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * useLazyImage — IntersectionObserver-based lazy loader for image src.
@@ -32,36 +32,36 @@ import { useEffect, useRef, useState } from 'react'
  * @returns {{ ref: React.RefObject, shouldLoad: boolean }}
  */
 export function useLazyImage(opts: { rootMargin?: string; threshold?: number } = {}) {
-  const { rootMargin = '200px', threshold = 0.01 } = opts
-  const ref = useRef<HTMLDivElement>(null)
-  const [shouldLoad, setShouldLoad] = useState(false)
+  const { rootMargin = '200px', threshold = 0.01 } = opts;
+  const ref = useRef<HTMLDivElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    const node = ref.current
-    if (!node) return undefined
+    const node = ref.current;
+    if (!node) return undefined;
 
     // No IntersectionObserver → fall back to immediate load.
     if (typeof IntersectionObserver === 'undefined') {
-      setShouldLoad(true)
-      return undefined
+      setShouldLoad(true);
+      return undefined;
     }
 
     // If the element is already in the viewport at mount (e.g. above-the-fold
     // hero), the observer callback will fire synchronously after `observe()`.
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0]
+        const entry = entries[0];
         if (entry && entry.isIntersecting) {
-          setShouldLoad(true)
-          observer.disconnect()
+          setShouldLoad(true);
+          observer.disconnect();
         }
       },
-      { root: null, rootMargin, threshold },
-    )
+      { root: null, rootMargin, threshold }
+    );
 
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [rootMargin, threshold])
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [rootMargin, threshold]);
 
-  return { ref, shouldLoad }
+  return { ref, shouldLoad };
 }

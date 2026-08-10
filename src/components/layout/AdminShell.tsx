@@ -2,12 +2,24 @@
  * AdminShell — wrapper AppShell untuk area panitia/admin/superadmin.
  * Nav grouped per section: Penilaian, Snack, Kelola (Users hanya superadmin).
  */
-import { useEffect, useState } from 'react'
-import { CalendarDays, Cookie, Gauge, GitFork, IdCard, QrCode, SquarePen, Trophy, UserCog, Users } from 'lucide-react'
-import AppShell from './AppShell'
-import type { NavSection } from '../../lib/nav'
-import { getSession } from '../../server/functions/auth'
-import type { UserRole } from '../../lib/auth'
+
+import {
+  CalendarDays,
+  Cookie,
+  Gauge,
+  GitFork,
+  IdCard,
+  QrCode,
+  SquarePen,
+  Trophy,
+  UserCog,
+  Users,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { UserRole } from '../../lib/auth';
+import type { NavSection } from '../../lib/nav';
+import { getSession } from '../../server/functions/auth';
+import AppShell from './AppShell';
 
 const BASE_SECTIONS: NavSection[] = [
   {
@@ -35,7 +47,7 @@ const BASE_SECTIONS: NavSection[] = [
       { id: 'teams', label: 'Tim', icon: Users, path: '/admin/teams' },
     ],
   },
-]
+];
 
 const SUPERADMIN_SECTIONS: NavSection[] = [
   ...BASE_SECTIONS.map((s) => ({ ...s, items: [...s.items] })),
@@ -43,20 +55,20 @@ const SUPERADMIN_SECTIONS: NavSection[] = [
     title: 'Akses',
     items: [{ id: 'users', label: 'Users', icon: UserCog, path: '/admin/users' }],
   },
-]
+];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<UserRole | null>(null)
+  const [role, setRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
-    void getSession().then((s) => setRole(s.role))
-  }, [])
+    void getSession().then((s) => setRole(s.role));
+  }, []);
 
-  const sections = role === 'superadmin' ? SUPERADMIN_SECTIONS : BASE_SECTIONS
+  const sections = role === 'superadmin' ? SUPERADMIN_SECTIONS : BASE_SECTIONS;
 
   return (
     <AppShell nav={sections} title={role === 'superadmin' ? 'Superadmin' : 'Panitia'}>
       {children}
     </AppShell>
-  )
+  );
 }

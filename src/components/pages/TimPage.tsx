@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLoaderData } from "@tanstack/react-router";
+import { useLoaderData } from '@tanstack/react-router';
+import { useEffect, useMemo, useState } from 'react';
 
 interface KelompokGroup {
   id: string;
@@ -19,12 +19,9 @@ function highlightParts(text: string, term: string): (string | React.JSX.Element
   while (idx !== -1) {
     if (idx > start) parts.push(text.slice(start, idx));
     parts.push(
-      <mark
-        key={`${idx}-${text}`}
-        className="rounded bg-amber-200 px-0.5 text-slate-900"
-      >
+      <mark key={`${idx}-${text}`} className="rounded bg-amber-200 px-0.5 text-slate-900">
         {text.slice(idx, idx + t.length)}
-      </mark>,
+      </mark>
     );
     start = idx + t.length;
     idx = lower.indexOf(t, start);
@@ -35,7 +32,7 @@ function highlightParts(text: string, term: string): (string | React.JSX.Element
 
 function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
   const [open, setOpen] = useState(false);
-  const isPutra = group.kategori === "putra";
+  const isPutra = group.kategori === 'putra';
   const termLower = term.toLowerCase();
 
   // Auto-open when search matches group name or any member
@@ -45,16 +42,14 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
       return;
     }
     const nameHit = group.nama.toLowerCase().includes(termLower);
-    const memberHit = group.anggota.some((a: string) =>
-      a.toLowerCase().includes(termLower),
-    );
+    const memberHit = group.anggota.some((a: string) => a.toLowerCase().includes(termLower));
     if (nameHit || memberHit) setOpen(true);
   }, [termLower, group.nama, group.anggota]);
 
   return (
     <article
       className={`surface-card overflow-hidden transition ${
-        open && termLower ? "ring-2 ring-amber-300/60" : ""
+        open && termLower ? 'ring-2 ring-amber-300/60' : ''
       }`}
     >
       <button
@@ -65,21 +60,19 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
         <div className="min-w-0">
           <span
             className={`mb-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-              isPutra ? "bg-sky-50 text-sky-700" : "bg-pink-50 text-pink-700"
+              isPutra ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
             }`}
           >
-            {isPutra ? "Putra" : "Putri"}
+            {isPutra ? 'Putra' : 'Putri'}
           </span>
           <h3 className="font-heading text-base font-bold text-slate-900">
             {highlightParts(group.nama, term)}
           </h3>
-          <p className="text-xs text-slate-500">
-            {group.anggota.length} anggota
-          </p>
+          <p className="text-xs text-slate-500">{group.anggota.length} anggota</p>
         </div>
         <i
           className={`fa-solid fa-chevron-down text-slate-500 transition ${
-            open ? "rotate-180" : ""
+            open ? 'rotate-180' : ''
           }`}
         />
       </button>
@@ -88,20 +81,17 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
         <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-3">
           <ul className="space-y-1.5">
             {group.anggota.map((nama: string) => {
-              const isMatch =
-                termLower && nama.toLowerCase().includes(termLower);
+              const isMatch = termLower && nama.toLowerCase().includes(termLower);
               return (
                 <li
                   key={`${group.id}-${nama}`}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${
                     isMatch
-                      ? "bg-amber-50 text-slate-900 ring-amber-200"
-                      : "bg-white text-slate-700 ring-slate-100"
+                      ? 'bg-amber-50 text-slate-900 ring-amber-200'
+                      : 'bg-white text-slate-700 ring-slate-100'
                   }`}
                 >
-                  <span className="min-w-0 flex-1">
-                    {highlightParts(nama, term)}
-                  </span>
+                  <span className="min-w-0 flex-1">{highlightParts(nama, term)}</span>
                   {isMatch && (
                     <span className="shrink-0 rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-bold text-amber-900">
                       cocok
@@ -133,18 +123,16 @@ function CategorySection({
   term: string;
 }) {
   if (groups.length === 0) return null;
-  const isPutra = kategori === "putra";
+  const isPutra = kategori === 'putra';
   return (
     <section className="space-y-3">
       <header className="flex items-center gap-3 px-1">
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-            isPutra ? "bg-sky-100 text-sky-700" : "bg-pink-100 text-pink-700"
+            isPutra ? 'bg-sky-100 text-sky-700' : 'bg-pink-100 text-pink-700'
           }`}
         >
-          <i
-            className={`fa-solid ${isPutra ? "fa-mars" : "fa-venus"} text-sm`}
-          />
+          <i className={`fa-solid ${isPutra ? 'fa-mars' : 'fa-venus'} text-sm`} />
         </span>
         <div className="min-w-0">
           <h3 className="font-heading text-base font-extrabold text-slate-900 sm:text-lg">
@@ -166,15 +154,15 @@ function CategorySection({
 
 export default function TimPage() {
   const { teams, summary } = useLoaderData({ from: '/tim' });
-  const [filter, setFilter] = useState("all");
-  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState('all');
+  const [query, setQuery] = useState('');
 
   const term = query.trim();
   const termLower = term.toLowerCase();
 
   const filtered = useMemo(() => {
     return teams.filter((g) => {
-      const byCat = filter === "all" || g.kategori === filter;
+      const byCat = filter === 'all' || g.kategori === filter;
       const byQuery =
         !termLower ||
         g.nama.toLowerCase().includes(termLower) ||
@@ -183,16 +171,10 @@ export default function TimPage() {
     });
   }, [filter, termLower]);
 
-  const putraGroups = filtered.filter((g) => g.kategori === "putra");
-  const putriGroups = filtered.filter((g) => g.kategori === "putri");
-  const totalAnggotaPutra = putraGroups.reduce(
-    (sum, g) => sum + g.anggota.length,
-    0,
-  );
-  const totalAnggotaPutri = putriGroups.reduce(
-    (sum, g) => sum + g.anggota.length,
-    0,
-  );
+  const putraGroups = filtered.filter((g) => g.kategori === 'putra');
+  const putriGroups = filtered.filter((g) => g.kategori === 'putri');
+  const totalAnggotaPutra = putraGroups.reduce((sum, g) => sum + g.anggota.length, 0);
+  const totalAnggotaPutri = putriGroups.reduce((sum, g) => sum + g.anggota.length, 0);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -204,7 +186,8 @@ export default function TimPage() {
               Daftar Tim & Anggota
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
-              Daftar pembagian tim peserta kategori Putra dan Putri yang akan bertanding pada lomba lapangan (Estafet Balon & Estafet Air).
+              Daftar pembagian tim peserta kategori Putra dan Putri yang akan bertanding pada lomba
+              lapangan (Estafet Balon & Estafet Air).
             </p>
           </div>
           <div className="relative w-full max-w-md">
@@ -219,7 +202,7 @@ export default function TimPage() {
             {term && (
               <button
                 type="button"
-                onClick={() => setQuery("")}
+                onClick={() => setQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 hover:text-slate-600"
               >
                 Hapus
@@ -237,9 +220,9 @@ export default function TimPage() {
 
         <div className="mt-4 flex gap-2 overflow-x-auto overscroll-x-contain no-scrollbar">
           {[
-            { id: "all", label: `Semua (${summary.total})` },
-            { id: "putra", label: `Putra (${summary.putra})` },
-            { id: "putri", label: `Putri (${summary.putri})` },
+            { id: 'all', label: `Semua (${summary.total})` },
+            { id: 'putra', label: `Putra (${summary.putra})` },
+            { id: 'putri', label: `Putri (${summary.putri})` },
           ].map((f) => (
             <button
               key={f.id}
@@ -247,8 +230,8 @@ export default function TimPage() {
               onClick={() => setFilter(f.id)}
               className={`rounded-full px-4 py-2 text-xs font-bold transition ${
                 filter === f.id
-                  ? "bg-brand-red text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? 'bg-brand-red text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {f.label}
@@ -261,8 +244,7 @@ export default function TimPage() {
         <div className="surface-card px-4 py-10 text-center">
           <i className="fa-solid fa-user-slash mb-2 text-2xl text-slate-300" />
           <p className="text-sm font-semibold text-slate-600">
-            Tidak ditemukan nama peserta atau tim yang sesuai. Coba kata kunci
-            lain.
+            Tidak ditemukan nama peserta atau tim yang sesuai. Coba kata kunci lain.
           </p>
         </div>
       ) : (

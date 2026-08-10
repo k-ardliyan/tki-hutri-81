@@ -1,37 +1,37 @@
-import { useLocation } from "@tanstack/react-router"
+import { useLocation } from '@tanstack/react-router';
+import { Badge } from '~/components/ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb"
-import { Separator } from "~/components/ui/separator"
-import { SidebarTrigger } from "~/components/ui/sidebar"
-import { Badge } from "~/components/ui/badge"
+} from '~/components/ui/breadcrumb';
+import { Separator } from '~/components/ui/separator';
+import { SidebarTrigger } from '~/components/ui/sidebar';
 
 const ROUTE_LABELS: Record<string, string> = {
-  "/audit": "Dashboard",
-  "/audit/isi": "Isi Penilaian",
-  "/audit/hasil": "Hasil Audit",
-  "/admin": "Dashboard",
-  "/admin/bagan": "Bagan Pertandingan",
-  "/admin/isi": "Isi Penilaian",
-  "/admin/hasil": "Hasil Penilaian",
-  "/admin/snack": "Dashboard Snack",
-  "/admin/snack/scan": "Scan Gelang",
-  "/admin/snack/gelang": "Master Gelang",
-  "/admin/snack/sessions": "Sesi Pengambilan",
-  "/admin/employees": "Data Karyawan",
-  "/admin/teams": "Data Tim",
-  "/admin/users": "Manajemen Akun",
-  "/petugas": "Scan Gelang",
-  "/petugas/dashboard": "Dashboard Snack",
-}
+  '/audit': 'Dashboard',
+  '/audit/isi': 'Isi Penilaian',
+  '/audit/hasil': 'Hasil Audit',
+  '/admin': 'Dashboard',
+  '/admin/bagan': 'Bagan Pertandingan',
+  '/admin/isi': 'Isi Penilaian',
+  '/admin/hasil': 'Hasil Penilaian',
+  '/admin/snack': 'Dashboard Snack',
+  '/admin/snack/scan': 'Scan Gelang',
+  '/admin/snack/gelang': 'Master Gelang',
+  '/admin/snack/sessions': 'Sesi Pengambilan',
+  '/admin/employees': 'Data Karyawan',
+  '/admin/teams': 'Data Tim',
+  '/admin/users': 'Manajemen Akun',
+  '/petugas': 'Scan Gelang',
+  '/petugas/dashboard': 'Dashboard Snack',
+};
 
-export function SiteHeader({ title = "Dashboard" }: { title?: string }) {
-  const { pathname } = useLocation()
-  const pageLabel = ROUTE_LABELS[pathname] ?? ROUTE_LABELS[pathname.replace(/\/$/, "")] ?? title
+export function SiteHeader({ title = 'Dashboard' }: { title?: string }) {
+  const { pathname } = useLocation();
+  const pageLabel = ROUTE_LABELS[pathname] ?? ROUTE_LABELS[pathname.replace(/\/$/, '')] ?? title;
 
   return (
     <header className="sticky top-0 z-10 flex h-(--header-height) shrink-0 items-center justify-between border-b bg-background/95 backdrop-blur-xs transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -58,5 +58,5 @@ export function SiteHeader({ title = "Dashboard" }: { title?: string }) {
         </Badge>
       </div>
     </header>
-  )
+  );
 }

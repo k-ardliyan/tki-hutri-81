@@ -2,9 +2,9 @@
  * AuditShell — wrapper AppShell untuk area tim audit.
  * Nav: Dashboard, Isi, Hasil. Read+write (bisa isi form).
  */
-import { Gauge, SquarePen, Trophy } from 'lucide-react'
-import AppShell from './AppShell'
-import type { NavSection } from '../../lib/nav'
+import { Gauge, SquarePen, Trophy } from 'lucide-react';
+import type { NavSection } from '../../lib/nav';
+import AppShell from './AppShell';
 
 const NAV: NavSection[] = [
   {
@@ -15,12 +15,12 @@ const NAV: NavSection[] = [
       { id: 'hasil', label: 'Hasil Audit', icon: Trophy, path: '/audit/hasil' },
     ],
   },
-]
+];
 
 export default function AuditShell({ children }: { children: React.ReactNode }) {
   return (
     <AppShell nav={NAV} title="Tim Audit">
       {children}
     </AppShell>
-  )
+  );
 }

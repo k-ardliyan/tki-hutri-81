@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useLoaderData } from '@tanstack/react-router'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useLoaderData } from '@tanstack/react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 const phaseColors: Record<string, PhaseColor> = {
   kickoff: {
@@ -79,7 +79,7 @@ const phaseColors: Record<string, PhaseColor> = {
     hoverCard: 'hover:border-emerald-300 hover:bg-emerald-50/80',
     activeCard: 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200',
   },
-}
+};
 
 const calendarEvents = [
   {
@@ -123,9 +123,9 @@ const calendarEvents = [
     end: '2026-08-28',
     note: 'Jumat · setelah kajian',
   },
-]
+];
 
-const WEEKDAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+const WEEKDAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 const MONTHS = [
   'Januari',
   'Februari',
@@ -139,61 +139,61 @@ const MONTHS = [
   'Oktober',
   'November',
   'Desember',
-]
+];
 
-const MONTH_VIEWS = [{ year: 2026, month: 7 }]
+const MONTH_VIEWS = [{ year: 2026, month: 7 }];
 
 function parseISO(iso: string) {
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d)
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
 
 function toKey(date: Date) {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function daysInMonth(year: number, monthIndex: number) {
-  return new Date(year, monthIndex + 1, 0).getDate()
+  return new Date(year, monthIndex + 1, 0).getDate();
 }
 
 function eventsOnDay(isoDay: string) {
-  const day = parseISO(isoDay)
-  const t = day.getTime()
-  const dow = day.getDay()
+  const day = parseISO(isoDay);
+  const t = day.getTime();
+  const dow = day.getDay();
   return calendarEvents.filter((ev) => {
-    const a = parseISO(ev.start).getTime()
-    const b = parseISO(ev.end).getTime()
-    if (t < a || t > b) return false
-    if (ev.weekdaysOnly && (dow === 0 || dow === 6)) return false
-    return true
-  })
+    const a = parseISO(ev.start).getTime();
+    const b = parseISO(ev.end).getTime();
+    if (t < a || t > b) return false;
+    if (ev.weekdaysOnly && (dow === 0 || dow === 6)) return false;
+    return true;
+  });
 }
 
 function isMultiDay(ev: { start: string; end: string }) {
-  return ev.start !== ev.end
+  return ev.start !== ev.end;
 }
 
 function rangeRole(ev: { start: string; end: string }, dayKey: string) {
-  if (!isMultiDay(ev)) return 'single'
-  if (dayKey === ev.start) return 'start'
-  if (dayKey === ev.end) return 'end'
-  return 'mid'
+  if (!isMultiDay(ev)) return 'single';
+  if (dayKey === ev.start) return 'start';
+  if (dayKey === ev.end) return 'end';
+  return 'mid';
 }
 
 function buildMonthGrid(year: number, monthIndex: number) {
-  const total = daysInMonth(year, monthIndex)
-  const first = new Date(year, monthIndex, 1)
-  const lead = first.getDay()
-  const cells = []
+  const total = daysInMonth(year, monthIndex);
+  const first = new Date(year, monthIndex, 1);
+  const lead = first.getDay();
+  const cells = [];
 
-  for (let i = 0; i < lead; i += 1) cells.push(null)
+  for (let i = 0; i < lead; i += 1) cells.push(null);
   for (let d = 1; d <= total; d += 1) {
-    const date = new Date(year, monthIndex, d)
-    const key = toKey(date)
-    const events = eventsOnDay(key)
+    const date = new Date(year, monthIndex, d);
+    const key = toKey(date);
+    const events = eventsOnDay(key);
     cells.push({
       day: d,
       key,
@@ -202,20 +202,20 @@ function buildMonthGrid(year: number, monthIndex: number) {
         ev,
         role: rangeRole(ev, key),
       })),
-    })
+    });
   }
-  while (cells.length % 7 !== 0) cells.push(null)
-  return cells
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
 }
 
 function formatShort(iso: string) {
-  const d = parseISO(iso)
-  return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`
+  const d = parseISO(iso);
+  return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`;
 }
 
 function formatLong(iso: string) {
-  const d = parseISO(iso)
-  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
+  const d = parseISO(iso);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 interface PhaseColor {
@@ -235,181 +235,187 @@ interface PhaseColor {
 }
 
 function rangeShellClass(role: string, c: PhaseColor) {
-  const base = `absolute inset-y-0.5 ${c.rangeBg} border-y ${c.rangeBorder}`
-  if (role === 'single') return `${base} left-0.5 right-0.5 rounded-xl border`
-  if (role === 'start') return `${base} left-0.5 right-0 rounded-l-xl border-l border-r-0`
-  if (role === 'end') return `${base} left-0 right-0.5 rounded-r-xl border-r border-l-0`
-  return `${base} left-0 right-0 border-x-0`
+  const base = `absolute inset-y-0.5 ${c.rangeBg} border-y ${c.rangeBorder}`;
+  if (role === 'single') return `${base} left-0.5 right-0.5 rounded-xl border`;
+  if (role === 'start') return `${base} left-0.5 right-0 rounded-l-xl border-l border-r-0`;
+  if (role === 'end') return `${base} left-0 right-0.5 rounded-r-xl border-r border-l-0`;
+  return `${base} left-0 right-0 border-x-0`;
 }
 
-function PeakDayModal({ open, onClose, items }: {
+function PeakDayModal({
+  open,
+  onClose,
+  items,
+}: {
   open: boolean;
   onClose: () => void;
   items: { time: string; title: string; note: string }[];
 }) {
-  const [mounted, setMounted] = useState<boolean>(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const backdropRef = useRef<HTMLButtonElement>(null)
-  const sheetRef = useRef<HTMLDivElement>(null)
-  const closingRef = useRef<boolean>(false)
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  const [mounted, setMounted] = useState<boolean>(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const closingRef = useRef<boolean>(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const isMobile = () =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 
   const playOpen = () => {
-    if (!backdropRef.current || !sheetRef.current) return
-    const mobile = isMobile()
-    const reduce = shouldReduceMotion()
+    if (!backdropRef.current || !sheetRef.current) return;
+    const mobile = isMobile();
+    const reduce = shouldReduceMotion();
 
-    gsap.killTweensOf([backdropRef.current, sheetRef.current])
+    gsap.killTweensOf([backdropRef.current, sheetRef.current]);
 
     if (reduce) {
-      gsap.set(backdropRef.current, { opacity: 1 })
-      gsap.set(sheetRef.current, { clearProps: 'all', opacity: 1, y: 0, scale: 1 })
-      return
+      gsap.set(backdropRef.current, { opacity: 1 });
+      gsap.set(sheetRef.current, { clearProps: 'all', opacity: 1, y: 0, scale: 1 });
+      return;
     }
 
-    gsap.set(backdropRef.current, { opacity: 0 })
+    gsap.set(backdropRef.current, { opacity: 0 });
     if (mobile) {
-      gsap.set(sheetRef.current, { y: '100%', opacity: 1, scale: 1 })
+      gsap.set(sheetRef.current, { y: '100%', opacity: 1, scale: 1 });
     } else {
-      gsap.set(sheetRef.current, { y: 28, opacity: 0, scale: 0.94 })
+      gsap.set(sheetRef.current, { y: 28, opacity: 0, scale: 0.94 });
     }
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-    tl.to(backdropRef.current, { opacity: 1, duration: 0.28 }, 0)
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to(backdropRef.current, { opacity: 1, duration: 0.28 }, 0);
     if (mobile) {
-      tl.to(sheetRef.current, { y: 0, duration: 0.42, ease: 'power4.out' }, 0.02)
+      tl.to(sheetRef.current, { y: 0, duration: 0.42, ease: 'power4.out' }, 0.02);
     } else {
       tl.to(
         sheetRef.current,
         { y: 0, opacity: 1, scale: 1, duration: 0.36, ease: 'power3.out' },
-        0.04,
-      )
+        0.04
+      );
     }
-  }
+  };
 
   const requestClose = () => {
-    if (closingRef.current || !mounted) return
+    if (closingRef.current || !mounted) return;
     if (!backdropRef.current || !sheetRef.current) {
-      onCloseRef.current()
-      return
+      onCloseRef.current();
+      return;
     }
     if (shouldReduceMotion()) {
-      onCloseRef.current()
-      return
+      onCloseRef.current();
+      return;
     }
 
-    closingRef.current = true
-    const mobile = isMobile()
-    gsap.killTweensOf([backdropRef.current, sheetRef.current])
+    closingRef.current = true;
+    const mobile = isMobile();
+    gsap.killTweensOf([backdropRef.current, sheetRef.current]);
 
     const tl = gsap.timeline({
       defaults: { ease: 'power2.in' },
       onComplete: () => {
-        closingRef.current = false
-        onCloseRef.current()
+        closingRef.current = false;
+        onCloseRef.current();
       },
-    })
-    tl.to(backdropRef.current, { opacity: 0, duration: 0.22 }, 0)
+    });
+    tl.to(backdropRef.current, { opacity: 0, duration: 0.22 }, 0);
     if (mobile) {
-      tl.to(sheetRef.current, { y: '105%', duration: 0.3, ease: 'power3.in' }, 0)
+      tl.to(sheetRef.current, { y: '105%', duration: 0.3, ease: 'power3.in' }, 0);
     } else {
       tl.to(
         sheetRef.current,
         { y: 16, opacity: 0, scale: 0.96, duration: 0.24, ease: 'power2.in' },
-        0,
-      )
+        0
+      );
     }
-  }
+  };
 
   // Mount / unmount with open prop
   useEffect(() => {
     if (open) {
-      closingRef.current = false
-      setMounted(true)
+      closingRef.current = false;
+      setMounted(true);
     }
-  }, [open])
+  }, [open]);
 
   // Animate in after mount
   useEffect(() => {
-    if (!mounted || !open) return undefined
+    if (!mounted || !open) return undefined;
     // next frame so refs exist
-    const id = requestAnimationFrame(() => playOpen())
-    return () => cancelAnimationFrame(id)
-  }, [mounted, open])
+    const id = requestAnimationFrame(() => playOpen());
+    return () => cancelAnimationFrame(id);
+  }, [mounted, open]);
 
   // When parent sets open=false while still mounted, animate out
   useEffect(() => {
-    if (!mounted) return undefined
+    if (!mounted) return undefined;
     if (!open && !closingRef.current) {
       // Parent closed without animation path — still animate if possible
       if (backdropRef.current && sheetRef.current && !shouldReduceMotion()) {
-        closingRef.current = true
-        const mobile = isMobile()
+        closingRef.current = true;
+        const mobile = isMobile();
         const tl = gsap.timeline({
           onComplete: () => {
-            closingRef.current = false
-            setMounted(false)
+            closingRef.current = false;
+            setMounted(false);
           },
-        })
-        tl.to(backdropRef.current, { opacity: 0, duration: 0.2 }, 0)
+        });
+        tl.to(backdropRef.current, { opacity: 0, duration: 0.2 }, 0);
         if (mobile) {
-          tl.to(sheetRef.current, { y: '105%', duration: 0.28, ease: 'power3.in' }, 0)
+          tl.to(sheetRef.current, { y: '105%', duration: 0.28, ease: 'power3.in' }, 0);
         } else {
-          tl.to(sheetRef.current, { opacity: 0, scale: 0.96, y: 12, duration: 0.2 }, 0)
+          tl.to(sheetRef.current, { opacity: 0, scale: 0.96, y: 12, duration: 0.2 }, 0);
         }
-        return () => { tl.kill() }
+        return () => {
+          tl.kill();
+        };
       }
-      setMounted(false)
+      setMounted(false);
     }
-    return undefined
-  }, [open, mounted])
+    return undefined;
+  }, [open, mounted]);
 
   useEffect(() => {
-      if (!mounted) return undefined
-      const onKey = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          // requestClose is stable via refs; call through current close path
-          if (closingRef.current) return
-          if (!backdropRef.current || !sheetRef.current || shouldReduceMotion()) {
-            onCloseRef.current()
-            return
-          }
-          closingRef.current = true
-          const mobile = isMobile()
-          gsap.killTweensOf([backdropRef.current, sheetRef.current])
-          const tl = gsap.timeline({
-            defaults: { ease: 'power2.in' },
-            onComplete: () => {
-              closingRef.current = false
-              onCloseRef.current()
-            },
-          })
-          tl.to(backdropRef.current, { opacity: 0, duration: 0.22 }, 0)
-          if (mobile) {
-            tl.to(sheetRef.current, { y: '105%', duration: 0.3, ease: 'power3.in' }, 0)
-          } else {
-            tl.to(
-              sheetRef.current,
-              { y: 16, opacity: 0, scale: 0.96, duration: 0.24, ease: 'power2.in' },
-              0,
-            )
-          }
+    if (!mounted) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // requestClose is stable via refs; call through current close path
+        if (closingRef.current) return;
+        if (!backdropRef.current || !sheetRef.current || shouldReduceMotion()) {
+          onCloseRef.current();
+          return;
+        }
+        closingRef.current = true;
+        const mobile = isMobile();
+        gsap.killTweensOf([backdropRef.current, sheetRef.current]);
+        const tl = gsap.timeline({
+          defaults: { ease: 'power2.in' },
+          onComplete: () => {
+            closingRef.current = false;
+            onCloseRef.current();
+          },
+        });
+        tl.to(backdropRef.current, { opacity: 0, duration: 0.22 }, 0);
+        if (mobile) {
+          tl.to(sheetRef.current, { y: '105%', duration: 0.3, ease: 'power3.in' }, 0);
+        } else {
+          tl.to(
+            sheetRef.current,
+            { y: 16, opacity: 0, scale: 0.96, duration: 0.24, ease: 'power2.in' },
+            0
+          );
         }
       }
-      document.addEventListener('keydown', onKey)
-      const prev = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.removeEventListener('keydown', onKey)
-        document.body.style.overflow = prev
-      }
-    }, [mounted])
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [mounted]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   const modal = (
     <div
@@ -487,99 +493,96 @@ function PeakDayModal({ open, onClose, items }: {
         </div>
       </div>
     </div>
-  )
+  );
 
-  return createPortal(modal, document.body)
+  return createPortal(modal, document.body);
 }
 
 export default function RundownPage() {
-  const { rundown } = useLoaderData({ from: '/rundown' })
-  const [hoverEventId, setHoverEventId] = useState<string | null>(null)
-  const [hoverPhase, setHoverPhase] = useState<string | null>(null)
-  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null)
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
-  const [peakModalOpen, setPeakModalOpen] = useState(false)
-  const calRef = useRef<HTMLDivElement>(null)
+  const { rundown } = useLoaderData({ from: '/rundown' });
+  const [hoverEventId, setHoverEventId] = useState<string | null>(null);
+  const [hoverPhase, setHoverPhase] = useState<string | null>(null);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
+  const [peakModalOpen, setPeakModalOpen] = useState(false);
+  const calRef = useRef<HTMLDivElement>(null);
 
-  const monthMeta = MONTH_VIEWS[0]
+  const monthMeta = MONTH_VIEWS[0];
   const grid = useMemo(
     () => buildMonthGrid(monthMeta.year, monthMeta.month),
-    [monthMeta.year, monthMeta.month],
-  )
+    [monthMeta.year, monthMeta.month]
+  );
 
-  const peakPhase = useMemo(
-    () => rundown.find((p) => p.id === 'phase-peak'),
-    [],
-  )
-  const peakItems = peakPhase?.items || []
+  const peakPhase = useMemo(() => rundown.find((p) => p.id === 'phase-peak'), []);
+  const peakItems = peakPhase?.items || [];
 
-  const selectedDayEvents = selectedDayKey ? eventsOnDay(selectedDayKey) : []
-  const selectedDayLabel = selectedDayKey ? formatLong(selectedDayKey) : null
+  const selectedDayEvents = selectedDayKey ? eventsOnDay(selectedDayKey) : [];
+  const selectedDayLabel = selectedDayKey ? formatLong(selectedDayKey) : null;
 
-  const activeEvent = hoverEventId
-    ? calendarEvents.find((e) => e.id === hoverEventId)
-    : null
+  const activeEvent = hoverEventId ? calendarEvents.find((e) => e.id === hoverEventId) : null;
 
   const clearHover = () => {
-    setHoverEventId(null)
-    setHoverPhase(null)
-  }
+    setHoverEventId(null);
+    setHoverPhase(null);
+  };
 
   const setEventHover = (ev: { id: string; phase: string }) => {
-    setHoverEventId(ev.id)
-    setHoverPhase(ev.phase)
-  }
+    setHoverEventId(ev.id);
+    setHoverPhase(ev.phase);
+  };
 
   const closePopover = () => {
-    setSelectedDayKey(null)
-    setPopoverPos(null)
-  }
+    setSelectedDayKey(null);
+    setPopoverPos(null);
+  };
 
-  const openDay = (cell: { key: string; events: Array<{ id: string; phase: string }> }, event: React.MouseEvent) => {
+  const openDay = (
+    cell: { key: string; events: Array<{ id: string; phase: string }> },
+    event: React.MouseEvent
+  ) => {
     if (!cell?.events?.length) {
-      closePopover()
-      return
+      closePopover();
+      return;
     }
 
-    const btn = event.currentTarget
-    const cal = calRef.current
-    setSelectedDayKey(cell.key)
-    setHoverPhase(cell.events[0].phase)
-    if (cell.events.length === 1) setEventHover(cell.events[0])
+    const btn = event.currentTarget;
+    const cal = calRef.current;
+    setSelectedDayKey(cell.key);
+    setHoverPhase(cell.events[0].phase);
+    if (cell.events.length === 1) setEventHover(cell.events[0]);
 
     if (!btn || !cal) {
-      setPopoverPos({ top: 120, left: 12 })
-      return
+      setPopoverPos({ top: 120, left: 12 });
+      return;
     }
 
-    const btnRect = btn.getBoundingClientRect()
-    const calRect = cal.getBoundingClientRect()
-    const popW = 248
+    const btnRect = btn.getBoundingClientRect();
+    const calRect = cal.getBoundingClientRect();
+    const popW = 248;
     const left = Math.min(
       Math.max(8, btnRect.left - calRect.left + btnRect.width / 2 - popW / 2),
-      Math.max(8, calRect.width - popW - 8),
-    )
-    let top = btnRect.bottom - calRect.top + 8
-    if (top + 160 > calRect.height) top = btnRect.top - calRect.top - 8 - 140
-    setPopoverPos({ top: Math.max(56, top), left })
-  }
+      Math.max(8, calRect.width - popW - 8)
+    );
+    let top = btnRect.bottom - calRect.top + 8;
+    if (top + 160 > calRect.height) top = btnRect.top - calRect.top - 8 - 140;
+    setPopoverPos({ top: Math.max(56, top), left });
+  };
 
   useEffect(() => {
-    if (!selectedDayKey || !popoverPos) return undefined
+    if (!selectedDayKey || !popoverPos) return undefined;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closePopover()
-    }
+      if (e.key === 'Escape') closePopover();
+    };
     const onDown = (e: MouseEvent) => {
-      if (calRef.current && !calRef.current.contains(e.target as Node)) closePopover()
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onDown)
+      if (calRef.current && !calRef.current.contains(e.target as Node)) closePopover();
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
     return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onDown)
-    }
-  }, [selectedDayKey, popoverPos])
-
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [selectedDayKey, popoverPos]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -589,7 +592,8 @@ export default function RundownPage() {
           Kalender HUT RI ke-81
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Rangkaian kegiatan HUT RI ke-81 dari 3 hingga 28 Agustus 2026. Klik atau pilih tanggal pada kalender untuk melihat rincian acara.
+          Rangkaian kegiatan HUT RI ke-81 dari 3 hingga 28 Agustus 2026. Klik atau pilih tanggal
+          pada kalender untuk melihat rincian acara.
         </p>
       </section>
 
@@ -637,24 +641,21 @@ export default function RundownPage() {
             <div className="grid flex-1 grid-cols-7 grid-rows-[repeat(6,minmax(0,1fr))] gap-y-1">
               {grid.map((cell, idx) => {
                 if (!cell) {
-                  return <div key={`empty-${idx}`} className="min-h-[52px] sm:min-h-[58px]" />
+                  return <div key={`empty-${idx}`} className="min-h-[52px] sm:min-h-[58px]" />;
                 }
 
-                const phases = [...new Set(cell.events.map((e) => e.phase))]
-                const isSelected = selectedDayKey === cell.key
+                const phases = [...new Set(cell.events.map((e) => e.phase))];
+                const isSelected = selectedDayKey === cell.key;
                 const isHot =
                   isSelected ||
                   cell.events.some((e) => e.id === hoverEventId) ||
-                  phases.includes(hoverPhase ?? '')
+                  phases.includes(hoverPhase ?? '');
 
-                const primaryRange =
-                  cell.ranges.find((r) => r.role !== 'single') || cell.ranges[0]
-                const primaryEv = primaryRange?.ev
-                const primaryColor = primaryEv ? phaseColors[primaryEv.phase] : null
-                const role = primaryRange?.role
-                const extraEvents = cell.events.filter(
-                  (e) => !primaryEv || e.id !== primaryEv.id,
-                )
+                const primaryRange = cell.ranges.find((r) => r.role !== 'single') || cell.ranges[0];
+                const primaryEv = primaryRange?.ev;
+                const primaryColor = primaryEv ? phaseColors[primaryEv.phase] : null;
+                const role = primaryRange?.role;
+                const extraEvents = cell.events.filter((e) => !primaryEv || e.id !== primaryEv.id);
 
                 return (
                   <button
@@ -662,8 +663,8 @@ export default function RundownPage() {
                     type="button"
                     onClick={(e) => openDay(cell, e)}
                     onMouseEnter={() => {
-                      if (cell.events.length === 1) setEventHover(cell.events[0])
-                      else if (phases[0]) setHoverPhase(phases[0])
+                      if (cell.events.length === 1) setEventHover(cell.events[0]);
+                      else if (phases[0]) setHoverPhase(phases[0]);
                     }}
                     onMouseLeave={clearHover}
                     className="relative z-0 min-h-[52px] px-0 py-0.5 text-left sm:min-h-[58px]"
@@ -701,8 +702,8 @@ export default function RundownPage() {
 
                       <div className="mt-auto mb-1.5 flex w-full flex-col items-stretch gap-0.5 px-1">
                         {cell.events.slice(0, 2).map((ev) => {
-                          const c = phaseColors[ev.phase]
-                          const r = rangeRole(ev, cell.key)
+                          const c = phaseColors[ev.phase];
+                          const r = rangeRole(ev, cell.key);
                           const barRound =
                             r === 'single'
                               ? 'rounded-full'
@@ -710,7 +711,7 @@ export default function RundownPage() {
                                 ? 'rounded-l-full rounded-r-none'
                                 : r === 'end'
                                   ? 'rounded-r-full rounded-l-none'
-                                  : 'rounded-none'
+                                  : 'rounded-none';
                           return (
                             <span
                               key={ev.id}
@@ -718,7 +719,7 @@ export default function RundownPage() {
                                 hoverEventId === ev.id ? 'opacity-100' : 'opacity-85'
                               }`}
                             />
-                          )
+                          );
                         })}
                       </div>
 
@@ -729,7 +730,7 @@ export default function RundownPage() {
                       )}
                     </span>
                   </button>
-                )
+                );
               })}
             </div>
 
@@ -745,9 +746,7 @@ export default function RundownPage() {
                     <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                       {selectedDayLabel}
                     </p>
-                    <p className="text-[11px] text-slate-500">
-                      {selectedDayEvents.length} acara
-                    </p>
+                    <p className="text-[11px] text-slate-500">{selectedDayEvents.length} acara</p>
                   </div>
                   <button
                     type="button"
@@ -760,8 +759,8 @@ export default function RundownPage() {
                 </div>
                 <ul className="max-h-56 space-y-1 overflow-y-auto">
                   {selectedDayEvents.map((ev) => {
-                    const c = phaseColors[ev.phase]
-                    const on = hoverEventId === ev.id
+                    const c = phaseColors[ev.phase];
+                    const on = hoverEventId === ev.id;
                     return (
                       <li key={ev.id}>
                         <button
@@ -785,7 +784,7 @@ export default function RundownPage() {
                           </div>
                         </button>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
               </div>
@@ -831,7 +830,9 @@ export default function RundownPage() {
                   <p className="text-sm font-bold text-slate-900">
                     {selectedDayEvents.length} acara di tanggal ini
                   </p>
-                  <p className="text-xs text-slate-500">Pilih salah satu agenda pada jendela pop-up untuk rincian.</p>
+                  <p className="text-xs text-slate-500">
+                    Pilih salah satu agenda pada jendela pop-up untuk rincian.
+                  </p>
                 </div>
               </div>
             ) : (
@@ -857,12 +858,14 @@ export default function RundownPage() {
 
         {/* Agenda bertanda — primary detail surface (no separate phase list) */}
         <section className="surface-card px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Daftar Agenda Kegiatan</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Daftar Agenda Kegiatan
+          </p>
           <ul className="mt-3 space-y-2.5">
             {calendarEvents.map((ev) => {
-              const c = phaseColors[ev.phase]
-              const hot = hoverEventId === ev.id || hoverPhase === ev.phase
-              const isPeak = ev.id === 'puncak'
+              const c = phaseColors[ev.phase];
+              const hot = hoverEventId === ev.id || hoverPhase === ev.phase;
+              const isPeak = ev.id === 'puncak';
               return (
                 <li key={ev.id}>
                   <div
@@ -916,7 +919,7 @@ export default function RundownPage() {
                     )}
                   </div>
                 </li>
-              )
+              );
             })}
           </ul>
         </section>
@@ -928,5 +931,5 @@ export default function RundownPage() {
         items={peakItems}
       />
     </div>
-  )
+  );
 }

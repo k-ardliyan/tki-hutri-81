@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router';
 import {
   ArrowLeft,
   Check,
@@ -11,46 +10,43 @@ import {
   Search,
   Sparkles,
   X,
-} from 'lucide-react'
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FiveRForm, FiveRRoom } from '../../data/5r';
+import { useDebounce } from '../../hooks/use-debounce';
+import { todayPrefix } from '../../lib/dateUtils';
+import { useSubmissions } from '../../lib/queries';
+import { round1, scoreSubmission } from '../../lib/scoring';
+import { getSession } from '../../server/functions/auth';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Badge } from '../ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '../ui/breadcrumb'
-import { Button } from '../ui/button'
-import { Card, CardContent } from '../ui/card'
-import { Input } from '../ui/input'
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
-import { Badge } from '../ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '../ui/dialog'
-import ScoreBadge from '../ui/ScoreBadge'
-import RoomIcon from '../ui/RoomIcon'
-import { PageHeader } from '../ui/page-header'
-import { InteractiveCard } from '../ui/interactive-card'
-import { RoomListSkeleton } from '../ui/skeletons'
-import { getSession } from '../../server/functions/auth'
-import type { FiveRForm, FiveRRoom } from '../../data/5r'
-import ScoringForm from './ScoringForm'
-import RiwayatHariIni from './RiwayatHariIni'
-import { DeadlineBanner, deadlineInfo } from './DeadlineBanner'
-import { todayPrefix } from '../../lib/dateUtils'
-import { useSubmissions } from '../../lib/queries'
-import { useDebounce } from '../../hooks/use-debounce'
-import { scoreSubmission, round1 } from '../../lib/scoring'
+} from '../ui/breadcrumb';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
+import { Input } from '../ui/input';
+import { InteractiveCard } from '../ui/interactive-card';
+import { PageHeader } from '../ui/page-header';
+import RoomIcon from '../ui/RoomIcon';
+import ScoreBadge from '../ui/ScoreBadge';
+import { RoomListSkeleton } from '../ui/skeletons';
+import { DeadlineBanner, deadlineInfo } from './DeadlineBanner';
+import RiwayatHariIni from './RiwayatHariIni';
+import ScoringForm from './ScoringForm';
 
 interface RoomFormFlowProps {
-  rooms: FiveRRoom[]
-  forms: FiveRForm[]
-  deadline: string | null
-  basePath: '/audit/isi' | '/admin/isi'
-  room?: string
-  form?: string
+  rooms: FiveRRoom[];
+  forms: FiveRForm[];
+  deadline: string | null;
+  basePath: '/audit/isi' | '/admin/isi';
+  room?: string;
+  form?: string;
 }
 
 export default function RoomFormFlow({
@@ -61,61 +57,59 @@ export default function RoomFormFlow({
   room,
   form,
 }: RoomFormFlowProps) {
-  const navigate = useNavigate()
-  const roomObj = rooms.find((r) => r.id === room)
+  const navigate = useNavigate();
+  const roomObj = rooms.find((r) => r.id === room);
 
-  const [me, setMe] = useState<string | null>(null)
+  const [me, setMe] = useState<string | null>(null);
   useEffect(() => {
-    void getSession().then((s) => setMe(s.username ?? null))
-  }, [])
+    void getSession().then((s) => setMe(s.username ?? null));
+  }, []);
 
-  const { data: allSubs = [], isLoading } = useSubmissions()
-  const today = todayPrefix()
+  const { data: allSubs = [], isLoading } = useSubmissions();
+  const today = todayPrefix();
 
   // Dekorasi: submission milik SAYA (kapan pun) — sekali per ruangan per auditor.
   const myDekorasiRooms = useMemo(() => {
-    const s = new Set<string>()
+    const s = new Set<string>();
     for (const sub of allSubs) {
-      if (sub.formId === 'dekorasi' && sub.createdBy === me) s.add(sub.roomId)
+      if (sub.formId === 'dekorasi' && sub.createdBy === me) s.add(sub.roomId);
     }
-    return s
-  }, [allSubs, me])
+    return s;
+  }, [allSubs, me]);
 
-  const activeForms = useMemo(() => forms.filter((f) => f.enabled !== false), [forms])
-  const disabledForms = useMemo(() => forms.filter((f) => f.enabled === false), [forms])
-  const { closed } = deadlineInfo(deadline)
+  const activeForms = useMemo(() => forms.filter((f) => f.enabled !== false), [forms]);
+  const disabledForms = useMemo(() => forms.filter((f) => f.enabled === false), [forms]);
+  const { closed } = deadlineInfo(deadline);
 
   // Room search filter in Stage 1
-  const [searchQuery, setSearchQuery] = useState('')
-  const debouncedSearch = useDebounce(searchQuery, 200)
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 200);
 
   // Stage 2 Log Modal state
-  const [logCategory, setLogCategory] = useState<'dekorasi' | 'fiveR' | null>(null)
-  const [logFilter, setLogFilter] = useState<'mine' | 'all'>('mine')
+  const [logCategory, setLogCategory] = useState<'dekorasi' | 'fiveR' | null>(null);
+  const [logFilter, setLogFilter] = useState<'mine' | 'all'>('mine');
 
-  const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
+  const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
 
   const filteredRooms = useMemo(() => {
-    if (!debouncedSearch.trim()) return rooms
-    const q = debouncedSearch.toLowerCase().trim()
-    return rooms.filter(
-      (r) => r.name.toLowerCase().includes(q) || r.pic.toLowerCase().includes(q),
-    )
-  }, [rooms, debouncedSearch])
+    if (!debouncedSearch.trim()) return rooms;
+    const q = debouncedSearch.toLowerCase().trim();
+    return rooms.filter((r) => r.name.toLowerCase().includes(q) || r.pic.toLowerCase().includes(q));
+  }, [rooms, debouncedSearch]);
 
   // Stage 1: No room selected — Room Picker
   if (!room || !roomObj) {
-    const myTodaySubs = allSubs.filter((s) => s.createdBy === me && s.createdAt.startsWith(today))
-    const myToday5RSubs = myTodaySubs.filter((s) => s.formId !== 'dekorasi')
-    const my5RRoomsTodayCount = new Set(myToday5RSubs.map((s) => s.roomId)).size
-    const myDekorasiCount = myDekorasiRooms.size
+    const myTodaySubs = allSubs.filter((s) => s.createdBy === me && s.createdAt.startsWith(today));
+    const myToday5RSubs = myTodaySubs.filter((s) => s.formId !== 'dekorasi');
+    const my5RRoomsTodayCount = new Set(myToday5RSubs.map((s) => s.roomId)).size;
+    const myDekorasiCount = myDekorasiRooms.size;
 
-    const todaySubCount = allSubs.filter((s) => s.createdAt.startsWith(today)).length
+    const todaySubCount = allSubs.filter((s) => s.createdAt.startsWith(today)).length;
     const roomsDoneTodayCount = new Set(
       allSubs
         .filter((s) => s.createdAt.startsWith(today) && s.formId !== 'dekorasi')
-        .map((s) => s.roomId),
-    ).size
+        .map((s) => s.roomId)
+    ).size;
 
     return (
       <div className="space-y-4">
@@ -136,7 +130,10 @@ export default function RoomFormFlow({
                   5R Kamu Hari Ini
                 </span>
                 {my5RRoomsTodayCount === rooms.length && rooms.length > 0 ? (
-                  <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold">
+                  <Badge
+                    variant="outline"
+                    className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold"
+                  >
                     Lengkap ✓
                   </Badge>
                 ) : (
@@ -147,7 +144,9 @@ export default function RoomFormFlow({
               </div>
               <p className="text-xl font-extrabold text-foreground tracking-tight">
                 {my5RRoomsTodayCount}{' '}
-                <span className="text-xs font-normal text-muted-foreground">/ {rooms.length} ruang</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  / {rooms.length} ruang
+                </span>
               </p>
               <p className="text-[11px] text-muted-foreground truncate">
                 {my5RRoomsTodayCount === rooms.length && rooms.length > 0
@@ -165,7 +164,10 @@ export default function RoomFormFlow({
                   Dekorasi Kamu
                 </span>
                 {myDekorasiCount === rooms.length && rooms.length > 0 ? (
-                  <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold">
+                  <Badge
+                    variant="outline"
+                    className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-bold"
+                  >
                     Lengkap ✓
                   </Badge>
                 ) : (
@@ -176,7 +178,9 @@ export default function RoomFormFlow({
               </div>
               <p className="text-xl font-extrabold text-foreground tracking-tight">
                 {myDekorasiCount}{' '}
-                <span className="text-xs font-normal text-muted-foreground">/ {rooms.length} ruang</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  / {rooms.length} ruang
+                </span>
               </p>
               <p className="text-[11px] text-muted-foreground truncate">
                 {myDekorasiCount === rooms.length && rooms.length > 0
@@ -253,19 +257,21 @@ export default function RoomFormFlow({
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filteredRooms.map((r) => {
-              const roomSubs = allSubs.filter((s) => s.roomId === r.id)
-              const myRoomSubs = roomSubs.filter((s) => s.createdBy === me)
-              const myTodaySubs = myRoomSubs.filter((s) => s.createdAt.startsWith(today))
-              const otherTodaySubs = roomSubs.filter((s) => s.createdBy !== me && s.createdAt.startsWith(today))
-              const myDekorasiDone = myRoomSubs.some((s) => s.formId === 'dekorasi')
+              const roomSubs = allSubs.filter((s) => s.roomId === r.id);
+              const myRoomSubs = roomSubs.filter((s) => s.createdBy === me);
+              const myTodaySubs = myRoomSubs.filter((s) => s.createdAt.startsWith(today));
+              const otherTodaySubs = roomSubs.filter(
+                (s) => s.createdBy !== me && s.createdAt.startsWith(today)
+              );
+              const myDekorasiDone = myRoomSubs.some((s) => s.formId === 'dekorasi');
 
               const myTodayFormsList = myTodaySubs.map((s) => {
-                const f = formMap.get(s.formId)
-                return f ? f.label.replace('Checklist 5R ', '') : s.formId
-              })
+                const f = formMap.get(s.formId);
+                return f ? f.label.replace('Checklist 5R ', '') : s.formId;
+              });
 
-              const hasMyActivityToday = myTodaySubs.length > 0
-              const hasOtherActivityToday = otherTodaySubs.length > 0
+              const hasMyActivityToday = myTodaySubs.length > 0;
+              const hasOtherActivityToday = otherTodaySubs.length > 0;
 
               return (
                 <InteractiveCard
@@ -295,20 +301,32 @@ export default function RoomFormFlow({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h3 className="truncate font-bold text-foreground text-sm">{r.name}</h3>
                           {hasMyActivityToday ? (
-                            <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-extrabold">
+                            <Badge
+                              variant="outline"
+                              className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-extrabold"
+                            >
                               <Check size={9} className="mr-0.5 inline" />
                               Kamu ({myTodaySubs.length} form)
                             </Badge>
                           ) : myDekorasiDone ? (
-                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 px-1.5 py-0 text-[9px] font-semibold">
+                            <Badge
+                              variant="outline"
+                              className="bg-emerald-50 text-emerald-700 border-emerald-200 px-1.5 py-0 text-[9px] font-semibold"
+                            >
                               Dekorasi ✓
                             </Badge>
                           ) : hasOtherActivityToday ? (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-1.5 py-0 text-[9px] font-medium">
+                            <Badge
+                              variant="outline"
+                              className="bg-blue-50 text-blue-700 border-blue-200 px-1.5 py-0 text-[9px] font-medium"
+                            >
                               {otherTodaySubs.length}x Juri Lain
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-muted text-muted-foreground px-1.5 py-0 text-[9px]">
+                            <Badge
+                              variant="outline"
+                              className="bg-muted text-muted-foreground px-1.5 py-0 text-[9px]"
+                            >
                               Belum dinilai
                             </Badge>
                           )}
@@ -327,7 +345,9 @@ export default function RoomFormFlow({
                     {hasMyActivityToday && (
                       <div className="rounded-lg bg-emerald-100/60 px-2.5 py-1.5 text-[11px] text-emerald-900 flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold">Sudah kamu isi hari ini:</span>
-                        <span className="text-emerald-800 truncate">{myTodayFormsList.join(', ')}</span>
+                        <span className="text-emerald-800 truncate">
+                          {myTodayFormsList.join(', ')}
+                        </span>
                         {hasOtherActivityToday && (
                           <span className="text-[10px] text-emerald-700/80 font-medium">
                             (+ {otherTodaySubs.length} juri lain)
@@ -344,74 +364,75 @@ export default function RoomFormFlow({
                     )}
                   </CardContent>
                 </InteractiveCard>
-              )
+              );
             })}
           </div>
         )}
       </div>
-    )
+    );
   }
 
   // Stage 2: Room selected, no form — Form Picker
   if (!form) {
-    const dekorasiForms = activeForms.filter((f) => f.id === 'dekorasi')
-    const fiveRForms = activeForms.filter((f) => f.id !== 'dekorasi')
+    const dekorasiForms = activeForms.filter((f) => f.id === 'dekorasi');
+    const fiveRForms = activeForms.filter((f) => f.id !== 'dekorasi');
 
-    const roomSubsDekorasi = allSubs.filter((s) => s.roomId === room && s.formId === 'dekorasi')
-    const roomSubs5R = allSubs.filter((s) => s.roomId === room && s.formId !== 'dekorasi')
+    const roomSubsDekorasi = allSubs.filter((s) => s.roomId === room && s.formId === 'dekorasi');
+    const roomSubs5R = allSubs.filter((s) => s.roomId === room && s.formId !== 'dekorasi');
 
     const allCategorySubs = (logCategory === 'dekorasi' ? roomSubsDekorasi : roomSubs5R).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
-    const myCategorySubs = allCategorySubs.filter((s) => s.createdBy === me)
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const myCategorySubs = allCategorySubs.filter((s) => s.createdBy === me);
 
-    const displayedLogSubs = logFilter === 'mine' ? myCategorySubs : allCategorySubs
+    const displayedLogSubs = logFilter === 'mine' ? myCategorySubs : allCategorySubs;
 
     const formatSubDate = (isoString: string) => {
       try {
-        const d = new Date(isoString)
+        const d = new Date(isoString);
         if (isoString.startsWith(today)) {
-          return `Hari ini, ${d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+          return `Hari ini, ${d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
         }
         return d.toLocaleDateString('id-ID', {
           day: 'numeric',
           month: 'short',
           hour: '2-digit',
           minute: '2-digit',
-        })
+        });
       } catch {
-        return isoString
+        return isoString;
       }
-    }
+    };
 
     const FormCardButton = ({
       f,
       disabled: btnDisabled,
       icon,
     }: {
-      f: { id: string; label: string; categories: unknown[] }
-      disabled?: boolean
-      icon?: React.ReactNode
+      f: { id: string; label: string; categories: unknown[] };
+      disabled?: boolean;
+      icon?: React.ReactNode;
     }) => {
       const total = (f.categories as { criteria: unknown[] }[]).reduce(
         (s, c) => s + c.criteria.length,
-        0,
-      )
-      const formMeta = forms.find((formItem) => formItem.id === f.id)
-      const subsForF = allSubs.filter((s) => s.roomId === room && s.formId === f.id)
-      const mySubsForF = subsForF.filter((s) => s.createdBy === me)
-      const mySubsToday = mySubsForF.filter((s) => s.createdAt.startsWith(today))
-      const allSubsToday = subsForF.filter((s) => s.createdAt.startsWith(today))
+        0
+      );
+      const formMeta = forms.find((formItem) => formItem.id === f.id);
+      const subsForF = allSubs.filter((s) => s.roomId === room && s.formId === f.id);
+      const mySubsForF = subsForF.filter((s) => s.createdBy === me);
+      const mySubsToday = mySubsForF.filter((s) => s.createdAt.startsWith(today));
+      const allSubsToday = subsForF.filter((s) => s.createdAt.startsWith(today));
 
-      const myLastSub = mySubsForF[mySubsForF.length - 1]
-      const lastSubOverall = subsForF[subsForF.length - 1]
-      const activeSubForScore = myLastSub || lastSubOverall
-      const lastScore = activeSubForScore && formMeta ? scoreSubmission(formMeta, activeSubForScore) : null
+      const myLastSub = mySubsForF[mySubsForF.length - 1];
+      const lastSubOverall = subsForF[subsForF.length - 1];
+      const activeSubForScore = myLastSub || lastSubOverall;
+      const lastScore =
+        activeSubForScore && formMeta ? scoreSubmission(formMeta, activeSubForScore) : null;
 
-      const isDekorasi = f.id === 'dekorasi'
-      const hasSubmittedMyself = mySubsForF.length > 0
-      const hasSubmittedTodayMyself = mySubsToday.length > 0
-      const hasSubmittedTodayGlobal = allSubsToday.length > 0
+      const isDekorasi = f.id === 'dekorasi';
+      const hasSubmittedMyself = mySubsForF.length > 0;
+      const hasSubmittedTodayMyself = mySubsToday.length > 0;
+      const hasSubmittedTodayGlobal = allSubsToday.length > 0;
 
       return (
         <button
@@ -438,7 +459,10 @@ export default function RoomFormFlow({
                 {/* Status Badges */}
                 {isDekorasi ? (
                   hasSubmittedMyself ? (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-[10px] font-bold">
+                    <Badge
+                      variant="outline"
+                      className="bg-success/10 text-success border-success/30 text-[10px] font-bold"
+                    >
                       <Check size={10} className="mr-0.5 inline" />
                       Sudah Kamu Nilai
                     </Badge>
@@ -447,18 +471,22 @@ export default function RoomFormFlow({
                       {subsForF.length}x Juri Lain
                     </Badge>
                   ) : null
-                ) : (
-                  hasSubmittedTodayMyself ? (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-[10px] font-bold">
-                      <Check size={10} className="mr-0.5 inline" />
-                      Kamu ({mySubsToday.length}x Hari Ini)
-                    </Badge>
-                  ) : hasSubmittedTodayGlobal ? (
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px] font-semibold">
-                      {allSubsToday.length}x Auditor Lain Hari Ini
-                    </Badge>
-                  ) : null
-                )}
+                ) : hasSubmittedTodayMyself ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-success/10 text-success border-success/30 text-[10px] font-bold"
+                  >
+                    <Check size={10} className="mr-0.5 inline" />
+                    Kamu ({mySubsToday.length}x Hari Ini)
+                  </Badge>
+                ) : hasSubmittedTodayGlobal ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-primary/10 text-primary border-primary/30 text-[10px] font-semibold"
+                  >
+                    {allSubsToday.length}x Auditor Lain Hari Ini
+                  </Badge>
+                ) : null}
 
                 {btnDisabled && !hasSubmittedMyself && !hasSubmittedTodayGlobal && (
                   <Badge variant="outline" className="bg-muted text-muted-foreground text-[10px]">
@@ -476,7 +504,9 @@ export default function RoomFormFlow({
                   {allSubsToday.length > mySubsToday.length && (
                     <>
                       <span className="text-muted-foreground/40">&middot;</span>
-                      <span className="text-[11px] text-muted-foreground">Total {allSubsToday.length}x hari ini (ada juri lain)</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Total {allSubsToday.length}x hari ini (ada juri lain)
+                      </span>
                     </>
                   )}
                 </div>
@@ -498,13 +528,17 @@ export default function RoomFormFlow({
 
           <div className="flex items-center gap-2 shrink-0 ml-2">
             {lastScore && (
-              <ScoreBadge value={round1(lastScore.final)} showMax={false} className="min-w-8 justify-center font-black" />
+              <ScoreBadge
+                value={round1(lastScore.final)}
+                showMax={false}
+                className="min-w-8 justify-center font-black"
+              />
             )}
             <ChevronRight size={16} className="text-muted-foreground/50" />
           </div>
         </button>
-      )
-    }
+      );
+    };
 
     return (
       <div className="space-y-4">
@@ -559,8 +593,8 @@ export default function RoomFormFlow({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setLogFilter(myCategorySubs.length > 0 ? 'mine' : 'all')
-                    setLogCategory('dekorasi')
+                    setLogFilter(myCategorySubs.length > 0 ? 'mine' : 'all');
+                    setLogCategory('dekorasi');
                   }}
                   className="h-7 px-2.5 text-[11px] font-bold text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
                 >
@@ -603,8 +637,8 @@ export default function RoomFormFlow({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setLogFilter(myCategorySubs.length > 0 ? 'mine' : 'all')
-                    setLogCategory('fiveR')
+                    setLogFilter(myCategorySubs.length > 0 ? 'mine' : 'all');
+                    setLogCategory('fiveR');
                   }}
                   className="h-7 px-2.5 text-[11px] font-bold text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
                 >
@@ -615,12 +649,7 @@ export default function RoomFormFlow({
             </div>
             <div className="space-y-2">
               {fiveRForms.map((f) => (
-                <FormCardButton
-                  key={f.id}
-                  f={f}
-                  disabled={closed}
-                  icon={<Layers size={16} />}
-                />
+                <FormCardButton key={f.id} f={f} disabled={closed} icon={<Layers size={16} />} />
               ))}
               {disabledForms.map((f) => (
                 <FormCardButton key={f.id} f={f} disabled icon={<Layers size={16} />} />
@@ -709,10 +738,10 @@ export default function RoomFormFlow({
                 </div>
               ) : (
                 displayedLogSubs.map((s, idx) => {
-                  const formMeta = forms.find((formItem) => formItem.id === s.formId)
-                  const score = formMeta ? scoreSubmission(formMeta, s) : null
-                  const noteList = Object.values(s.notes || {}).filter(Boolean)
-                  const isMine = s.createdBy === me
+                  const formMeta = forms.find((formItem) => formItem.id === s.formId);
+                  const score = formMeta ? scoreSubmission(formMeta, s) : null;
+                  const noteList = Object.values(s.notes || {}).filter(Boolean);
+                  const isMine = s.createdBy === me;
 
                   return (
                     <div
@@ -756,7 +785,7 @@ export default function RoomFormFlow({
                         </div>
                       )}
                     </div>
-                  )
+                  );
                 })
               )}
             </div>
@@ -764,7 +793,8 @@ export default function RoomFormFlow({
             {/* Modal Footer */}
             <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20 border-t border-border/50 text-xs">
               <span className="text-[11px] text-muted-foreground font-medium">
-                Menampilkan <strong>{displayedLogSubs.length}</strong> dari <strong>{allCategorySubs.length}</strong> riwayat
+                Menampilkan <strong>{displayedLogSubs.length}</strong> dari{' '}
+                <strong>{allCategorySubs.length}</strong> riwayat
               </span>
               <Button
                 type="button"
@@ -779,13 +809,13 @@ export default function RoomFormFlow({
           </DialogContent>
         </Dialog>
       </div>
-    )
+    );
   }
 
   // Stage 3: Room + Form selected — Scoring Form
-  const selectedForm = activeForms.find((f) => f.id === form)
-  const alreadyScoredDekorasi = form === 'dekorasi' && myDekorasiRooms.has(room)
-  const showClosed = closed && !alreadyScoredDekorasi
+  const selectedForm = activeForms.find((f) => f.id === form);
+  const alreadyScoredDekorasi = form === 'dekorasi' && myDekorasiRooms.has(room);
+  const showClosed = closed && !alreadyScoredDekorasi;
 
   return (
     <div className="space-y-4">
@@ -830,8 +860,8 @@ export default function RoomFormFlow({
           <Check size={16} className="text-success" />
           <AlertTitle className="text-success font-bold">Ruangan ini sudah dinilai</AlertTitle>
           <AlertDescription className="text-xs text-muted-foreground mt-1">
-            Penilaian lomba dekorasi untuk <strong>{roomObj.name}</strong> sudah dikirim oleh akun Anda.
-            Satu ruangan hanya bisa dinilai sekali per auditor.
+            Penilaian lomba dekorasi untuk <strong>{roomObj.name}</strong> sudah dikirim oleh akun
+            Anda. Satu ruangan hanya bisa dinilai sekali per auditor.
           </AlertDescription>
           <div className="mt-3">
             <Button
@@ -849,8 +879,8 @@ export default function RoomFormFlow({
           <Lock size={16} />
           <AlertTitle>Penilaian ditutup</AlertTitle>
           <AlertDescription className="text-xs mt-1">
-            Melewati tenggat penilaian ({deadline ? new Date(deadline).toLocaleString('id-ID') : ''}).
-            Form tidak bisa diisi lagi.
+            Melewati tenggat penilaian ({deadline ? new Date(deadline).toLocaleString('id-ID') : ''}
+            ). Form tidak bisa diisi lagi.
           </AlertDescription>
           <div className="mt-3">
             <Button
@@ -871,5 +901,5 @@ export default function RoomFormFlow({
         />
       )}
     </div>
-  )
+  );
 }

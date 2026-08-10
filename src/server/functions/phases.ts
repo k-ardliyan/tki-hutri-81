@@ -4,8 +4,8 @@
  *
  * Static data fallback until DATABASE_URL is configured.
  */
-import { createServerFn } from '@tanstack/react-start'
-import { PHASES, getEventPhase, SIMULATED_DATES } from '../../lib/eventPhase'
+import { createServerFn } from '@tanstack/react-start';
+import { getEventPhase, PHASES, SIMULATED_DATES } from '../../lib/eventPhase';
 // import { assertDb } from '../db' // TODO: uncomment when DB ready
 
 /**
@@ -26,8 +26,8 @@ export const getEventPhases = createServerFn({ method: 'GET' }).handler(async ()
   // })
 
   // Static fallback
-  return Object.values(PHASES)
-})
+  return Object.values(PHASES);
+});
 
 /**
  * Returns the current event phase based on the current date (or a simulated date).
@@ -43,8 +43,8 @@ export const getCurrentPhase = createServerFn({ method: 'GET' })
     // timestamp against target_date ranges in the table.
 
     // Static fallback — use the existing helper
-    return (getEventPhase as Function)(data.simDate)
-  })
+    return (getEventPhase as Function)(data.simDate);
+  });
 
 /**
  * Returns simulated dates for the admin phase selector.
@@ -52,5 +52,5 @@ export const getCurrentPhase = createServerFn({ method: 'GET' })
 export const getSimulatedDates = createServerFn({ method: 'GET' }).handler(async () => {
   // const db = assertDb() // TODO: uncomment when DB ready
   // TODO: Replace with DB query when DATABASE_URL is set
-  return SIMULATED_DATES
-})
+  return SIMULATED_DATES;
+});

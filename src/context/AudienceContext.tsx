@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useRef } from 'react'
-import { useSearch, useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { createContext, useCallback, useContext, useRef } from 'react';
 
 /**
  * AudienceContext
@@ -14,23 +14,19 @@ import { useSearch, useNavigate } from '@tanstack/react-router'
  * Param otomatis terbawa saat navigasi karena semua navigate menggunakan
  * useAudienceNavigate() yang preserve `?u=` jika ada.
  */
-const AudienceContext = createContext({ isPanitia: false })
+const AudienceContext = createContext({ isPanitia: false });
 
 export function AudienceProvider({ children }: { children: React.ReactNode }) {
-  const search = useSearch({ strict: false }) as Record<string, string>
-  const isPanitia = search.u === 'panitia'
+  const search = useSearch({ strict: false }) as Record<string, string>;
+  const isPanitia = search.u === 'panitia';
 
-  return (
-    <AudienceContext.Provider value={{ isPanitia }}>
-      {children}
-    </AudienceContext.Provider>
-  )
+  return <AudienceContext.Provider value={{ isPanitia }}>{children}</AudienceContext.Provider>;
 }
 
 /** Hook untuk membaca status audience */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAudience() {
-  return useContext(AudienceContext)
+  return useContext(AudienceContext);
 }
 
 /**
@@ -39,24 +35,24 @@ export function useAudience() {
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAudienceNavigate() {
-  const rawNavigate = useNavigate()
-  const search = useSearch({ strict: false }) as Record<string, string>
-  const uRef = useRef(search.u)
+  const rawNavigate = useNavigate();
+  const search = useSearch({ strict: false }) as Record<string, string>;
+  const uRef = useRef(search.u);
 
   // Selalu update ref ke nilai terbaru tanpa trigger re-render
-  uRef.current = search.u
+  uRef.current = search.u;
 
   return useCallback(
     (path: string, options?: { replace?: boolean }) => {
-      const u = uRef.current
+      const u = uRef.current;
       if (!u) {
-        rawNavigate({ to: path, ...options })
-        return
+        rawNavigate({ to: path, ...options });
+        return;
       }
       // Gabungkan u= ke path — handle jika path sudah punya query string
-      const separator = path.includes('?') ? '&' : '?'
-      rawNavigate({ to: `${path}${separator}u=${u}`, ...options })
+      const separator = path.includes('?') ? '&' : '?';
+      rawNavigate({ to: `${path}${separator}u=${u}`, ...options });
     },
-    [rawNavigate],
-  )
+    [rawNavigate]
+  );
 }

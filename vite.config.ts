@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import { tanstackRouter } from '@tanstack/router-plugin/vite'
-import viteReact from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { nitro } from 'nitro/vite'
+import tailwindcss from '@tailwindcss/vite';
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
+import viteReact from '@vitejs/plugin-react';
+import { nitro } from 'nitro/vite';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
@@ -40,13 +40,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          if (!id.includes('node_modules')) return undefined
-          if (id.includes('gsap')) return 'vendor-gsap'
-          if (id.includes('tanstack')) return 'vendor-tanstack'
-          if (id.includes('react-dom') || id.includes('/react/')) return 'vendor-react'
-          return 'vendor'
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('gsap')) return 'vendor-gsap';
+          if (id.includes('tanstack')) return 'vendor-tanstack';
+          if (id.includes('react-dom') || id.includes('/react/')) return 'vendor-react';
+          return 'vendor';
         },
       },
     },
   },
-})
+});

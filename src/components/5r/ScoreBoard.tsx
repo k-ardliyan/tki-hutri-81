@@ -5,56 +5,67 @@
  * 5R = rerata semua audit (semua hari); Dekorasi = rerata semua juri;
  * Rekap = 5R*0.7 + dekorasi*0.3 — hanya ruangan lengkap yang di-rank.
  */
-import { useMemo, useState } from 'react'
-import { Trophy, Paintbrush, Sigma, AlertTriangle, Medal, Sparkles, CheckCircle2 } from 'lucide-react'
-import { StatusBadge } from '../ui/status-badge'
-import RoomIcon from '../ui/RoomIcon'
-import { scoreSubmission, aggregateRoom, round1, combineFinal } from '../../lib/scoring'
-import { deadlineInfo } from './DeadlineBanner'
-import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r'
+
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Medal,
+  Paintbrush,
+  Sigma,
+  Sparkles,
+  Trophy,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
+import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r';
+import { aggregateRoom, combineFinal, round1, scoreSubmission } from '../../lib/scoring';
+import RoomIcon from '../ui/RoomIcon';
+import { StatusBadge } from '../ui/status-badge';
+import { deadlineInfo } from './DeadlineBanner';
 
 interface ScoreBoardProps {
-  submissions: FiveRSubmission[]
-  rooms: FiveRRoom[]
-  forms: FiveRForm[]
-  deadline: string | null
-  mode: 'live' | 'admin'
+  submissions: FiveRSubmission[];
+  rooms: FiveRRoom[];
+  forms: FiveRForm[];
+  deadline: string | null;
+  mode: 'live' | 'admin';
 }
 
 interface RoomScore {
-  id: string
-  name: string
-  pic: string
-  icon: string
-  fiveR: number // 0-100
-  fiveRCount: number
-  dekorasi: number // 0-100
-  dekorasiCount: number
-  total: number
+  id: string;
+  name: string;
+  pic: string;
+  icon: string;
+  fiveR: number; // 0-100
+  fiveRCount: number;
+  dekorasi: number; // 0-100
+  dekorasiCount: number;
+  total: number;
 }
 
-const FIVE_R_FORMS_EXCLUDED = new Set(['dekorasi'])
+const FIVE_R_FORMS_EXCLUDED = new Set(['dekorasi']);
 
 export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreBoardProps) {
-  const isLive = mode === 'live'
-  const [activeTab, setActiveTab] = useState<'rekap' | 'fiveR' | 'dekorasi'>(isLive ? 'fiveR' : 'rekap')
-  const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms])
-  const { closed } = deadlineInfo(deadline)
+  const isLive = mode === 'live';
+  const [activeTab, setActiveTab] = useState<'rekap' | 'fiveR' | 'dekorasi'>(
+    isLive ? 'fiveR' : 'rekap'
+  );
+  const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
+  const { closed } = deadlineInfo(deadline);
 
   const rows = useMemo<RoomScore[]>(() => {
     return rooms.map((room) => {
-      const roomSubs = submissions.filter((s) => s.roomId === room.id)
-      const fiveRSubs = roomSubs.filter((s) => !FIVE_R_FORMS_EXCLUDED.has(s.formId))
-      const dekorasiSubs = roomSubs.filter((s) => s.formId === 'dekorasi')
+      const roomSubs = submissions.filter((s) => s.roomId === room.id);
+      const fiveRSubs = roomSubs.filter((s) => !FIVE_R_FORMS_EXCLUDED.has(s.formId));
+      const dekorasiSubs = roomSubs.filter((s) => s.formId === 'dekorasi');
       const score = (subs: FiveRSubmission[]) =>
         aggregateRoom(
           subs
             .map((s) => {
-              const form = formMap.get(s.formId)
-              return form ? scoreSubmission(form, s) : null
+              const form = formMap.get(s.formId);
+              return form ? scoreSubmission(form, s) : null;
             })
-            .filter((x): x is NonNullable<typeof x> => x !== null),
-        )
+            .filter((x): x is NonNullable<typeof x> => x !== null)
+        );
       return {
         id: room.id,
         name: room.name,
@@ -64,15 +75,33 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
         fiveRCount: fiveRSubs.length,
         dekorasi: dekorasiSubs.length ? score(dekorasiSubs) : 0,
         dekorasiCount: dekorasiSubs.length,
-        total: fiveRSubs.length && dekorasiSubs.length ? combineFinal(score(fiveRSubs), score(dekorasiSubs)) : 0,
-      }
-    })
-  }, [rooms, submissions, formMap])
+        total:
+          fiveRSubs.length && dekorasiSubs.length
+            ? combineFinal(score(fiveRSubs), score(dekorasiSubs))
+            : 0,
+      };
+    });
+  }, [rooms, submissions, formMap]);
 
-  const fiveRRank = useMemo(() => [...rows].filter((r) => r.fiveRCount > 0).sort((a, b) => b.fiveR - a.fiveR), [rows])
-  const dekorasiRank = useMemo(() => [...rows].filter((r) => r.dekorasiCount > 0).sort((a, b) => b.dekorasi - a.dekorasi), [rows])
-  const rekapRank = useMemo(() => [...rows].filter((r) => r.fiveRCount > 0 && r.dekorasiCount > 0).sort((a, b) => b.total - a.total), [rows])
-  const incomplete = useMemo(() => rows.filter((r) => r.fiveRCount === 0 || r.dekorasiCount === 0), [rows])
+  const fiveRRank = useMemo(
+    () => [...rows].filter((r) => r.fiveRCount > 0).sort((a, b) => b.fiveR - a.fiveR),
+    [rows]
+  );
+  const dekorasiRank = useMemo(
+    () => [...rows].filter((r) => r.dekorasiCount > 0).sort((a, b) => b.dekorasi - a.dekorasi),
+    [rows]
+  );
+  const rekapRank = useMemo(
+    () =>
+      [...rows]
+        .filter((r) => r.fiveRCount > 0 && r.dekorasiCount > 0)
+        .sort((a, b) => b.total - a.total),
+    [rows]
+  );
+  const incomplete = useMemo(
+    () => rows.filter((r) => r.fiveRCount === 0 || r.dekorasiCount === 0),
+    [rows]
+  );
 
   const statusHeader = isLive ? (
     closed ? (
@@ -81,7 +110,9 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
           <Trophy size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-heading font-black text-slate-900 text-sm">Peringkat &amp; Skor FINAL</p>
+          <p className="font-heading font-black text-slate-900 text-sm">
+            Peringkat &amp; Skor FINAL
+          </p>
           <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
             Masa penilaian lomba telah resmi berakhir.
           </p>
@@ -100,7 +131,7 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
         </div>
       </div>
     )
-  ) : null
+  ) : null;
 
   const rankBadge = (rank: number) => {
     if (rank === 1) {
@@ -108,47 +139,55 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 font-black text-sm border border-amber-300 shadow-xs">
           🥇
         </div>
-      )
+      );
     }
     if (rank === 2) {
       return (
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-700 font-black text-sm border border-slate-300 shadow-xs">
           🥈
         </div>
-      )
+      );
     }
     if (rank === 3) {
       return (
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-800 font-black text-sm border border-orange-300 shadow-xs">
           🥉
         </div>
-      )
+      );
     }
     return (
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 font-black text-xs">
         {rank}
       </div>
-    )
-  }
+    );
+  };
 
   // Top 3 Podium Cards with responsive layout
-  const PodiumView = ({ list, scoreKey, label }: { list: RoomScore[]; scoreKey: 'total' | 'fiveR' | 'dekorasi'; label: string }) => {
-    if (list.length === 0) return null
-    const top3 = list.slice(0, 3)
+  const PodiumView = ({
+    list,
+    scoreKey,
+    label,
+  }: {
+    list: RoomScore[];
+    scoreKey: 'total' | 'fiveR' | 'dekorasi';
+    label: string;
+  }) => {
+    if (list.length === 0) return null;
+    const top3 = list.slice(0, 3);
 
     const gridClass =
       top3.length === 1
         ? 'grid-cols-1'
         : top3.length === 2
           ? 'grid-cols-1 sm:grid-cols-2'
-          : 'grid-cols-1 sm:grid-cols-3'
+          : 'grid-cols-1 sm:grid-cols-3';
 
     return (
       <div className={`grid gap-3.5 ${gridClass}`}>
         {top3.map((r, i) => {
-          const rank = i + 1
-          const isFirst = rank === 1
-          const val = r[scoreKey]
+          const rank = i + 1;
+          const isFirst = rank === 1;
+          const val = r[scoreKey];
 
           return (
             <div
@@ -202,11 +241,11 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -269,7 +308,8 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
                 <Medal size={15} />
               </div>
               <span>
-                Bobot Nilai Resmi: <strong className="text-slate-900">70% Skor 5R</strong> + <strong className="text-slate-900">30% Lomba Dekorasi</strong>
+                Bobot Nilai Resmi: <strong className="text-slate-900">70% Skor 5R</strong> +{' '}
+                <strong className="text-slate-900">30% Lomba Dekorasi</strong>
               </span>
             </div>
             <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-slate-200 shadow-2xs self-start sm:self-auto">
@@ -282,21 +322,28 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
           {rekapRank.length > 0 ? (
             <div className="rounded-3xl border border-slate-200/80 bg-white shadow-sm divide-y divide-slate-100 overflow-hidden">
               {rekapRank.map((r, i) => (
-                <div key={r.id} className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-rose-50/30 transition-colors">
+                <div
+                  key={r.id}
+                  className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-rose-50/30 transition-colors"
+                >
                   {rankBadge(i + 1)}
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                     <RoomIcon name={r.icon} size={16} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate font-heading font-black text-slate-900 text-sm">{r.name}</p>
+                      <p className="truncate font-heading font-black text-slate-900 text-sm">
+                        {r.name}
+                      </p>
                       <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
                     </div>
                     <p className="text-xs text-slate-500 font-medium">PIC: {r.pic}</p>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-slate-500 font-medium">
-                      5R <span className="font-extrabold text-slate-800">{round1(r.fiveR)}</span> · Dek <span className="font-extrabold text-slate-800">{round1(r.dekorasi)}</span>
+                      5R <span className="font-extrabold text-slate-800">{round1(r.fiveR)}</span> ·
+                      Dek{' '}
+                      <span className="font-extrabold text-slate-800">{round1(r.dekorasi)}</span>
                     </div>
                     <div className="mt-1">
                       <StatusBadge score={round1(r.total)} showScoreMax />
@@ -362,14 +409,21 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
           {fiveRRank.length > 0 ? (
             <div className="rounded-3xl border border-slate-200/80 bg-white shadow-sm divide-y divide-slate-100 overflow-hidden">
               {fiveRRank.map((r, i) => (
-                <div key={r.id} className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-rose-50/30 transition-colors">
+                <div
+                  key={r.id}
+                  className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-rose-50/30 transition-colors"
+                >
                   {rankBadge(i + 1)}
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                     <RoomIcon name={r.icon} size={16} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-heading font-black text-slate-900 text-sm">{r.name}</p>
-                    <p className="text-xs text-slate-500 font-medium">PIC: {r.pic} · {r.fiveRCount}x dinilai</p>
+                    <p className="truncate font-heading font-black text-slate-900 text-sm">
+                      {r.name}
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium">
+                      PIC: {r.pic} · {r.fiveRCount}x dinilai
+                    </p>
                   </div>
                   <div className="text-right">
                     <StatusBadge score={round1(r.fiveR)} showScoreMax />
@@ -392,7 +446,8 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
         <div className="space-y-4">
           {!isLive && (
             <div className="rounded-2xl border border-sky-200/80 bg-sky-50/60 px-4 py-3 text-xs text-slate-700 leading-relaxed">
-              Lomba Dekorasi Ruangan dinilai 1x oleh tiap juri/auditor. Nilai dihitung dari rata-rata seluruh juri.
+              Lomba Dekorasi Ruangan dinilai 1x oleh tiap juri/auditor. Nilai dihitung dari
+              rata-rata seluruh juri.
             </div>
           )}
 
@@ -401,14 +456,21 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
           {dekorasiRank.length > 0 ? (
             <div className="rounded-3xl border border-slate-200/80 bg-white shadow-sm divide-y divide-slate-100 overflow-hidden">
               {dekorasiRank.map((r, i) => (
-                <div key={r.id} className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-rose-50/30 transition-colors">
+                <div
+                  key={r.id}
+                  className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-rose-50/30 transition-colors"
+                >
                   {rankBadge(i + 1)}
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                     <RoomIcon name={r.icon} size={16} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-heading font-black text-slate-900 text-sm">{r.name}</p>
-                    <p className="text-xs text-slate-500 font-medium">PIC: {r.pic} · {r.dekorasiCount} juri</p>
+                    <p className="truncate font-heading font-black text-slate-900 text-sm">
+                      {r.name}
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium">
+                      PIC: {r.pic} · {r.dekorasiCount} juri
+                    </p>
                   </div>
                   <div className="text-right">
                     <StatusBadge score={round1(r.dekorasi)} showScoreMax />
@@ -426,7 +488,5 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
         </div>
       )}
     </div>
-  )
+  );
 }
-
-

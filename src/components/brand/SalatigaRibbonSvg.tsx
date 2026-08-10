@@ -1,17 +1,17 @@
-import { useEffect, useRef } from 'react'
-import { assets } from '../../assets'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useRef } from 'react';
+import { assets } from '../../assets';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
-  const containerRef = useRef(null)
-  const tuguRef = useRef(null)
-  const clockGlowRef = useRef(null)
-  const ribbonRedRef = useRef(null)
-  const ribbonWhiteRef = useRef(null)
-  const particlesRef = useRef<SVGGElement>(null)
+  const containerRef = useRef(null);
+  const tuguRef = useRef(null);
+  const clockGlowRef = useRef(null);
+  const ribbonRedRef = useRef(null);
+  const ribbonWhiteRef = useRef(null);
+  const particlesRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || shouldReduceMotion()) return undefined
+    if (!containerRef.current || shouldReduceMotion()) return undefined;
 
     const ctx = gsap.context(() => {
       // 1. Zoomed Tugu Jam Vector Gentle Float
@@ -22,7 +22,7 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
-        })
+        });
       }
 
       // 2. Glowing Clock Pulse Overlay
@@ -35,7 +35,7 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
           yoyo: true,
           ease: 'sine.inOut',
           transformOrigin: 'center center',
-        })
+        });
       }
 
       // 3. Waving Red and White Silk Ribbons
@@ -47,7 +47,7 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
-        })
+        });
         gsap.to(ribbonWhiteRef.current, {
           y: 10,
           skewX: -2,
@@ -56,12 +56,12 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
           yoyo: true,
           ease: 'sine.inOut',
           delay: 0.2,
-        })
+        });
       }
 
       // 4. Golden sparkle particles float
       if (particlesRef.current) {
-        const dots = particlesRef.current.querySelectorAll('.particle-dot')
+        const dots = particlesRef.current.querySelectorAll('.particle-dot');
         dots.forEach((dot: Element, i: number) => {
           gsap.to(dot, {
             y: `-=${14 + (i % 3) * 8}`,
@@ -72,13 +72,13 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
             yoyo: true,
             ease: 'sine.inOut',
             delay: i * 0.15,
-          })
-        })
+          });
+        });
       }
-    }, containerRef)
+    }, containerRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div ref={containerRef} className={`pointer-events-none ${className}`}>
@@ -166,5 +166,5 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
         </g>
       </svg>
     </div>
-  )
+  );
 }

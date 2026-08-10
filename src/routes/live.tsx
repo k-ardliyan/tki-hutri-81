@@ -2,20 +2,21 @@
  * Unified Live Score & Bagan Pertandingan — Halaman Publik Terpadu.
  * Menggabungkan skor penilaian dekorasi/5R dan skema bagan pertandingan lapangan.
  */
-import { useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod'
-import { Sparkles, Trophy, Users, Workflow } from 'lucide-react'
-import { getRooms, getForms, getSubmissions, getDeadline } from '../server/functions/5r'
-import { getBaganCompetitions, getBracket } from '../server/functions/bracket'
-import { ScoreBoard } from '../components/5r/ScoreBoard'
-import { BracketTree } from '../components/bagan/BracketTree'
-import { LiveScoreSkeleton } from '../components/ui/skeletons'
+
+import { createFileRoute } from '@tanstack/react-router';
+import { Sparkles, Trophy, Users, Workflow } from 'lucide-react';
+import { useState } from 'react';
+import { z } from 'zod';
+import { ScoreBoard } from '../components/5r/ScoreBoard';
+import { BracketTree } from '../components/bagan/BracketTree';
+import { LiveScoreSkeleton } from '../components/ui/skeletons';
+import { getDeadline, getForms, getRooms, getSubmissions } from '../server/functions/5r';
+import { getBaganCompetitions, getBracket } from '../server/functions/bracket';
 
 const searchSchema = z.object({
   tab: z.enum(['5r', 'bagan']).optional(),
   comp: z.number().optional(),
-})
+});
 
 export const Route = createFileRoute('/live')({
   validateSearch: searchSchema,
@@ -26,33 +27,33 @@ export const Route = createFileRoute('/live')({
       getSubmissions(),
       getDeadline(),
       getBaganCompetitions(),
-    ])
+    ]);
 
     const entries = await Promise.all(
       comps.flatMap((c) =>
         (['putra', 'putri'] as const).map(async (k) => ({
           key: `${c.id}:${k}`,
           detail: await getBracket({ data: { competitionId: c.id, kategori: k } }),
-        })),
-      ),
-    )
-    const details: Record<string, Awaited<ReturnType<typeof getBracket>>> = {}
-    for (const e of entries) details[e.key] = e.detail
+        }))
+      )
+    );
+    const details: Record<string, Awaited<ReturnType<typeof getBracket>>> = {};
+    for (const e of entries) details[e.key] = e.detail;
 
-    return { rooms, forms, submissions, deadline: dl.deadline, comps, details }
+    return { rooms, forms, submissions, deadline: dl.deadline, comps, details };
   },
   component: UnifiedLivePage,
   pendingComponent: LiveScoreSkeleton,
-})
+});
 
 function UnifiedLivePage() {
-  const { rooms, forms, submissions, deadline, comps, details } = Route.useLoaderData()
-  const { tab = '5r', comp: compSearch } = Route.useSearch()
-  const navigate = Route.useNavigate()
+  const { rooms, forms, submissions, deadline, comps, details } = Route.useLoaderData();
+  const { tab = '5r', comp: compSearch } = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   const [activeCompId, setActiveCompId] = useState<number | null>(
-    compSearch ?? comps[0]?.id ?? null,
-  )
+    compSearch ?? comps[0]?.id ?? null
+  );
 
   const handleTabChange = (newTab: '5r' | 'bagan') => {
     navigate({
@@ -61,10 +62,10 @@ function UnifiedLivePage() {
         tab: newTab,
       }),
       replace: true,
-    })
-  }
+    });
+  };
 
-  const selectedComp = comps.find((c) => c.id === activeCompId) ?? comps[0]
+  const selectedComp = comps.find((c) => c.id === activeCompId) ?? comps[0];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -81,7 +82,8 @@ function UnifiedLivePage() {
           Live Score &amp; Bagan Pertandingan
         </h1>
         <p className="mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-slate-600">
-          Pantau akumulasi nilai Budaya 5R &amp; Dekorasi Ruangan secara transparan, serta skema alur gugur pertandingan lapangan.
+          Pantau akumulasi nilai Budaya 5R &amp; Dekorasi Ruangan secara transparan, serta skema
+          alur gugur pertandingan lapangan.
         </p>
       </section>
 
@@ -139,7 +141,8 @@ function UnifiedLivePage() {
                 Bagan belum tersedia
               </h3>
               <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                Panitia sedang menyusun bagan pertandingan. Silakan cek kembali saat perlombaan dimulai.
+                Panitia sedang menyusun bagan pertandingan. Silakan cek kembali saat perlombaan
+                dimulai.
               </p>
             </div>
           ) : (
@@ -165,8 +168,8 @@ function UnifiedLivePage() {
               {/* Putra & Putri Bracket Cards */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {(['putra', 'putri'] as const).map((k) => {
-                  const detail = selectedComp ? details[`${selectedComp.id}:${k}`] : null
-                  const isPutra = k === 'putra'
+                  const detail = selectedComp ? details[`${selectedComp.id}:${k}`] : null;
+                  const isPutra = k === 'putra';
 
                   return (
                     <section
@@ -177,9 +180,7 @@ function UnifiedLivePage() {
                         <div className="flex items-center gap-2.5">
                           <span
                             className={`flex h-7 w-7 items-center justify-center rounded-xl font-black text-xs ${
-                              isPutra
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-pink-100 text-pink-700'
+                              isPutra ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
                             }`}
                           >
                             {isPutra ? 'P' : 'W'}
@@ -189,7 +190,9 @@ function UnifiedLivePage() {
                           </h3>
                         </div>
                         <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-slate-200/80 shadow-2xs">
-                          {detail ? `${detail.bracket.participantCount} peserta` : 'Belum ada bagan'}
+                          {detail
+                            ? `${detail.bracket.participantCount} peserta`
+                            : 'Belum ada bagan'}
                         </span>
                       </header>
 
@@ -206,7 +209,7 @@ function UnifiedLivePage() {
                         )}
                       </div>
                     </section>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -214,5 +217,5 @@ function UnifiedLivePage() {
         </div>
       )}
     </div>
-  )
+  );
 }
