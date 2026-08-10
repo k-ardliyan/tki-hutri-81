@@ -1,0 +1,379 @@
+{
+  "id": "office-non-smoking",
+  "label": "Checklist 5R Office Non-Smoking",
+  "source": "checklist-5r-office-non-smoking.md",
+  "scale": { "min": 1, "max": 5 },
+  "categories": [
+    {
+      "id": "ringkas",
+      "label": "A. RINGKAS",
+      "sortOrder": 1,
+      "criteria": [
+        {
+          "id": "non-smoking-ringkas-1",
+          "order": 1,
+          "text": "Barang yang tidak digunakan sudah disingkirkan dari area kerja",
+          "options": [
+            { "score": 1, "desc": "Banyak barang tidak digunakan masih menumpuk di area kerja" },
+            { "score": 2, "desc": "Sebagian barang tidak digunakan sudah dipindahkan namun masih mengganggu" },
+            { "score": 3, "desc": "Barang tidak digunakan mulai berkurang tetapi masih ada beberapa" },
+            { "score": 4, "desc": "Hampir semua barang tidak digunakan sudah disingkirkan" },
+            { "score": 5, "desc": "Semua barang tidak digunakan sudah disingkirkan dan area kerja rapi" }
+          ]
+        },
+        {
+          "id": "non-smoking-ringkas-2",
+          "order": 2,
+          "text": "Tidak terdapat tumpukan dokumen/kardus tidak terpakai",
+          "options": [
+            { "score": 1, "desc": "Banyak dokumen/kardus tidak terpakai menumpuk" },
+            { "score": 2, "desc": "Tumpukan dokumen/kardus masih cukup banyak" },
+            { "score": 3, "desc": "Sebagian dokumen/kardus sudah dirapikan" },
+            { "score": 4, "desc": "Hanya sedikit dokumen/kardus tidak terpakai yang tersisa" },
+            { "score": 5, "desc": "Tidak ada tumpukan dokumen/kardus tidak terpakai" }
+          ]
+        },
+        {
+          "id": "non-smoking-ringkas-3",
+          "order": 3,
+          "text": "Peralatan rusak dipisahkan dan diberi tanda",
+          "options": [
+            { "score": 1, "desc": "Peralatan rusak bercampur dengan peralatan normal tanpa tanda" },
+            { "score": 2, "desc": "Sebagian peralatan rusak dipisahkan namun belum diberi tanda jelas" },
+            { "score": 3, "desc": "Peralatan rusak cukup terpisah dan sebagian sudah diberi tanda" },
+            { "score": 4, "desc": "Hampir semua peralatan rusak dipisahkan dan diberi tanda jelas" },
+            { "score": 5, "desc": "Semua peralatan rusak dipisahkan, diberi tanda, dan aman" }
+          ]
+        },
+        {
+          "id": "non-smoking-ringkas-4",
+          "order": 4,
+          "text": "Barang pribadi di area kerja tidak berlebihan",
+          "options": [
+            { "score": 1, "desc": "Banyak barang pribadi memenuhi area kerja" },
+            { "score": 2, "desc": "Barang pribadi masih cukup banyak dan mengganggu" },
+            { "score": 3, "desc": "Barang pribadi mulai tertata namun masih ada beberapa yang berlebihan" },
+            { "score": 4, "desc": "Barang pribadi sedikit dan tidak mengganggu pekerjaan" },
+            { "score": 5, "desc": "Area kerja tertata rapi tanpa barang pribadi berlebihan" }
+          ]
+        },
+        {
+          "id": "non-smoking-ringkas-5",
+          "order": 5,
+          "text": "Area kerja bebas dari sampah dan barang tidak perlu",
+          "options": [
+            { "score": 1, "desc": "Banyak sampah dan barang tidak perlu berserakan" },
+            { "score": 2, "desc": "Sampah dan barang tidak perlu masih cukup banyak" },
+            { "score": 3, "desc": "Area kerja cukup bersih namun masih ada sedikit sampah/barang tidak perlu" },
+            { "score": 4, "desc": "Area kerja bersih dan hanya ada sedikit barang tidak perlu" },
+            { "score": 5, "desc": "Area kerja sangat bersih, rapi, dan bebas sampah/barang tidak perlu" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rapi",
+      "label": "B. RAPI",
+      "sortOrder": 2,
+      "criteria": [
+        {
+          "id": "non-smoking-rapi-6",
+          "order": 6,
+          "text": "Dokumen tersusun dan diberi label",
+          "options": [
+            { "score": 1, "desc": "Dokumen berantakan dan tidak berlabel" },
+            { "score": 2, "desc": "Sebagian dokumen tersusun namun label masih minim" },
+            { "score": 3, "desc": "Dokumen cukup tersusun, beberapa sudah berlabel" },
+            { "score": 4, "desc": "Dokumen tersusun rapi dan sebagian besar sudah berlabel" },
+            { "score": 5, "desc": "Semua dokumen tersusun rapi dan diberi label lengkap sehingga mudah dicari" }
+          ]
+        },
+        {
+          "id": "non-smoking-rapi-7",
+          "order": 7,
+          "text": "Peralatan kerja memiliki tempat khusus",
+          "options": [
+            { "score": 1, "desc": "Peralatan kerja tidak memiliki tempat tetap" },
+            { "score": 2, "desc": "Sebagian peralatan memiliki tempat tetapi tidak konsisten" },
+            { "score": 3, "desc": "Peralatan kerja cukup memiliki tempat khusus namun belum rapi sepenuhnya" },
+            { "score": 4, "desc": "Peralatan kerja memiliki tempat khusus dan sebagian besar tertata" },
+            { "score": 5, "desc": "Semua peralatan kerja memiliki tempat khusus yang jelas dan selalu dikembalikan" }
+          ]
+        },
+        {
+          "id": "non-smoking-rapi-8",
+          "order": 8,
+          "text": "Kabel listrik/data tertata aman dan rapi",
+          "options": [
+            { "score": 1, "desc": "Kabel semrawut dan berpotensi bahaya" },
+            { "score": 2, "desc": "Kabel masih banyak tidak tertata dengan baik" },
+            { "score": 3, "desc": "Kabel cukup tertata namun masih ada beberapa yang berantakan" },
+            { "score": 4, "desc": "Kabel tertata rapi dan aman di sebagian besar area" },
+            { "score": 5, "desc": "Semua kabel tertata rapi, aman, dan menggunakan pengaman kabel" }
+          ]
+        },
+        {
+          "id": "non-smoking-rapi-9",
+          "order": 9,
+          "text": "Lemari/rak memiliki identitas atau label",
+          "options": [
+            { "score": 1, "desc": "Lemari/rak tidak memiliki identitas" },
+            { "score": 2, "desc": "Sebagian lemari/rak memiliki label namun tidak jelas" },
+            { "score": 3, "desc": "Label cukup ada namun belum lengkap" },
+            { "score": 4, "desc": "Lemari/rak memiliki identitas yang jelas dan mudah dibaca" },
+            { "score": 5, "desc": "Semua lemari/rak memiliki identitas lengkap, jelas, dan terstandar" }
+          ]
+        },
+        {
+          "id": "non-smoking-rapi-10",
+          "order": 10,
+          "text": "Barang mudah ditemukan dalam waktu singkat",
+          "options": [
+            { "score": 1, "desc": "Barang sulit ditemukan dan tidak teratur" },
+            { "score": 2, "desc": "Barang sering sulit ditemukan karena penataan buruk" },
+            { "score": 3, "desc": "Barang cukup mudah ditemukan namun masih memerlukan waktu" },
+            { "score": 4, "desc": "Barang mudah ditemukan dengan penataan yang baik" },
+            { "score": 5, "desc": "Semua barang sangat mudah ditemukan karena sistem penyimpanan rapi dan terstruktur" }
+          ]
+        },
+        {
+          "id": "non-smoking-rapi-11",
+          "order": 11,
+          "text": "Tempat sampah tersedia dan mudah dijangkau",
+          "options": [
+            { "score": 1, "desc": "Tempat sampah tidak tersedia" },
+            { "score": 2, "desc": "Tempat sampah ada namun jauh dan tidak strategis" },
+            { "score": 3, "desc": "Tempat sampah cukup tersedia tetapi belum semua mudah dijangkau" },
+            { "score": 4, "desc": "Tempat sampah tersedia dan mudah dijangkau di sebagian besar area" },
+            { "score": 5, "desc": "Tempat sampah tersedia lengkap, strategis, dan sangat mudah dijangkau di seluruh area" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resik",
+      "label": "C. RESIK",
+      "sortOrder": 3,
+      "criteria": [
+        {
+          "id": "non-smoking-resik-12",
+          "order": 12,
+          "text": "Lantai bersih dari debu dan sampah",
+          "options": [
+            { "score": 1, "desc": "Lantai sangat kotor, banyak debu dan sampah" },
+            { "score": 2, "desc": "Lantai masih terlihat kotor di banyak area" },
+            { "score": 3, "desc": "Lantai cukup bersih namun masih ada sedikit debu/sampah" },
+            { "score": 4, "desc": "Lantai bersih dan hanya ada sedikit kotoran" },
+            { "score": 5, "desc": "Lantai sangat bersih, bebas debu dan sampah" }
+          ]
+        },
+        {
+          "id": "non-smoking-resik-13",
+          "order": 13,
+          "text": "Meja kerja bersih dan tidak lengket/kotor",
+          "options": [
+            { "score": 1, "desc": "Meja sangat kotor dan lengket" },
+            { "score": 2, "desc": "Meja masih kotor dan kurang terawat" },
+            { "score": 3, "desc": "Meja cukup bersih namun masih ada sedikit noda" },
+            { "score": 4, "desc": "Meja bersih dan nyaman digunakan" },
+            { "score": 5, "desc": "Meja sangat bersih, tidak ada kotoran atau noda" }
+          ]
+        },
+        {
+          "id": "non-smoking-resik-14",
+          "order": 14,
+          "text": "Peralatan kantor dibersihkan rutin",
+          "options": [
+            { "score": 1, "desc": "Peralatan sangat kotor dan tidak terawat" },
+            { "score": 2, "desc": "Peralatan jarang dibersihkan" },
+            { "score": 3, "desc": "Peralatan dibersihkan sesekali" },
+            { "score": 4, "desc": "Peralatan dibersihkan secara rutin" },
+            { "score": 5, "desc": "Semua peralatan selalu bersih dan terawat dengan baik" }
+          ]
+        },
+        {
+          "id": "non-smoking-resik-15",
+          "order": 15,
+          "text": "Tempat sampah tidak penuh dan tidak bau",
+          "options": [
+            { "score": 1, "desc": "Tempat sampah penuh dan berbau" },
+            { "score": 2, "desc": "Tempat sampah hampir penuh dan mulai bau" },
+            { "score": 3, "desc": "Tempat sampah cukup terisi namun masih layak" },
+            { "score": 4, "desc": "Tempat sampah tidak penuh dan tidak berbau" },
+            { "score": 5, "desc": "Tempat sampah selalu kosong/terkontrol dan tidak berbau" }
+          ]
+        },
+        {
+          "id": "non-smoking-resik-16",
+          "order": 16,
+          "text": "Area sudut/kolong meja bersih",
+          "options": [
+            { "score": 1, "desc": "Banyak debu dan sampah di sudut/kolong meja" },
+            { "score": 2, "desc": "Sudut/kolong meja masih kotor" },
+            { "score": 3, "desc": "Sudut/kolong meja cukup bersih namun belum maksimal" },
+            { "score": 4, "desc": "Sudut/kolong meja bersih dengan sedikit debu" },
+            { "score": 5, "desc": "Sudut/kolong meja sangat bersih tanpa debu atau sampah" }
+          ]
+        },
+        {
+          "id": "non-smoking-resik-17",
+          "order": 17,
+          "text": "AC/ventilasi tidak berdebu berlebihan",
+          "options": [
+            { "score": 1, "desc": "AC/ventilasi sangat berdebu dan kotor" },
+            { "score": 2, "desc": "AC/ventilasi cukup kotor dan jarang dibersihkan" },
+            { "score": 3, "desc": "AC/ventilasi cukup bersih namun masih ada debu" },
+            { "score": 4, "desc": "AC/ventilasi bersih dan terawat" },
+            { "score": 5, "desc": "AC/ventilasi sangat bersih, bebas debu, dan berfungsi optimal" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rawat",
+      "label": "D. RAWAT",
+      "sortOrder": 4,
+      "criteria": [
+        {
+          "id": "non-smoking-rawat-18",
+          "order": 18,
+          "text": "Ada SOP area merokok",
+          "options": [
+            { "score": 1, "desc": "Tidak ada SOP area merokok" },
+            { "score": 2, "desc": "SOP ada namun tidak lengkap" },
+            { "score": 3, "desc": "SOP lengkap tetapi belum diterapkan konsisten" },
+            { "score": 4, "desc": "SOP lengkap dan mulai diterapkan dengan baik" },
+            { "score": 5, "desc": "SOP lengkap, jelas, dan diterapkan secara konsisten" }
+          ]
+        },
+        {
+          "id": "non-smoking-rawat-19",
+          "order": 19,
+          "text": "Ada jadwal cleaning area dan dijalankan",
+          "options": [
+            { "score": 1, "desc": "Tidak ada jadwal pembersihan" },
+            { "score": 2, "desc": "Jadwal ada tetapi tidak dijalankan" },
+            { "score": 3, "desc": "Jadwal cleaning dijalankan sebagian" },
+            { "score": 4, "desc": "Jadwal cleaning berjalan rutin" },
+            { "score": 5, "desc": "Jadwal cleaning berjalan rutin, terdokumentasi, dan disiplin" }
+          ]
+        },
+        {
+          "id": "non-smoking-rawat-20",
+          "order": 20,
+          "text": "Label identitas dan tanda masih jelas",
+          "options": [
+            { "score": 1, "desc": "Label/tanda tidak ada atau rusak" },
+            { "score": 2, "desc": "Label/tanda sulit dibaca" },
+            { "score": 3, "desc": "Sebagian label/tanda masih cukup jelas" },
+            { "score": 4, "desc": "Label/tanda jelas dan mudah dipahami" },
+            { "score": 5, "desc": "Semua label/tanda sangat jelas, lengkap, dan terawat" }
+          ]
+        },
+        {
+          "id": "non-smoking-rawat-21",
+          "order": 21,
+          "text": "APAR tersedia dekat area merokok",
+          "options": [
+            { "score": 1, "desc": "Tidak tersedia APAR" },
+            { "score": 2, "desc": "APAR tersedia tetapi tidak layak pakai" },
+            { "score": 3, "desc": "APAR tersedia namun penempatan kurang tepat" },
+            { "score": 4, "desc": "APAR tersedia, layak pakai, dan mudah dijangkau" },
+            { "score": 5, "desc": "APAR tersedia lengkap, terawat, dan sesuai standar keselamatan" }
+          ]
+        },
+        {
+          "id": "non-smoking-rawat-22",
+          "order": 22,
+          "text": "Audit 5R dilakukan rutin",
+          "options": [
+            { "score": 1, "desc": "Audit 5R tidak pernah dilakukan" },
+            { "score": 2, "desc": "Audit dilakukan sangat jarang" },
+            { "score": 3, "desc": "Audit dilakukan namun belum rutin" },
+            { "score": 4, "desc": "Audit dilakukan rutin sesuai jadwal" },
+            { "score": 5, "desc": "Audit dilakukan rutin, terdokumentasi, dan ada tindak lanjut" }
+          ]
+        },
+        {
+          "id": "non-smoking-rawat-23",
+          "order": 23,
+          "text": "Kondisi area kerja terjaga konsisten",
+          "options": [
+            { "score": 1, "desc": "Kondisi area kerja sangat tidak terjaga" },
+            { "score": 2, "desc": "Kondisi sering kotor/tidak konsisten" },
+            { "score": 3, "desc": "Kondisi cukup terjaga namun masih fluktuatif" },
+            { "score": 4, "desc": "Kondisi area kerja terjaga dengan baik dan relatif stabil" },
+            { "score": 5, "desc": "Kondisi area kerja sangat terjaga, rapi, dan konsisten setiap waktu" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rajin",
+      "label": "E. RAJIN",
+      "sortOrder": 5,
+      "criteria": [
+        {
+          "id": "non-smoking-rajin-24",
+          "order": 24,
+          "text": "Karyawan menjaga kerapihan setelah bekerja",
+          "options": [
+            { "score": 1, "desc": "Tidak ada upaya menjaga kerapihan setelah bekerja" },
+            { "score": 2, "desc": "Kerapihan jarang dijaga dan sering berantakan" },
+            { "score": 3, "desc": "Kerapihan cukup dijaga namun belum konsisten" },
+            { "score": 4, "desc": "Karyawan umumnya menjaga kerapihan setelah bekerja" },
+            { "score": 5, "desc": "Semua karyawan selalu menjaga kerapihan setelah bekerja tanpa diingatkan" }
+          ]
+        },
+        {
+          "id": "non-smoking-rajin-25",
+          "order": 25,
+          "text": "Karyawan membuang sampah pada tempatnya",
+          "options": [
+            { "score": 1, "desc": "Banyak karyawan membuang sampah sembarangan" },
+            { "score": 2, "desc": "Masih sering ditemukan sampah tidak pada tempatnya" },
+            { "score": 3, "desc": "Kebiasaan membuang sampah pada tempatnya cukup baik namun belum konsisten" },
+            { "score": 4, "desc": "Sebagian besar karyawan membuang sampah pada tempatnya" },
+            { "score": 5, "desc": "Semua karyawan disiplin membuang sampah pada tempatnya" }
+          ]
+        },
+        {
+          "id": "non-smoking-rajin-26",
+          "order": 26,
+          "text": "Karyawan disiplin menjaga fasilitas kantor",
+          "options": [
+            { "score": 1, "desc": "Banyak kerusakan/kelalaian dalam penggunaan fasilitas" },
+            { "score": 2, "desc": "Fasilitas sering digunakan tidak sesuai aturan" },
+            { "score": 3, "desc": "Penggunaan fasilitas cukup baik namun masih ada pelanggaran kecil" },
+            { "score": 4, "desc": "Karyawan umumnya disiplin menjaga fasilitas kantor" },
+            { "score": 5, "desc": "Semua karyawan sangat disiplin dan bertanggung jawab menjaga fasilitas kantor" }
+          ]
+        },
+        {
+          "id": "non-smoking-rajin-27",
+          "order": 27,
+          "text": "Aturan dipatuhi tanpa diingatkan",
+          "options": [
+            { "score": 1, "desc": "Aturan sering diabaikan" },
+            { "score": 2, "desc": "Aturan dipatuhi hanya jika diingatkan" },
+            { "score": 3, "desc": "Kepatuhan cukup baik namun masih perlu pengawasan" },
+            { "score": 4, "desc": "Aturan dipatuhi dengan sedikit pengawasan" },
+            { "score": 5, "desc": "Semua aturan dipatuhi secara sadar tanpa perlu diingatkan" }
+          ]
+        },
+        {
+          "id": "non-smoking-rajin-28",
+          "order": 28,
+          "text": "Leader memberi contoh disiplin",
+          "options": [
+            { "score": 1, "desc": "Leader tidak memberi contoh disiplin" },
+            { "score": 2, "desc": "Leader jarang menunjukkan disiplin" },
+            { "score": 3, "desc": "Leader cukup memberi contoh namun belum konsisten" },
+            { "score": 4, "desc": "Leader memberi contoh disiplin dengan baik" },
+            { "score": 5, "desc": "Leader menjadi teladan disiplin yang konsisten bagi karyawan" }
+          ]
+        }
+      ]
+    }
+  ]
+}

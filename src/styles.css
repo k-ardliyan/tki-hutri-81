@@ -1,0 +1,416 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Tipografi resmi HUT RI ke-81: Saira Semi Condensed — hanya untuk judul utama */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Saira Semi Condensed", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-red: #c62828;
+  --color-brand-deep: #7f1010;
+  --color-brand-soft: #fff5f5;
+  --color-brand-gold: #e6b422;
+  --color-hero-from: #73050c;
+  --color-hero-via: #a00e18;
+  --color-hero-to: #cc1623;
+  --color-footer-from: #59040a;
+  --color-footer-via: #850a12;
+  --color-footer-to: #6e070e;
+  --color-ink: #0f172a;
+  --color-muted-dim: #64748b;
+  --color-line: #e8edf5;
+  --color-canvas: #f6f7fb;
+  --color-surface: #ffffff;
+  /* Semantic status colors — shape-consistent with brand */
+  --color-status-done: #059669;
+  --color-status-done-soft: #ecfdf5;
+  --color-status-pending: #d97706;
+  --color-status-pending-soft: #fffbeb;
+  --color-status-danger: #dc2626;
+  --color-status-danger-soft: #fef2f2;
+  /* Radius: defined via @theme inline below using --radius CSS variable */
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    @apply font-sans;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    @apply bg-background text-foreground;
+  }
+
+  #root {
+    min-height: 100vh;
+    min-height: 100svh;
+    width: 100%;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .nav-pill:active,
+  .chip:active {
+    transform: translateY(1px) scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  ::selection {
+    background: rgba(198, 40, 40, 0.18);
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
+
+@layer components {
+  /* Pakai class ini hanya di judul hero / section utama */
+  .font-heading {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+
+  .shell {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  .surface-card {
+    @apply rounded-xl border border-slate-200/80 bg-card shadow-[0_10px_40px_-24px_rgba(15,23,42,0.35)];
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide;
+  }
+
+  .nav-pill {
+    @apply rounded-full px-3.5 py-2 text-sm font-semibold transition;
+  }
+
+  .nav-pill-active {
+    @apply bg-brand-red text-white shadow-md shadow-red-500/20;
+  }
+
+  .nav-pill-idle {
+    @apply text-slate-600 hover:bg-white hover:text-slate-900;
+  }
+
+  .section-kicker {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-brand-red;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  @keyframes sheetSlideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0.8;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-sheet-slide-up {
+    animation: sheetSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes sheetSlideDown {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0.8;
+    }
+  }
+
+  .animate-sheet-slide-down {
+    animation: sheetSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .animate-fade-out {
+    animation: fadeOut 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+/* ═══ Z-Index Scale ═══
+ * z-40: sticky navbars (header, admin mobile header)
+ * z-50: bottom nav (mobile)
+ * z-[60]: sticky branch bar (lomba)
+ * z-[70]: leave-form confirmation dialog
+ * z-[100]: generic modals
+ * z-[200]: peak-day modal overlay
+ * z-[99998-99999]: portal overlays (event reminders)
+ */
+
+/* ═══ Reduced Motion ═══
+ * GSAP paths already check shouldReduceMotion(); gate CSS keyframe
+ * animations + Tailwind's animate-ping under the same preference.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Floating badge sine wave — replaces GSAP infinite yoyo */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float-y {
+  animation: floatY 2.6s ease-in-out infinite;
+}
+
+/* Pulse ring — replaces GSAP infinite scale+opacity */
+@keyframes pulseRing {
+  0% { transform: scale(1); opacity: 0.3; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+.animate-pulse-ring {
+  animation: pulseRing 1.6s ease-out infinite;
+}
+
+/* Glow pulse for brand SVGs — replaces GSAP infinite glow */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* Entrance stagger utility — CSS alternative for simple fade-in-up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Landing page gradient — only on public pages */
+.landing-gradient {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(198, 40, 40, 0.08), transparent 55%),
+    radial-gradient(900px 400px at 100% 0%, rgba(230, 180, 34, 0.08), transparent 50%),
+    var(--color-canvas);
+}
+.animate-fade-in-up-delay-1 {
+  animation: fadeInUp 0.5s ease-out 0.08s forwards;
+  opacity: 0;
+}
+.animate-fade-in-up-delay-2 {
+  animation: fadeInUp 0.5s ease-out 0.16s forwards;
+  opacity: 0;
+}
+.animate-fade-in-up-delay-3 {
+  animation: fadeInUp 0.5s ease-out 0.24s forwards;
+  opacity: 0;
+}
+
+/* Line draw — CSS alternative for timeline line */
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.animate-line-grow {
+  animation: lineGrow 1.2s ease-out forwards;
+  transform-origin: left center;
+}
+
+/* Scale-in for timeline nodes */
+@keyframes scaleIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-scale-in {
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Scanner QR: video center, ratio asli (contain, bukan cover) ── */
+#snack-qr-reader video {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+#snack-qr-reader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Region scan box — center overlay */
+#snack-qr-reader .qr-region-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@theme inline {
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --header-height: 3.5rem;
+  --background: #f6f7fb;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #c62828;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #059669;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #c62828;
+  --chart-1: #c62828;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #e6b422;
+  --chart-5: #64748b;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #c62828;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #c62828;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #ef6c6c;
+  --primary-foreground: #7f1010;
+  --secondary: #334155;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --accent-foreground: #f1f5f9;
+  --destructive: #f87171;
+  --destructive-foreground: #450a0a;
+  --success: #34d399;
+  --success-foreground: #064e3b;
+  --warning: #fbbf24;
+  --warning-foreground: #451a03;
+  --border: rgba(241, 245, 249, 0.12);
+  --input: rgba(241, 245, 249, 0.18);
+  --ring: #ef6c6c;
+  --chart-1: #ef6c6c;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #e6b422;
+  --chart-5: #94a3b8;
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #ef6c6c;
+  --sidebar-primary-foreground: #7f1010;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: rgba(241, 245, 249, 0.12);
+  --sidebar-ring: #ef6c6c;
+}

@@ -1,0 +1,285 @@
+{
+  "id": "dekorasi",
+  "label": "Penilaian Lomba Dekorasi",
+  "source": "FORM PENILAIAN LOMBA DEKORASI.md",
+  "scale": { "min": 1, "max": 5 },
+  "scaleLabels": { "1": "Sangat Kurang", "2": "Kurang", "3": "Cukup", "4": "Baik", "5": "Sangat Baik" },
+  "finalMode": "weighted",
+  "categories": [
+    {
+      "id": "tema",
+      "label": "A. Kesesuaian Tema HUT RI",
+      "sortOrder": 1,
+      "criteria": [
+        {
+          "id": "dekorasi-tema-1",
+          "order": 1,
+          "text": "Nuansa merah putih dan kemerdekaan terlihat jelas",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-tema-2",
+          "order": 2,
+          "text": "Identitas HUT RI ke-81 ditampilkan dengan baik",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-tema-3",
+          "order": 3,
+          "text": "Dekorasi menggambarkan semangat persatuan dan kebersamaan",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-tema-4",
+          "order": 4,
+          "text": "Dekorasi sesuai dengan tema Indonesia Berdaulat, Adil, dan Makmur",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kreativitas",
+      "label": "B. Kreativitas dan Keunikan",
+      "sortOrder": 2,
+      "criteria": [
+        {
+          "id": "dekorasi-kreativitas-1",
+          "order": 5,
+          "text": "Konsep dekorasi memiliki ide yang kreatif",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-kreativitas-2",
+          "order": 6,
+          "text": "Dekorasi memiliki ciri khas yang membedakannya dari area lain",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-kreativitas-3",
+          "order": 7,
+          "text": "Terdapat elemen dekorasi hasil kreasi anggota tim",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-kreativitas-4",
+          "order": 8,
+          "text": "Bahan dekorasi dimanfaatkan atau dikombinasikan secara kreatif",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-kreativitas-5",
+          "order": 9,
+          "text": "Dekorasi memiliki elemen utama yang menarik perhatian",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keindahan",
+      "label": "C. Keindahan dan Keserasian",
+      "sortOrder": 3,
+      "criteria": [
+        {
+          "id": "dekorasi-keindahan-1",
+          "order": 10,
+          "text": "Perpaduan warna dekorasi terlihat serasi",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-keindahan-2",
+          "order": 11,
+          "text": "Susunan dekorasi terlihat seimbang dan proporsional",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-keindahan-3",
+          "order": 12,
+          "text": "Seluruh elemen dekorasi memiliki kesatuan konsep",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-keindahan-4",
+          "order": 13,
+          "text": "Dekorasi tidak terlihat terlalu kosong atau terlalu penuh",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-keindahan-5",
+          "order": 14,
+          "text": "Tampilan keseluruhan memberikan kesan yang menarik",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "area",
+      "label": "D. Pemanfaatan Area",
+      "sortOrder": 4,
+      "criteria": [
+        {
+          "id": "dekorasi-area-1",
+          "order": 15,
+          "text": "Dekorasi memanfaatkan bagian ruangan dengan baik",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-area-2",
+          "order": 16,
+          "text": "Penempatan dekorasi sesuai dengan ukuran dan bentuk area",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-area-3",
+          "order": 17,
+          "text": "Dekorasi terlihat menyatu dengan karakter ruangan",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "detail",
+      "label": "E. Detail dan Hasil Akhir",
+      "sortOrder": 5,
+      "criteria": [
+        {
+          "id": "dekorasi-detail-1",
+          "order": 18,
+          "text": "Potongan, lipatan, sambungan, dan pemasangan terlihat baik",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-detail-2",
+          "order": 19,
+          "text": "Tulisan, gambar, dan ornamen terlihat jelas serta tertata",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        },
+        {
+          "id": "dekorasi-detail-3",
+          "order": 20,
+          "text": "Dekorasi terlihat selesai, utuh, dan tidak terkesan setengah jadi",
+          "options": [
+            { "score": 1, "desc": "Sangat Kurang" },
+            { "score": 2, "desc": "Kurang" },
+            { "score": 3, "desc": "Cukup" },
+            { "score": 4, "desc": "Baik" },
+            { "score": 5, "desc": "Sangat Baik" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "rooms": [
+    { "id": "implementator", "name": "CS dan Implementator", "icon": "fa-gears", "sortOrder": 1, "pic": "Mei Ambarwati" },
+    { "id": "hardware-finance", "name": "Hardware & Finance", "icon": "fa-microchip", "sortOrder": 2, "pic": "Ipok Diva Nain" },
+    { "id": "sales", "name": "Sales Marketing", "icon": "fa-handshake", "sortOrder": 3, "pic": "Armitha Sekar Prastita" },
+    { "id": "it-dalam", "name": "IT Dalam", "icon": "fa-server", "sortOrder": 4, "pic": "M. Setiadi Pratama" },
+    { "id": "it-luar", "name": "IT Luar", "icon": "fa-network-wired", "sortOrder": 5, "pic": "Umi Khoiriyah" }
+  ]
+}

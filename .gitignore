@@ -1,24 +1,59 @@
-# Logs
-logs
+# dependencies
+node_modules/
+
+# lockfiles — bun.lock di-commit; npm/yarn lock tidak boleh nyasar
+package-lock.json
+yarn.lock
+
+# build output
+dist/
+.tanstack/
+.output/
+.nitro/
+build/
+
+# generated route tree — plugin menulis ulang tiap build (nondeterministik
+# antar environment client/ssr/nitro), jangan di-track
+src/routeTree.gen.ts
+
+# cache
+.cache/
+.turbo/
+.vite/
+
+# env — DATABASE_URL tidak pernah di-commit
+.env
+.env.local
+.env.*.local
+.env.production
+
+# vercel CLI & deploy state
+.vercel/
+
+# drizzle
+drizzle/meta/
+drizzle/*.sql
+
+# test artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+bun-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# editor/OS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+.idea/
+.vscode/
+
+# local planning/artifacts — tidak di-commit
+.hermes/
+.impeccable/
+
+# raw data — sumber Excel, bukan source code
+employee/
