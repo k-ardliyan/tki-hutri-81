@@ -2,12 +2,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
+import { DataTableSkeleton } from '~/components/loading/skeletons';
 import BarcodeAll from '../../../components/snack/BarcodeAll';
 import GelangPrint from '../../../components/snack/GelangPrint';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Combobox, type ComboboxOption } from '../../../components/ui/combobox';
 import { PageHeader } from '../../../components/ui/page-header';
-import { DataTableSkeleton } from '../../../components/ui/skeletons';
 import type { SnackTeam } from '../../../server/functions/snack';
 import { getTeamsWithMembers } from '../../../server/functions/snack';
 

@@ -7,9 +7,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Sparkles, Trophy, Users, Workflow } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
+import { UnifiedLiveSkeleton } from '~/components/loading/skeletons';
 import { ScoreBoard } from '../components/5r/ScoreBoard';
 import { BracketTree } from '../components/bagan/BracketTree';
-import { UnifiedLiveSkeleton } from '../components/ui/skeletons';
 import { getDeadline, getForms, getRooms, getSubmissions } from '../server/functions/5r';
 import { getBaganCompetitions, getBracket } from '../server/functions/bracket';
 

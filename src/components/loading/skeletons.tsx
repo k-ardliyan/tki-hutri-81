@@ -3,9 +3,10 @@
  * Gunakan komponen ini untuk menampilkan skeleton loading state
  * sebelum data tersedia dari React Query / useEffect.
  */
-import { Skeleton } from '~/components/ui/skeleton'
-import { Card, CardContent } from '~/components/ui/card'
-import { cn } from '~/lib/utils'
+
+import { Card, CardContent } from '~/components/ui/card';
+import { Skeleton } from '~/components/ui/skeleton';
+import { cn } from '~/lib/utils';
 
 // ── Stat Cards (SectionCards) ──────────────────────────────────────────────
 
@@ -19,7 +20,7 @@ export function StatCardSkeleton() {
         <Skeleton className="h-5 w-20 rounded-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 /** Skeleton untuk grid SectionCards (default 4 kolom) */
@@ -27,8 +28,8 @@ export function SectionCardsSkeleton({
   count = 4,
   gridClass = 'grid-cols-2 lg:grid-cols-4',
 }: {
-  count?: number
-  gridClass?: string
+  count?: number;
+  gridClass?: string;
 }) {
   return (
     <div className={cn('grid gap-3', gridClass)}>
@@ -36,7 +37,7 @@ export function SectionCardsSkeleton({
         <StatCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }
 
 // ── Room / Interactive Card List ───────────────────────────────────────────
@@ -54,7 +55,7 @@ export function RoomCardSkeleton() {
         <Skeleton className="h-6 w-14 rounded-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 /** Skeleton grid untuk daftar ruangan */
@@ -62,8 +63,8 @@ export function RoomListSkeleton({
   count = 6,
   gridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
 }: {
-  count?: number
-  gridClass?: string
+  count?: number;
+  gridClass?: string;
 }) {
   return (
     <div className={cn('grid gap-2.5', gridClass)}>
@@ -71,7 +72,7 @@ export function RoomListSkeleton({
         <RoomCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }
 
 /** Skeleton papan skor live */
@@ -85,7 +86,7 @@ export function LiveScoreSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton list vertikal untuk ruangan (tanpa grid) */
@@ -96,7 +97,7 @@ export function RoomListStackSkeleton({ count = 5 }: { count?: number }) {
         <RoomCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }
 
 // ── DataTable Row Skeletons ────────────────────────────────────────────────
@@ -107,21 +108,17 @@ function TableRowSkeleton({ cols = 4 }: { cols?: number }) {
     <tr className="border-b border-border">
       {Array.from({ length: cols }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <Skeleton className={cn('h-4 rounded', i === 0 ? 'w-36' : i === cols - 1 ? 'w-16' : 'w-24')} />
+          <Skeleton
+            className={cn('h-4 rounded', i === 0 ? 'w-36' : i === cols - 1 ? 'w-16' : 'w-24')}
+          />
         </td>
       ))}
     </tr>
-  )
+  );
 }
 
 /** Skeleton DataTable lengkap dengan header + rows, wrapped in card surface */
-export function DataTableSkeleton({
-  rows = 8,
-  cols = 4,
-}: {
-  rows?: number
-  cols?: number
-}) {
+export function DataTableSkeleton({ rows = 8, cols = 4 }: { rows?: number; cols?: number }) {
   return (
     <div className="w-full space-y-4">
       {/* Toolbar */}
@@ -164,7 +161,7 @@ export function DataTableSkeleton({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Accordion / List Skeletons ─────────────────────────────────────────────
@@ -180,7 +177,7 @@ function AccordionItemSkeleton() {
       </div>
       <Skeleton className="h-5 w-16 rounded-full shrink-0" />
     </div>
-  )
+  );
 }
 
 /** Skeleton untuk daftar accordion (snack team, dll) */
@@ -196,7 +193,7 @@ export function AccordionListSkeleton({ count = 5 }: { count?: number }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ── Generic List Item Skeletons ────────────────────────────────────────────
@@ -211,7 +208,7 @@ function ActivityItemSkeleton() {
       </div>
       <Skeleton className="h-6 w-14 rounded-full ml-4 shrink-0" />
     </div>
-  )
+  );
 }
 
 /** Skeleton untuk section "Aktivitas Terakhir" */
@@ -222,7 +219,7 @@ export function ActivityListSkeleton({ count = 5 }: { count?: number }) {
         <ActivityItemSkeleton key={i} />
       ))}
     </Card>
-  )
+  );
 }
 
 // ── Chart Skeletons ────────────────────────────────────────────────────────
@@ -239,7 +236,7 @@ export function ChartSkeleton({ height = 180 }: { height?: number }) {
         <Skeleton className={`w-full rounded-lg`} style={{ height }} />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ── Page-level Skeleton Layouts ────────────────────────────────────────────
@@ -267,7 +264,7 @@ export function AdminDashboardSkeleton() {
         <RoomListSkeleton count={6} />
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton full layout halaman Audit Dashboard */
@@ -285,7 +282,7 @@ export function AuditDashboardSkeleton() {
         <RoomListStackSkeleton count={5} />
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton full layout halaman Petugas Dashboard */
@@ -303,7 +300,7 @@ export function PetugasDashboardSkeleton() {
       {/* Accordion */}
       <AccordionListSkeleton count={4} />
     </div>
-  )
+  );
 }
 
 /** Skeleton full layout halaman Snack Admin Dashboard */
@@ -320,7 +317,7 @@ export function SnackDashboardSkeleton() {
       <SectionCardsSkeleton count={4} />
       <AccordionListSkeleton count={5} />
     </div>
-  )
+  );
 }
 
 /** Skeleton full layout halaman hasil (submissions list) */
@@ -353,7 +350,7 @@ export function HasilPageSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 // ── Public Pages Skeletons ──────────────────────────────────────────────────
@@ -401,7 +398,7 @@ export function UnifiedLiveSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout presisi untuk halaman /tim (Daftar Tim Peserta) */
@@ -413,7 +410,7 @@ export function TimPageSkeleton() {
         <Skeleton className="h-4 w-32 rounded-full" />
         <Skeleton className="h-7 w-64 sm:w-80 rounded-xl" />
         <Skeleton className="h-4 w-full max-w-lg rounded-md" />
-        
+
         {/* Search input skeleton */}
         <div className="pt-2">
           <Skeleton className="h-11 w-full rounded-2xl" />
@@ -441,7 +438,7 @@ export function TimPageSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout presisi untuk halaman /rundown (Jadwal Kegiatan) */
@@ -475,7 +472,7 @@ export function RundownSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout presisi untuk halaman /lomba (Daftar Cabang Lomba) */
@@ -513,7 +510,7 @@ export function LombaPageSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout presisi untuk halaman /admin/bagan */
@@ -550,7 +547,7 @@ export function AdminBaganSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout presisi untuk halaman /admin/teams */
@@ -590,7 +587,7 @@ export function AdminTeamsSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout untuk Landing Page (Beranda /) */
@@ -630,7 +627,7 @@ export function HomePageSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Skeleton layout presisi untuk halaman /login */
@@ -658,8 +655,5 @@ export function LoginSkeleton() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-
-
-

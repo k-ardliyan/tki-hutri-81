@@ -23,10 +23,10 @@ import { useMemo, useState } from 'react';
 import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r';
 import { aggregateRoom, combineFinal, round1, scoreSubmission } from '../../lib/scoring';
 import { Badge } from '../ui/badge';
-import RoomIcon from '../ui/RoomIcon';
 import { StatusBadge } from '../ui/status-badge';
 import { deadlineInfo } from './DeadlineBanner';
 import { Petunjuk5RModal } from './Petunjuk5RModal';
+import RoomIcon from './RoomIcon';
 
 interface ScoreBoardProps {
   submissions: FiveRSubmission[];

@@ -2,7 +2,7 @@
  * Landing page route — now at root `/` (was /beranda).
  */
 import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
-import { HomePageSkeleton } from '../components/ui/skeletons';
+import { HomePageSkeleton } from '~/components/loading/skeletons';
 import { getCompetitions } from '../server/functions/competitions';
 import { getTeamSummary } from '../server/functions/teams';
 

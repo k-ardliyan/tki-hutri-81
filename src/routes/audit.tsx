@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { AuditDashboardSkeleton } from '~/components/loading/skeletons';
 import AuditShell from '../components/layout/AuditShell';
-import { AuditDashboardSkeleton } from '../components/ui/skeletons';
 import { requireRole } from '../lib/routeGuard';
 
 export const Route = createFileRoute('/audit')({

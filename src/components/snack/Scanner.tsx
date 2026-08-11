@@ -1,13 +1,14 @@
 /**
  * Scanner — wrapper html5-qrcode (browser-only, dynamic import).
  * Features:
- * - Dark mode camera selection dropdown & restart button
- * - Restart camera control when camera stream stops or errors
- * - Improved responsive desktop/mobile layout
+ * - Default to back camera (facingMode: environment)
+ * - Auto camera switching (await track cleanup before re-init)
+ * - Clear camera labels and SwitchCamera icon
+ * - Dark mode camera selection dropdown & restart control
  */
 
 import type { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { CameraOff, Keyboard, Loader2, RotateCcw, Search, Video } from 'lucide-react';
+import { CameraOff, Keyboard, Loader2, RotateCcw, Search, SwitchCamera, Video } from 'lucide-react';
 import {
   forwardRef,
   useCallback,
@@ -26,6 +27,8 @@ import { Label } from '../ui/label';
 interface CameraDevice {
   id: string;
   label: string;
+  isBack: boolean;
+  isFront: boolean;
 }
 
 export interface ScannerHandle {
@@ -38,18 +41,54 @@ interface ScannerProps {
   onError?: (err: string) => void;
 }
 
-const isMobile = () =>
-  typeof window !== 'undefined' &&
-  (window.matchMedia('(pointer: coarse)').matches ||
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
-
 const DECODE_COOLDOWN_MS = 1200;
+
+function parseCameraDevice(d: { id: string; label: string }, idx: number): CameraDevice {
+  const rawLabel = d.label || '';
+  const lower = rawLabel.toLowerCase();
+  const isBack =
+    lower.includes('back') ||
+    lower.includes('rear') ||
+    lower.includes('environment') ||
+    lower.includes('belakang') ||
+    lower.includes('facing back') ||
+    lower.includes('outer');
+  const isFront =
+    lower.includes('front') ||
+    lower.includes('user') ||
+    lower.includes('selfie') ||
+    lower.includes('depan') ||
+    lower.includes('facing front');
+
+  let label = rawLabel;
+  if (!label || label.trim() === '') {
+    label = isBack
+      ? `Kamera Belakang (${idx + 1})`
+      : isFront
+        ? `Kamera Depan (${idx + 1})`
+        : `Kamera ${idx + 1}`;
+  } else {
+    if (isBack && !lower.includes('belakang')) {
+      label = `${rawLabel} (Belakang)`;
+    } else if (isFront && !lower.includes('depan')) {
+      label = `${rawLabel} (Depan)`;
+    }
+  }
+
+  return {
+    id: d.id,
+    label,
+    isBack,
+    isFront,
+  };
+}
 
 const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onScan, onError }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const instRef = useRef<Html5Qrcode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const mountedRef = useRef(true);
+  const isStartingRef = useRef(false);
   const cooldownRef = useRef(0);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
@@ -59,25 +98,29 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
   const [manual, setManual] = useState('');
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [currentCamIdx, setCurrentCamIdx] = useState(0);
-  const [mobile, setMobile] = useState(false);
 
   const cameraOptions = useMemo<ComboboxOption[]>(
     () => cameras.map((c, i) => ({ value: String(i), label: c.label })),
     [cameras]
   );
 
-  const killCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
+  const killCamera = useCallback(async () => {
     if (instRef.current) {
       try {
-        instRef.current.stop().catch(() => {});
+        await instRef.current.stop();
+      } catch {
+        /* ignore */
+      }
+      try {
+        instRef.current.clear();
       } catch {
         /* ignore */
       }
       instRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
     if (containerRef.current) {
       containerRef.current.querySelectorAll('video').forEach((v) => {
@@ -90,40 +133,58 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
   const startScanner = useCallback(
     async (camIdx?: number) => {
       if (typeof window === 'undefined') return;
+      if (isStartingRef.current) return;
+      isStartingRef.current = true;
 
-      killCamera();
-      if (!mountedRef.current) return;
+      await killCamera();
+      if (!mountedRef.current) {
+        isStartingRef.current = false;
+        return;
+      }
       setStarting(true);
       setCamError(null);
 
       try {
         const mod = await import('html5-qrcode');
-        if (!mountedRef.current) return;
+        if (!mountedRef.current) {
+          isStartingRef.current = false;
+          return;
+        }
         const Html5QrcodeClass: typeof Html5Qrcode = mod.Html5Qrcode;
         const fmt = mod.Html5QrcodeSupportedFormats as typeof Html5QrcodeSupportedFormats;
 
         const devices = await Html5QrcodeClass.getCameras();
-        if (!mountedRef.current) return;
-        const camList: CameraDevice[] = devices.map((d) => ({
-          id: d.id,
-          label: d.label || `Kamera ${d.id}`,
-        }));
+        if (!mountedRef.current) {
+          isStartingRef.current = false;
+          return;
+        }
+
+        const camList: CameraDevice[] = devices.map((d, i) => parseCameraDevice(d, i));
         setCameras(camList);
 
-        if (!containerRef.current || !mountedRef.current) return;
+        if (!containerRef.current || !mountedRef.current) {
+          isStartingRef.current = false;
+          return;
+        }
+
+        // Determine camera index (default: back camera)
+        let selectedIdx = camIdx;
+        if (selectedIdx === undefined || selectedIdx < 0 || selectedIdx >= camList.length) {
+          const backIndex = camList.findIndex((c) => c.isBack);
+          selectedIdx = backIndex !== -1 ? backIndex : 0;
+        }
+
+        setCurrentCamIdx(selectedIdx);
 
         instRef.current = new Html5QrcodeClass('snack-qr-reader', {
           formatsToSupport: [fmt.QR_CODE],
         } as never);
         const inst = instRef.current;
 
-        const idx = camIdx ?? 0;
-        const cam = camList[idx];
-        const cameraConfig = mobile
-          ? { facingMode: idx % 2 === 0 ? 'environment' : 'user' }
-          : cam
-            ? cam.id
-            : { facingMode: 'environment' };
+        const selectedCam = camList[selectedIdx];
+        const cameraConfig = selectedCam?.id
+          ? selectedCam.id
+          : { facingMode: selectedCam?.isFront ? 'user' : 'environment' };
 
         await inst.start(
           cameraConfig,
@@ -153,7 +214,8 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
         );
 
         if (!mountedRef.current) {
-          killCamera();
+          await killCamera();
+          isStartingRef.current = false;
           return;
         }
 
@@ -172,19 +234,32 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
         setStarting(false);
         setCamError(null);
       } catch (e) {
-        if (!mountedRef.current) return;
-        const msg = e instanceof Error ? e.message : 'Kamera tidak tersedia';
+        if (!mountedRef.current) {
+          isStartingRef.current = false;
+          return;
+        }
+        const raw = e instanceof Error ? e.message : '';
+        const msg = /NotAllowedError|Permission|denied/i.test(raw)
+          ? 'Izin kamera ditolak. Izinkan akses kamera di browser, lalu coba lagi.'
+          : /NotFoundError|no camera|Requested device not found/i.test(raw)
+            ? 'Kamera tidak ditemukan di perangkat ini.'
+            : /NotReadableError|in use/i.test(raw)
+              ? 'Kamera sedang dipakai aplikasi lain. Tutup aplikasi lain, lalu coba lagi.'
+              : 'Kamera tidak tersedia. Gunakan pencarian manual atau muat ulang.';
         setCamError(msg);
         setStarting(false);
         onError?.(msg);
+      } finally {
+        isStartingRef.current = false;
       }
     },
-    [mobile, onError, killCamera]
+    [onError, killCamera]
   );
 
   useImperativeHandle(ref, () => ({
     resume: async () => {
       if (!instRef.current || !mountedRef.current) return;
+      cooldownRef.current = 0;
       try {
         await instRef.current.resume();
         if (!mountedRef.current) return;
@@ -198,23 +273,35 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
 
   useEffect(() => {
     mountedRef.current = true;
-    setMobile(isMobile());
-    void startScanner(0);
+    void startScanner();
     return () => {
       mountedRef.current = false;
-      killCamera();
+      isStartingRef.current = false;
+      void killCamera();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const switchCamera = async () => {
-    const nextIdx = cameras.length > 0 ? (currentCamIdx + 1) % cameras.length : 0;
-    setCurrentCamIdx(nextIdx);
+    if (cameras.length <= 1 || isStartingRef.current) return;
+    const nextIdx = (currentCamIdx + 1) % cameras.length;
     await startScanner(nextIdx);
   };
 
   const handleRestartCamera = async () => {
     await startScanner(currentCamIdx);
+  };
+
+  const submitManual = (code: string) => {
+    if (!code.trim()) return;
+    void (async () => {
+      try {
+        await instRef.current?.pause(true);
+      } catch {
+        /* ignore */
+      }
+      await onScan(code.trim());
+    })();
   };
 
   return (
@@ -228,15 +315,16 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
             className="flex h-full w-full items-center justify-center"
           />
 
-          {/* Switch Camera Mobile Button */}
-          {mobile && !starting && !camError && cameras.length > 1 && (
+          {/* Switch Camera Overlay Button */}
+          {cameras.length > 1 && !starting && !camError && (
             <button
               type="button"
               onClick={switchCamera}
-              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs transition hover:bg-black/80 active:scale-95"
+              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs transition hover:bg-black/80 active:scale-95 shadow-md"
               aria-label="Ganti kamera"
+              title="Ganti Kamera (Depan/Belakang)"
             >
-              <RotateCcw size={15} />
+              <SwitchCamera size={18} />
             </button>
           )}
 
@@ -282,7 +370,6 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
                 value={String(currentCamIdx)}
                 onValueChange={(val) => {
                   const idx = Number(val);
-                  setCurrentCamIdx(idx);
                   void startScanner(idx);
                 }}
                 showSearch={false}
@@ -327,13 +414,10 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
             placeholder="Contoh: PUTRA-1 / PANITIA"
             className="flex-1 uppercase font-mono text-xs h-9 bg-background"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && manual.trim()) onScan(manual.trim());
+              if (e.key === 'Enter') submitManual(manual);
             }}
           />
-          <Button
-            onClick={() => manual.trim() && onScan(manual.trim())}
-            className="h-9 font-bold px-4 text-xs"
-          >
+          <Button onClick={() => submitManual(manual)} className="h-9 font-bold px-4 text-xs">
             <Search size={14} className="mr-1" />
             Cari
           </Button>

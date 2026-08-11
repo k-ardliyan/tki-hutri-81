@@ -10,11 +10,11 @@ import {
 import type { ReactNode } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import '../styles.css';
+import PageFallback from '~/components/common/PageFallback';
 import Hero from '../components/hero/Hero';
 import BottomNav from '../components/layout/BottomNav';
 import SiteHeader from '../components/layout/Header';
 import SiteFooter from '../components/layout/SiteFooter';
-import PageFallback from '../components/ui/PageFallback';
 import { Toaster } from '../components/ui/sonner';
 import { AudienceProvider } from '../context/AudienceContext';
 import { gsap, shouldReduceMotion } from '../lib/gsap';

@@ -63,15 +63,18 @@ export default function BarcodeAll() {
     });
 
   const ensureQrMap = async (map: Record<string, string>) => {
+    let changed = false;
     for (const t of teams) {
       if (t.kode && !map[t.kode]) {
         try {
           map[t.kode] = await QRCode.toDataURL(t.kode, { width: 240, margin: 1 });
+          changed = true;
         } catch {
           /* ignore */
         }
       }
     }
+    if (changed) setQrMap(map);
     return map;
   };
 

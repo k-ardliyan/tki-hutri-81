@@ -3,6 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { DataTableSkeleton } from '~/components/loading/skeletons';
 import { DataTable, type features } from '../../components/data-table';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import {
@@ -21,7 +22,6 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { PageHeader } from '../../components/ui/page-header';
 import { ResponsiveDialog } from '../../components/ui/responsive-dialog';
-import { DataTableSkeleton } from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { useDebounce } from '../../hooks/use-debounce';
 import { requireRole } from '../../lib/routeGuard';

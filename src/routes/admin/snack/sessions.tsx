@@ -8,6 +8,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { EllipsisVertical, Plus, Power, PowerOff, Trash2, UserPen } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { DataTableSkeleton } from '~/components/loading/skeletons';
 import { DataTable, type features } from '../../../components/data-table';
 import { Alert, AlertDescription } from '../../../components/ui/alert';
 import {
@@ -33,7 +34,6 @@ import { Label } from '../../../components/ui/label';
 import { PageHeader } from '../../../components/ui/page-header';
 import { Progress } from '../../../components/ui/progress';
 import { ResponsiveDialog } from '../../../components/ui/responsive-dialog';
-import { DataTableSkeleton } from '../../../components/ui/skeletons';
 import { StatusBadge } from '../../../components/ui/status-badge';
 import {
   createSession,
@@ -194,15 +194,15 @@ function AdminSnackSessions() {
         if (s.remaining === undefined) return <span className="text-muted-foreground">—</span>;
         const pct =
           s.quota > 0 ? Math.max(0, Math.min(100, ((s.quota - s.remaining) / s.quota) * 100)) : 0;
-        const tone =
+        const toneClass =
           s.remaining === 0
-            ? 'bg-destructive'
+            ? '[&_[data-slot=progress-indicator]]:bg-destructive'
             : s.remaining <= s.quota * 0.2
-              ? 'bg-warning'
-              : 'bg-success';
+              ? '[&_[data-slot=progress-indicator]]:bg-warning'
+              : '[&_[data-slot=progress-indicator]]:bg-success';
         return (
           <div className="flex w-36 items-center gap-2">
-            <Progress value={pct} className={`h-1.5 [&_[data-slot=progress-indicator]]:${tone}`} />
+            <Progress value={pct} className={`h-1.5 ${toneClass}`} />
             <span
               className={`shrink-0 text-xs font-bold font-mono ${s.remaining === 0 ? 'text-destructive' : s.remaining <= s.quota * 0.2 ? 'text-warning' : 'text-success'}`}
             >

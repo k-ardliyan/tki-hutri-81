@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PackageCheck, Percent, Users, UtensilsCrossed } from 'lucide-react';
 import { useState } from 'react';
+import { SnackDashboardSkeleton } from '~/components/loading/skeletons';
 import { SectionCards } from '../../../components/section-cards';
 import SessionPicker from '../../../components/snack/SessionPicker';
 import SnackTeamAccordion from '../../../components/snack/SnackTeamAccordion';
 import { Badge } from '../../../components/ui/badge';
 import { Card, CardContent } from '../../../components/ui/card';
 import { PageHeader } from '../../../components/ui/page-header';
-import { SnackDashboardSkeleton } from '../../../components/ui/skeletons';
 import { StatusBadge } from '../../../components/ui/status-badge';
 import { useRedemptionSummary } from '../../../lib/queries';
 

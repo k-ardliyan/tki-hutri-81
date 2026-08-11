@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { RoomListSkeleton } from '~/components/loading/skeletons';
 import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r';
 import { useDebounce } from '../../hooks/use-debounce';
 import { currentWeekNumber, formatWeekRange, todayPrefix, totalWeeks } from '../../lib/dateUtils';
@@ -39,13 +40,12 @@ import { Card, CardContent } from '../ui/card';
 import { Input } from '../ui/input';
 import { InteractiveCard } from '../ui/interactive-card';
 import { PageHeader } from '../ui/page-header';
-import RoomIcon from '../ui/RoomIcon';
 import { ResponsiveDialog } from '../ui/responsive-dialog';
-import ScoreBadge from '../ui/ScoreBadge';
-import { RoomListSkeleton } from '../ui/skeletons';
 import { DeadlineBanner } from './DeadlineBanner';
 import { Petunjuk5RModal } from './Petunjuk5RModal';
 import RiwayatMingguIni from './RiwayatMingguIni';
+import RoomIcon from './RoomIcon';
+import ScoreBadge from './ScoreBadge';
 import ScoringForm from './ScoringForm';
 
 interface RoomFormFlowProps {

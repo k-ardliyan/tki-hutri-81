@@ -1,16 +1,22 @@
-import { ComponentPropsWithRef, forwardRef, ImgHTMLAttributes, ReactNode, useState } from 'react'
-import { useLazyImage } from '../../hooks/useLazyImage'
+import {
+  type ComponentPropsWithRef,
+  forwardRef,
+  type ImgHTMLAttributes,
+  type ReactNode,
+  useState,
+} from 'react';
+import { useLazyImage } from '~/hooks/useLazyImage';
 
 /** Props for the lazy-loading image wrapper. */
 interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
-  src?: string
-  alt?: string
-  wrapperClassName?: string
-  placeholder?: ReactNode
-  eager?: boolean
-  rootMargin?: string
-  threshold?: number
-  fetchPriority?: ComponentPropsWithRef<'img'>['fetchPriority']
+  src?: string;
+  alt?: string;
+  wrapperClassName?: string;
+  placeholder?: ReactNode;
+  eager?: boolean;
+  rootMargin?: string;
+  threshold?: number;
+  fetchPriority?: ComponentPropsWithRef<'img'>['fetchPriority'];
 }
 
 /**
@@ -37,44 +43,40 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'load
  *   - wrapperClassName: classes applied to the wrapping <span>
  *   - placeholder: ReactNode to render instead of the skeleton
  */
-export const LazyImage = forwardRef<HTMLDivElement, LazyImageProps>(
-  function LazyImage(
-    {
-      src,
-      alt = '',
-      className = '',
-      wrapperClassName = '',
-      placeholder = null,
-      eager = false,
-      rootMargin = '200px',
-      threshold = 0.01,
-      onLoad,
-      decoding = 'async',
-      fetchPriority,
-      ...rest
-    },
-    forwardedRef,
-  ) {
-  const { ref, shouldLoad } = useLazyImage({ rootMargin, threshold })
-  const [loaded, setLoaded] = useState(false)
+export const LazyImage = forwardRef<HTMLDivElement, LazyImageProps>(function LazyImage(
+  {
+    src,
+    alt = '',
+    className = '',
+    wrapperClassName = '',
+    placeholder = null,
+    eager = false,
+    rootMargin = '200px',
+    threshold = 0.01,
+    onLoad,
+    decoding = 'async',
+    fetchPriority,
+    ...rest
+  },
+  forwardedRef
+) {
+  const { ref, shouldLoad } = useLazyImage({ rootMargin, threshold });
+  const [loaded, setLoaded] = useState(false);
 
   // Merge internal ref + forwarded ref so consumers can also grab the wrapper.
   const setRefs = (node: HTMLDivElement | null) => {
-    ref.current = node
-    if (typeof forwardedRef === 'function') forwardedRef(node)
-    else if (forwardedRef) forwardedRef.current = node
-  }
+    ref.current = node;
+    if (typeof forwardedRef === 'function') forwardedRef(node);
+    else if (forwardedRef) forwardedRef.current = node;
+  };
 
-  const showImage = eager || shouldLoad
+  const showImage = eager || shouldLoad;
 
   // Ensure wrapper span stretches to full width & height by default so child <img> height doesn't collapse
-  const finalWrapperClass = wrapperClassName || 'w-full h-full block'
+  const finalWrapperClass = wrapperClassName || 'w-full h-full block';
 
   return (
-    <div
-      ref={setRefs}
-      className={`${finalWrapperClass}`}
-    >
+    <div ref={setRefs} className={`${finalWrapperClass}`}>
       {showImage ? (
         <img
           src={src}
@@ -84,8 +86,8 @@ export const LazyImage = forwardRef<HTMLDivElement, LazyImageProps>(
           // fetchPriority is valid as a React 19 prop name (case sensitive)
           fetchPriority={fetchPriority}
           onLoad={(e) => {
-            setLoaded(true)
-            if (onLoad) onLoad(e)
+            setLoaded(true);
+            if (onLoad) onLoad(e);
           }}
           className={`${className} transition-opacity duration-500 ${
             loaded ? 'opacity-100' : 'opacity-0'
@@ -93,13 +95,10 @@ export const LazyImage = forwardRef<HTMLDivElement, LazyImageProps>(
           {...rest}
         />
       ) : (
-        placeholder ?? (
-          <span
-            aria-hidden="true"
-            className={`${className} block animate-pulse bg-slate-200/70`}
-          />
-        )
+        (placeholder ?? (
+          <span aria-hidden="true" className={`${className} block animate-pulse bg-slate-200/70`} />
+        ))
       )}
     </div>
-  )
-})
+  );
+});

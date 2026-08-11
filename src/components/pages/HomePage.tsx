@@ -1,10 +1,10 @@
 import { useLoaderData } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
+import { LazyImage } from '~/components/common/LazyImage';
 import { assets } from '../../assets';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import { getEventPhase, PHASES } from '../../lib/eventPhase';
 import { gsap, shouldReduceMotion } from '../../lib/gsap';
-import { LazyImage } from '../ui/LazyImage';
 
 const makeStats = (teamSummary: { total: number; putra: number; putri: number }) => [
   {

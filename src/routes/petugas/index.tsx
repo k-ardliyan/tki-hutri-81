@@ -6,6 +6,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Check, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { PetugasDashboardSkeleton } from '~/components/loading/skeletons';
 import ConfirmForm from '../../components/snack/ConfirmForm';
 import DuplicateWarning from '../../components/snack/DuplicateWarning';
 import type { ScannerHandle } from '../../components/snack/Scanner';
@@ -23,8 +24,6 @@ import {
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { PageHeader } from '../../components/ui/page-header';
-import { PetugasDashboardSkeleton } from '../../components/ui/skeletons';
-import { getSession } from '../../server/functions/auth';
 import type { RedemptionInfo, SnackTeam } from '../../server/functions/snack';
 import { getSessions, getTeamByKode, redeemSnack } from '../../server/functions/snack';
 
@@ -47,7 +46,6 @@ function PetugasSnackPage() {
   const [error, setError] = useState<string | null>(null);
   const [skipped, setSkipped] = useState<RedemptionInfo[]>([]);
   const [inserted, setInserted] = useState(0);
-  const [claimedBy, setClaimedBy] = useState('');
   const [sessionsLoading, setSessionsLoading] = useState(true);
 
   // Modal "kode tidak dikenal"
@@ -59,12 +57,11 @@ function PetugasSnackPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [allSessions, sess] = await Promise.all([getSessions(), getSession()]);
+        const allSessions = await getSessions();
         setSessions(allSessions);
         const active = allSessions.find((s) => s.isActive) ?? null;
         setSessionId(active?.id ?? null);
         setSessionName(active?.name ?? '—');
-        setClaimedBy(sess.username ?? 'petugas');
       } finally {
         setSessionsLoading(false);
       }
@@ -106,7 +103,7 @@ function PetugasSnackPage() {
     }
     setSubmitting(true);
     setError(null);
-    const res = await redeemSnack({ data: { sessionId, employeeIds, claimedBy } });
+    const res = await redeemSnack({ data: { sessionId, employeeIds } });
     setSubmitting(false);
 
     if (!res.ok) {

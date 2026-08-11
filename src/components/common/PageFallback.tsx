@@ -22,15 +22,12 @@ export default function PageFallback() {
       <section className="surface-card p-4 sm:p-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-44 rounded-2xl bg-slate-100/80 sm:h-48"
-            />
+            <div key={i} className="h-44 rounded-2xl bg-slate-100/80 sm:h-48" />
           ))}
         </div>
       </section>
 
       <span className="sr-only">Memuat…</span>
     </div>
-  )
+  );
 }

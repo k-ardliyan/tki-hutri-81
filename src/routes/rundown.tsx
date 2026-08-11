@@ -1,5 +1,5 @@
 import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
-import { RundownSkeleton } from '../components/ui/skeletons';
+import { RundownSkeleton } from '~/components/loading/skeletons';
 import { getRundown } from '../server/functions/rundown';
 
 const RundownPage = lazyRouteComponent(() => import('../components/pages/RundownPage'));

@@ -64,9 +64,13 @@ export const createSession = createServerFn({ method: 'POST' })
   .validator((d: { name: string; quota: number }) => d)
   .handler(async ({ data }) => {
     const db = assertDb();
+    const quota = Math.floor(Number(data.quota));
+    if (!Number.isFinite(quota) || quota < 0) {
+      throw new Error('Kuota harus angka >= 0');
+    }
     const [row] = await db
       .insert(snackSessions)
-      .values({ name: data.name, quota: data.quota, isActive: true })
+      .values({ name: data.name, quota, isActive: true })
       .returning();
     return row;
   });
@@ -78,7 +82,13 @@ export const updateSession = createServerFn({ method: 'POST' })
     const db = assertDb();
     const patch: Partial<typeof snackSessions.$inferInsert> = {};
     if (data.name !== undefined) patch.name = data.name;
-    if (data.quota !== undefined) patch.quota = data.quota;
+    if (data.quota !== undefined) {
+      const quota = Math.floor(Number(data.quota));
+      if (!Number.isFinite(quota) || quota < 0) {
+        throw new Error('Kuota harus angka >= 0');
+      }
+      patch.quota = quota;
+    }
     if (data.isActive !== undefined) patch.isActive = data.isActive;
     const [row] = await db
       .update(snackSessions)
@@ -217,22 +227,45 @@ export const searchEmployees = createServerFn({ method: 'GET' })
  * Semua insert dalam 1 transaksi.
  */
 export const redeemSnack = createServerFn({ method: 'POST' })
-  .validator((d: { sessionId: number; employeeIds: number[]; claimedBy: string }) => d)
+  .validator((d: { sessionId: number; employeeIds: number[] }) => d)
   .handler(async ({ data }): Promise<RedeemResult> => {
     const db = assertDb();
-    const { sessionId, employeeIds, claimedBy } = data;
+    const { sessionId, employeeIds } = data;
+
+    // claimedBy dari cookie session — jangan percaya client
+    const { getSession } = await import('./auth');
+    const session = await getSession();
+    const claimedBy = session.username ?? null;
+    if (!claimedBy) {
+      return {
+        ok: false,
+        inserted: 0,
+        skipped: [],
+        error: 'Sesi tidak valid. Silakan login dulu.',
+      };
+    }
 
     // 1. session harus active
-    const [session] = await db
+    const [sessionRow] = await db
       .select()
       .from(snackSessions)
       .where(eq(snackSessions.id, sessionId))
       .limit(1);
-    if (!session || !session.isActive) {
+    if (!sessionRow?.isActive) {
       return { ok: false, inserted: 0, skipped: [], error: 'Sesi tidak aktif' };
     }
 
-    // 2. cek eligibility + sudah ada redemption
+    // 2. kuota tidak boleh lewat
+    const redeemedCount = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(redemptions)
+      .where(eq(redemptions.sessionId, sessionId));
+    const taken = redeemedCount[0]?.count ?? 0;
+    if (taken >= sessionRow.quota) {
+      return { ok: false, inserted: 0, skipped: [], error: 'Kuota sesi sudah habis' };
+    }
+
+    // 3. cek eligibility + sudah ada redemption
     const empRows = await db
       .select({
         id: employees.id,
@@ -263,6 +296,17 @@ export const redeemSnack = createServerFn({ method: 'POST' })
 
     const existingIds = new Set(existing.map((r) => r.employeeId));
     const toInsert = employeeIds.filter((id) => !existingIds.has(id));
+
+    // 4. batasi ke sisa kuota — tolak seluruh batch kalau melebihi
+    const quotaLeft = Math.max(0, sessionRow.quota - taken);
+    if (toInsert.length > quotaLeft) {
+      return {
+        ok: false,
+        inserted: 0,
+        skipped: [],
+        error: `Melebihi kuota sesi (sisa ${quotaLeft} porsi)`,
+      };
+    }
 
     if (toInsert.length > 0) {
       await db

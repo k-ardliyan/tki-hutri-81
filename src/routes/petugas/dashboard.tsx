@@ -8,6 +8,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChevronRight, Loader2, Search, UserPlus, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { PetugasDashboardSkeleton } from '~/components/loading/skeletons';
 import { SectionCards } from '../../components/section-cards';
 import SnackTeamAccordion from '../../components/snack/SnackTeamAccordion';
 import { Alert, AlertDescription } from '../../components/ui/alert';
@@ -18,10 +19,8 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { PageHeader } from '../../components/ui/page-header';
 import { ResponsiveDialog } from '../../components/ui/responsive-dialog';
-import { PetugasDashboardSkeleton } from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { useDebounce } from '../../hooks/use-debounce';
-import { getSession } from '../../server/functions/auth';
 import { getRedemptionSummary, redeemSnack, searchEmployees } from '../../server/functions/snack';
 
 export const Route = createFileRoute('/petugas/dashboard')({
@@ -56,7 +55,6 @@ type Summary = {
 function PetugasDashboardPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
-  const [claimedBy, setClaimedBy] = useState('');
   const [sessionId, setSessionId] = useState<number | null>(null);
 
   // Drawer "Ambil Tanpa QR"
@@ -70,9 +68,8 @@ function PetugasDashboardPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [s, sess] = await Promise.all([getRedemptionSummary({ data: {} }), getSession()]);
+        const s = await getRedemptionSummary({ data: {} });
         setSummary(s);
-        setClaimedBy(sess.username ?? 'petugas');
         setSessionId(s.active?.id ?? null);
       } finally {
         setSummaryLoading(false);
@@ -135,7 +132,7 @@ function PetugasDashboardPage() {
     setErr(null);
     setRedeemingId(id);
     try {
-      const res = await redeemSnack({ data: { sessionId, employeeIds: [id], claimedBy } });
+      const res = await redeemSnack({ data: { sessionId, employeeIds: [id] } });
       if (!res.ok) {
         setErr(res.error ?? 'Gagal');
         return;

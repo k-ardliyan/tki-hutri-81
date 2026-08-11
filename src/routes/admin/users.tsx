@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { DataTableSkeleton } from '~/components/loading/skeletons';
 import { DataTable, type features } from '../../components/data-table';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import {
@@ -38,7 +39,6 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { PageHeader } from '../../components/ui/page-header';
 import { ResponsiveDialog } from '../../components/ui/responsive-dialog';
-import { DataTableSkeleton } from '../../components/ui/skeletons';
 import { useDebounce } from '../../hooks/use-debounce';
 import { ROLE_LABELS, type UserRole } from '../../lib/auth';
 import { requireRole } from '../../lib/routeGuard';

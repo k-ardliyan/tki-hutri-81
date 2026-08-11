@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { LombaPageSkeleton } from '../components/ui/skeletons';
+import { LombaPageSkeleton } from '~/components/loading/skeletons';
 import { getCompetitions } from '../server/functions/competitions';
 
 export const Route = createFileRoute('/lomba')({

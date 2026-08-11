@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { AdminDashboardSkeleton } from '~/components/loading/skeletons';
 import AdminShell from '../components/layout/AdminShell';
-import { AdminDashboardSkeleton } from '../components/ui/skeletons';
 import { requireRole } from '../lib/routeGuard';
 
 export const Route = createFileRoute('/admin')({
