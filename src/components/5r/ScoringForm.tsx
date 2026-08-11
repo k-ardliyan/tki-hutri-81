@@ -34,8 +34,9 @@ import { Progress } from '../ui/progress';
 
 // Helpers
 
-function draftKey(roomId: string, formId: string) {
-  return `tki5r:draft:${roomId}:${formId}`;
+/** Draft per (ruangan, form, MINGGU) — minggu beda = draft beda, jangan bocor antar minggu. */
+function draftKey(roomId: string, formId: string, week?: number) {
+  return `tki5r:draft:${roomId}:${formId}${week !== undefined ? `:w${week}` : ''}`;
 }
 const AUDITOR_KEY = 'tki5r:lastAuditor';
 
@@ -52,11 +53,12 @@ function saveAuditor(name: string) {
 }
 function loadDraft(
   roomId: string,
-  formId: string
+  formId: string,
+  week?: number
 ): { answers: Record<string, number>; notes: Record<string, string> } | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(draftKey(roomId, formId));
+    const raw = localStorage.getItem(draftKey(roomId, formId, week));
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -66,17 +68,18 @@ function saveDraft(
   roomId: string,
   formId: string,
   answers: Record<string, number>,
-  notes: Record<string, string>
+  notes: Record<string, string>,
+  week?: number
 ) {
   try {
-    localStorage.setItem(draftKey(roomId, formId), JSON.stringify({ answers, notes }));
+    localStorage.setItem(draftKey(roomId, formId, week), JSON.stringify({ answers, notes }));
   } catch {
     /* noop */
   }
 }
-function clearDraft(roomId: string, formId: string) {
+function clearDraft(roomId: string, formId: string, week?: number) {
   try {
-    localStorage.removeItem(draftKey(roomId, formId));
+    localStorage.removeItem(draftKey(roomId, formId, week));
   } catch {
     /* noop */
   }
@@ -94,10 +97,13 @@ const SCORE_LABELS: Record<number, string> = {
 export default function ScoringForm({
   roomId,
   formId,
+  week,
   onSuccess,
 }: {
   roomId: string;
   formId?: string;
+  /** Minggu ke-N utk form 5R (draft per minggu). Dekorasi: tanpa week. */
+  week?: number;
   /** Dipanggil setelah submit sukses (mis. redirect balik ke daftar form). */
   onSuccess?: () => void;
 }) {
@@ -105,8 +111,8 @@ export default function ScoringForm({
   const form = useMemo(() => (formId ? getFiveRForm(formId) : undefined), [formId]);
 
   const draft = useMemo(
-    () => (roomId && formId ? loadDraft(roomId, formId) : null),
-    [roomId, formId]
+    () => (roomId && formId ? loadDraft(roomId, formId, week) : null),
+    [roomId, formId, week]
   );
   const [answers, setAnswers] = useState<Record<string, number>>(draft?.answers ?? {});
   const [notes, setNotes] = useState<Record<string, string>>(draft?.notes ?? {});
@@ -117,8 +123,11 @@ export default function ScoringForm({
   const [showSummary, setShowSummary] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
+  const [mounted, setMounted] = useState(false);
+
   // Auto-populate Auditor Name from active logged-in user session
   useEffect(() => {
+    setMounted(true);
     void getSession().then((sess) => {
       if (sess.username) {
         setAuditor(sess.username);
@@ -137,8 +146,26 @@ export default function ScoringForm({
     setCollapsed(init);
   }, [form]);
 
-  // Keep sticky progress bar clean & simple
-  const progressBarRef = useRef<HTMLDivElement>(null);
+  const [isStuck, setIsStuck] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsStuck(!entry.isIntersecting);
+      },
+      {
+        threshold: [0],
+        rootMargin: '-56px 0px 0px 0px',
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const totalCriteria = form ? form.categories.reduce((s, c) => s + c.criteria.length, 0) : 0;
   const answeredCount = Object.keys(answers).filter((k) => answers[k] !== undefined).length;
@@ -146,15 +173,14 @@ export default function ScoringForm({
   // Auto-save draft (debounce 2 detik)
   useEffect(() => {
     if (!form || !roomId || !formId) return;
-    const t = setTimeout(() => saveDraft(roomId, formId, answers, notes), 2000);
+    const t = setTimeout(() => saveDraft(roomId, formId, answers, notes, week), 2000);
     return () => clearTimeout(t);
-  }, [answers, notes, form, roomId, formId]);
+  }, [answers, notes, form, roomId, formId, week]);
 
   // ── Unsaved guard ──
-  const isDirty =
-    answeredCount > 0 ||
-    Object.keys(notes).some((k) => notes[k].trim() !== '') ||
-    auditor.trim() !== '';
+  // Auditor auto-fill dari session TIDAK dihitung sebagai "dirty" — user belum
+  // mengubah apa pun. Tanpa ini, dialog "Keluar dari form?" muncul walau form kosong.
+  const isDirty = answeredCount > 0 || Object.keys(notes).some((k) => notes[k].trim() !== '');
 
   useEffect(() => {
     setFormDirty(isDirty);
@@ -164,13 +190,13 @@ export default function ScoringForm({
   useEffect(() => {
     if (!isDirty || !form || !roomId || !formId) return;
     const handler = (e: BeforeUnloadEvent) => {
-      saveDraft(roomId, formId, answers, notes);
+      saveDraft(roomId, formId, answers, notes, week);
       e.preventDefault();
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [isDirty, answers, notes, form, roomId, formId]);
+  }, [isDirty, answers, notes, form, roomId, formId, week]);
 
   const scrollTo = useCallback((catId: string) => {
     document.getElementById(`cat-${catId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -243,7 +269,7 @@ export default function ScoringForm({
     }
 
     saveAuditor(auditor.trim());
-    clearDraft(roomId, form.id);
+    clearDraft(roomId, form.id, week);
     toast.success('Penilaian tersimpan!');
     setSaving(false);
     setShowSummary(false);
@@ -261,58 +287,62 @@ export default function ScoringForm({
 
   return (
     <section className="relative space-y-3.5">
-      {/* Compact Sticky Progress Header — Morphs full-bleed on scroll */}
+      {/* Sentinel for sticky detection */}
+      <div ref={sentinelRef} className="h-px w-full pointer-events-none -mb-3.5" />
+
+      {/* Morphing Sticky Progress Header — Full-width edge-to-edge when stuck, contained card when not stuck */}
       <div
-        ref={progressBarRef}
-        className="sticky top-14 z-30 overflow-hidden border border-border bg-background/95 shadow-sm backdrop-blur-md transition-shadow lg:top-0 rounded-xl"
+        className={`sticky top-14 lg:top-0 z-30 transition-all duration-300 space-y-2.5 ${
+          isStuck
+            ? '-mx-4 sm:-mx-6 lg:-mx-6 px-4 sm:px-6 lg:px-6 py-3 rounded-none border-b border-x-0 border-border/80 bg-background/95 shadow-md backdrop-blur-md'
+            : 'rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs'
+        }`}
       >
-        <CardContent className="p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <h2 className="truncate text-xs font-extrabold text-foreground sm:text-sm">
-                {form.label}
-              </h2>
-              <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                · Ruangan: <span className="font-semibold text-foreground">{roomId}</span>
-              </span>
-            </div>
-            <Badge
-              variant={answeredCount === totalCriteria ? 'default' : 'outline'}
-              className="font-mono text-xs shrink-0"
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="truncate text-xs font-extrabold text-foreground sm:text-sm">
+              {form.label}
+            </h2>
+            <span className="text-[10px] text-muted-foreground hidden sm:inline">
+              · Ruangan: <span className="font-semibold text-foreground">{roomId}</span>
+            </span>
+          </div>
+          <Badge
+            variant={answeredCount === totalCriteria ? 'default' : 'outline'}
+            className="font-mono text-xs shrink-0"
+          >
+            {answeredCount}/{totalCriteria} ({pctProgress}%)
+          </Badge>
+        </div>
+
+        <Progress value={pctProgress} className="h-1.5" />
+
+        {/* Category quick navigation pills — Full-width 5-column grid */}
+        <div className="grid grid-cols-5 gap-1.5 pt-0.5">
+          {catProgress.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => {
+                setCollapsed((prev) => ({ ...prev, [cat.id]: false }));
+                setTimeout(() => scrollTo(cat.id), 50);
+              }}
+              className={`flex items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-extrabold transition active:scale-95 ${
+                cat.done
+                  ? 'bg-success/15 text-success hover:bg-success/20 border border-success/30'
+                  : collapsed[cat.id]
+                    ? 'bg-muted text-muted-foreground hover:bg-muted/80 border border-transparent'
+                    : 'bg-primary/15 text-primary hover:bg-primary/20 border border-primary/30'
+              }`}
             >
-              {answeredCount}/{totalCriteria} ({pctProgress}%)
-            </Badge>
-          </div>
-
-          <Progress value={pctProgress} className="h-1.5" />
-
-          {/* Category quick navigation pills — Full-width 5-column grid */}
-          <div className="grid grid-cols-5 gap-1.5 pt-0.5">
-            {catProgress.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  setCollapsed((prev) => ({ ...prev, [cat.id]: false }));
-                  setTimeout(() => scrollTo(cat.id), 50);
-                }}
-                className={`flex items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-extrabold transition active:scale-95 ${
-                  cat.done
-                    ? 'bg-success/15 text-success hover:bg-success/20 border border-success/30'
-                    : collapsed[cat.id]
-                      ? 'bg-muted text-muted-foreground hover:bg-muted/80 border border-transparent'
-                      : 'bg-primary/15 text-primary hover:bg-primary/20 border border-primary/30'
-                }`}
-              >
-                {cat.done && <Check size={11} className="shrink-0" />}
-                <span>{cat.label.split('.')[0]}</span>
-                <span className="text-[10px] opacity-75 font-normal">
-                  ({cat.filled}/{cat.criteria.length})
-                </span>
-              </button>
-            ))}
-          </div>
-        </CardContent>
+              {cat.done && <Check size={11} className="shrink-0" />}
+              <span>{cat.label.split('.')[0]}</span>
+              <span className="text-[10px] opacity-75 font-normal">
+                ({cat.filled}/{cat.criteria.length})
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Auditor Info Card (Auto-filled from session) */}
@@ -326,10 +356,12 @@ export default function ScoringForm({
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Auditor / Penilai
               </p>
-              <p className="truncate text-xs font-bold text-foreground">{auditor || '—'}</p>
+              <p className="truncate text-xs font-bold text-foreground" suppressHydrationWarning>
+                {mounted ? auditor || '—' : '—'}
+              </p>
             </div>
           </div>
-          {auditorRole && (
+          {mounted && auditorRole && (
             <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
               {auditorRole}
             </Badge>
@@ -456,8 +488,8 @@ export default function ScoringForm({
         })}
       </div>
 
-      {/* Safe Sticky Bottom Submit Bar */}
-      <div className="sticky bottom-0 z-40 -mx-4 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md sm:-mx-6 sm:px-6">
+      {/* Safe Sticky Bottom Submit Bar — Full-width edge-to-edge on mobile and desktop */}
+      <div className="sticky bottom-0 z-40 -mx-4 sm:-mx-6 lg:-mx-6 -mb-4 sm:-mb-6 lg:-mb-6 border-t border-x-0 border-border/80 bg-background/95 px-4 sm:px-6 lg:px-6 py-3 shadow-lg backdrop-blur-md">
         <div className="space-y-2 max-w-5xl mx-auto">
           {error && (
             <p className="rounded-lg bg-destructive/10 px-3.5 py-2 text-xs font-bold text-destructive">
@@ -551,15 +583,8 @@ export default function ScoringForm({
             <Button variant="outline" onClick={() => setShowSummary(false)} className="flex-1">
               Review Kembali
             </Button>
-            <Button onClick={() => void doSubmit()} disabled={saving} className="flex-1">
-              {saving ? (
-                <>
-                  <Loader2 size={14} className="animate-spin mr-1.5" />
-                  Mengirim...
-                </>
-              ) : (
-                'Ya, Kirim Sekarang'
-              )}
+            <Button onClick={() => void doSubmit()} loading={saving} className="flex-1">
+              {saving ? 'Mengirim...' : 'Ya, Kirim Sekarang'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -55,6 +55,8 @@ export interface FiveRSubmission {
   createdAt: string;
   updatedAt: string;
   createdBy?: string | null;
+  /** Minggu ke-N relatif ke start_date periode (1-based). Default 1 utk data lama. */
+  weekNumber?: number;
 }
 
 import dekorasi from './forms/dekorasi.json';

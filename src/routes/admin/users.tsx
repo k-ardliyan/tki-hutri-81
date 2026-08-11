@@ -56,6 +56,7 @@ export const Route = createFileRoute('/admin/users')({
     await requireRole(['superadmin']);
   },
   component: SuperadminUsers,
+  pendingComponent: DataTableSkeleton,
 });
 
 interface UserRow {
@@ -93,6 +94,10 @@ function SuperadminUsers() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
   const [err, setErr] = useState<string | null>(null);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   // Edit username dialog
   const [editTarget, setEditTarget] = useState<UserRow | null>(null);
@@ -133,6 +138,7 @@ function SuperadminUsers() {
       setErr('Username & password wajib');
       return;
     }
+    setSubmitting(true);
     try {
       await createUser({
         data: {
@@ -151,6 +157,8 @@ function SuperadminUsers() {
       await load();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Gagal buat user');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -171,10 +179,17 @@ function SuperadminUsers() {
       setErr('Username wajib');
       return;
     }
-    await updateUser({ data: { id: editTarget.id, username: editUsername.trim() } });
-    setEditTarget(null);
-    toast.success('Username diupdate!');
-    await load();
+    setEditing(true);
+    try {
+      await updateUser({ data: { id: editTarget.id, username: editUsername.trim() } });
+      setEditTarget(null);
+      toast.success('Username diupdate!');
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Gagal edit username');
+    } finally {
+      setEditing(false);
+    }
   };
 
   const doReset = async () => {
@@ -184,11 +199,18 @@ function SuperadminUsers() {
       setErr('Password baru wajib');
       return;
     }
-    await resetPassword({ data: { id: resetTarget.id, password: resetPw } });
-    setResetTarget(null);
-    setResetPw('');
-    toast.success('Password direset!');
-    await load();
+    setResetting(true);
+    try {
+      await resetPassword({ data: { id: resetTarget.id, password: resetPw } });
+      setResetTarget(null);
+      setResetPw('');
+      toast.success('Password direset!');
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Gagal reset password');
+    } finally {
+      setResetting(false);
+    }
   };
 
   const remove = async () => {
@@ -362,7 +384,7 @@ function SuperadminUsers() {
             >
               Batal
             </Button>
-            <Button onClick={submit} className="flex-1 sm:flex-none">
+            <Button onClick={submit} loading={submitting} className="flex-1 sm:flex-none">
               Buat User
             </Button>
           </div>
@@ -459,7 +481,11 @@ function SuperadminUsers() {
             >
               Batal
             </Button>
-            <Button onClick={() => void doEditUsername()} className="flex-1 sm:flex-none">
+            <Button
+              onClick={() => void doEditUsername()}
+              loading={editing}
+              className="flex-1 sm:flex-none"
+            >
               Simpan
             </Button>
           </div>
@@ -494,7 +520,11 @@ function SuperadminUsers() {
             >
               Batal
             </Button>
-            <Button onClick={() => void doReset()} className="flex-1 sm:flex-none">
+            <Button
+              onClick={() => void doReset()}
+              loading={resetting}
+              className="flex-1 sm:flex-none"
+            >
               Reset Password
             </Button>
           </div>

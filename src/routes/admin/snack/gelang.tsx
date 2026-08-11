@@ -7,7 +7,7 @@ import GelangPrint from '../../../components/snack/GelangPrint';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Combobox, type ComboboxOption } from '../../../components/ui/combobox';
 import { PageHeader } from '../../../components/ui/page-header';
-import { Skeleton } from '../../../components/ui/skeleton';
+import { DataTableSkeleton } from '../../../components/ui/skeletons';
 import type { SnackTeam } from '../../../server/functions/snack';
 import { getTeamsWithMembers } from '../../../server/functions/snack';
 
@@ -18,6 +18,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/admin/snack/gelang')({
   validateSearch: searchSchema,
   component: GelangPage,
+  pendingComponent: DataTableSkeleton,
 });
 
 function GelangPage() {
@@ -41,18 +42,7 @@ function GelangPage() {
   }, [teamParam]);
 
   if (teamsLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1.5">
-            <Skeleton className="h-6 w-48 rounded" />
-            <Skeleton className="h-4 w-72 rounded" />
-          </div>
-          <Skeleton className="h-9 w-48 rounded-lg" />
-        </div>
-        <Skeleton className="h-48 w-full rounded-xl" />
-      </div>
-    );
+    return <DataTableSkeleton />;
   }
 
   return (

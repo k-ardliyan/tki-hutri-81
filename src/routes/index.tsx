@@ -2,7 +2,7 @@
  * Landing page route — now at root `/` (was /beranda).
  */
 import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
-import PageFallback from '../components/ui/PageFallback';
+import { HomePageSkeleton } from '../components/ui/skeletons';
 import { getCompetitions } from '../server/functions/competitions';
 import { getTeamSummary } from '../server/functions/teams';
 
@@ -14,5 +14,5 @@ export const Route = createFileRoute('/')({
     teamSummary: await getTeamSummary(),
   }),
   component: HomePage,
-  pendingComponent: PageFallback,
+  pendingComponent: HomePageSkeleton,
 });

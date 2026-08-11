@@ -1,4 +1,5 @@
 import { createRouter } from '@tanstack/react-router';
+import PageFallback from './components/ui/PageFallback';
 import { routeTree } from './routeTree.gen';
 
 export function getRouter() {
@@ -6,6 +7,9 @@ export function getRouter() {
     routeTree,
     defaultPreload: 'intent',
     scrollRestoration: true,
+    defaultPendingMs: 0,
+    defaultPendingMinMs: 150,
+    defaultPendingComponent: PageFallback,
   });
 }
 

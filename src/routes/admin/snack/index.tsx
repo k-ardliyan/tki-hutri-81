@@ -13,6 +13,7 @@ import { useRedemptionSummary } from '../../../lib/queries';
 
 export const Route = createFileRoute('/admin/snack/')({
   component: AdminSnackDashboard,
+  pendingComponent: SnackDashboardSkeleton,
 });
 
 function AdminSnackDashboard() {

@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
-import { CalendarClock, Clock3, Eye, Search, Trash2, Trophy, X } from 'lucide-react';
+import { CalendarClock, Clock3, Eye, HelpCircle, Search, Trash2, Trophy, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { Petunjuk5RModal } from '../../components/5r/Petunjuk5RModal';
 import { ScoreBoard } from '../../components/5r/ScoreBoard';
 import { DataTable, type features } from '../../components/data-table';
 import {
@@ -31,18 +32,19 @@ import { qk, useSubmissions } from '../../lib/queries';
 import { round1, scoreSubmission } from '../../lib/scoring';
 import {
   deleteSubmission,
-  getDeadline,
   getForms,
   getRooms,
-  setDeadline,
+  getSettings,
+  setSettings,
 } from '../../server/functions/5r';
 
 export const Route = createFileRoute('/admin/hasil')({
   loader: async () => {
-    const [rooms, forms, dl] = await Promise.all([getRooms(), getForms(), getDeadline()]);
-    return { rooms, forms, deadline: dl.deadline };
+    const [rooms, forms, settings] = await Promise.all([getRooms(), getForms(), getSettings()]);
+    return { rooms, forms, startDate: settings.startDate, endDate: settings.endDate };
   },
   component: AdminHasilPage,
+  pendingComponent: HasilPageSkeleton,
 });
 
 /** ISO → value utk <input type="datetime-local"> (waktu lokal). */
@@ -56,28 +58,37 @@ function toLocalInput(iso: string | null): string {
 type TabKey = 'peringkat' | 'log' | 'tenggat';
 
 function AdminHasilPage() {
-  const { rooms, forms, deadline } = Route.useLoaderData();
+  const { rooms, forms, startDate, endDate } = Route.useLoaderData();
   const queryClient = useQueryClient();
   const { data: submissions = [], isLoading } = useSubmissions();
   const [activeTab, setActiveTab] = useState<TabKey>('peringkat');
+  const [showGuide, setShowGuide] = useState(false);
 
-  // Tenggat penilaian (admin set)
-  const [deadlineState, setDeadlineState] = useState<string | null>(deadline);
-  const [deadlineInput, setDeadlineInput] = useState(toLocalInput(deadline));
-  const [deadlineBusy, setDeadlineBusy] = useState(false);
+  // Periode penilaian (admin set)
+  const [startState, setStartState] = useState<string | null>(startDate);
+  const [endState, setEndState] = useState<string | null>(endDate);
+  const [startInput, setStartInput] = useState(toLocalInput(startDate));
+  const [endInput, setEndInput] = useState(toLocalInput(endDate));
+  const [periodBusy, setPeriodBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const saveDeadline = async (raw: string) => {
-    setDeadlineBusy(true);
-    const value = raw.trim() ? new Date(raw).toISOString() : null;
-    const res = await setDeadline({ data: { deadline: value } });
-    setDeadlineBusy(false);
+  const savePeriod = async (rawStart: string, rawEnd: string) => {
+    setPeriodBusy(true);
+    const startValue = rawStart.trim() ? new Date(rawStart).toISOString() : null;
+    const endValue = rawEnd.trim() ? new Date(rawEnd).toISOString() : null;
+    const res = await setSettings({ data: { startDate: startValue, endDate: endValue } });
+    setPeriodBusy(false);
     if (!res.ok) {
-      toast.error(res.error ?? 'Gagal menyimpan tenggat');
+      toast.error(res.error ?? 'Gagal menyimpan periode penilaian');
       return;
     }
-    setDeadlineState(res.deadline);
-    setDeadlineInput(toLocalInput(res.deadline));
-    toast.success(res.deadline ? 'Tenggat penilaian disimpan' : 'Tenggat penilaian dihapus');
+    setStartState(res.startDate);
+    setEndState(res.endDate);
+    setStartInput(toLocalInput(res.startDate));
+    setEndInput(toLocalInput(res.endDate));
+    toast.success(
+      res.startDate && res.endDate ? 'Periode penilaian disimpan' : 'Periode penilaian dihapus'
+    );
   };
 
   // Filters
@@ -243,6 +254,17 @@ function AdminHasilPage() {
       <PageHeader
         title="Hasil Penilaian 5R & Dekorasi"
         subtitle={`${submissions.length} submission tercatat · ${new Set(submissions.map((s) => s.roomId)).size} ruangan dinilai`}
+        action={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGuide(true)}
+            className="text-xs font-bold cursor-pointer"
+          >
+            <HelpCircle size={14} className="mr-1.5 text-primary" />
+            Panduan &amp; Aturan Nilai
+          </Button>
+        }
       />
 
       {/* Modern Main Tab Bar */}
@@ -302,7 +324,7 @@ function AdminHasilPage() {
               size={14}
               className={activeTab === 'tenggat' ? 'text-rose-500' : 'text-muted-foreground'}
             />
-            <span>Tenggat Waktu</span>
+            <span>Periode Penilaian</span>
           </button>
         </div>
       </div>
@@ -314,8 +336,10 @@ function AdminHasilPage() {
             submissions={submissions}
             rooms={rooms}
             forms={forms}
-            deadline={deadlineState}
+            deadline={endState}
             mode="admin"
+            showGuideButton={false}
+            onOpenGuide={() => setShowGuide(true)}
           />
         </div>
       )}
@@ -407,7 +431,7 @@ function AdminHasilPage() {
         </div>
       )}
 
-      {/* Tab 3: Tenggat Penilaian */}
+      {/* Tab 3: Periode Penilaian */}
       {activeTab === 'tenggat' && (
         <div className="space-y-4 pt-1">
           <Card>
@@ -418,53 +442,68 @@ function AdminHasilPage() {
                 </div>
                 <div className="min-w-0 flex-1 space-y-1">
                   <h2 className="text-sm font-extrabold text-foreground">
-                    Pengaturan Tenggat Waktu Penilaian
+                    Pengaturan Periode Penilaian
                   </h2>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {deadlineState
-                      ? `Tenggat aktif: ${new Date(deadlineState).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}. Setelah waktu ini tiba, seluruh form penilaian dekorasi & 5R otomatis terkunci untuk semua role.`
-                      : 'Belum ada tenggat waktu yang ditentukan. Penilaian terbuka bebas untuk semua auditor.'}
+                    {startState && endState
+                      ? `Periode aktif: ${new Date(startState).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} sampai ${new Date(endState).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}. Di luar periode ini, form penilaian dekorasi & 5R otomatis terkunci untuk semua role.`
+                      : 'Belum ada periode penilaian yang ditentukan. Set tanggal mulai & selesai agar penilaian per minggu aktif.'}
                   </p>
                 </div>
               </div>
 
               <div className="rounded-xl border border-border/80 bg-muted/30 p-4 space-y-3">
                 <Label className="text-xs font-bold text-foreground">
-                  Pilih Tanggal & Jam Batas Akhir
+                  Tanggal Mulai & Selesai Penilaian
                 </Label>
                 <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-                  <Input
-                    type="datetime-local"
-                    value={deadlineInput}
-                    onChange={(e) => setDeadlineInput(e.target.value)}
-                    className="h-10 w-full sm:w-72 bg-card"
-                  />
+                  <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                    <Input
+                      type="datetime-local"
+                      value={startInput}
+                      onChange={(e) => setStartInput(e.target.value)}
+                      className="h-10 w-full sm:w-64 bg-card"
+                      aria-label="Tanggal mulai periode"
+                    />
+                    <span className="text-xs text-muted-foreground text-center">sampai</span>
+                    <Input
+                      type="datetime-local"
+                      value={endInput}
+                      onChange={(e) => setEndInput(e.target.value)}
+                      className="h-10 w-full sm:w-64 bg-card"
+                      aria-label="Tanggal selesai periode"
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       className="h-10 text-xs font-bold"
-                      disabled={deadlineBusy}
-                      onClick={() => void saveDeadline(deadlineInput)}
+                      loading={periodBusy}
+                      onClick={() => void savePeriod(startInput, endInput)}
                     >
-                      {deadlineBusy
-                        ? 'Menyimpan...'
-                        : deadlineState
-                          ? 'Perbarui Tenggat'
-                          : 'Aktifkan Tenggat'}
+                      {startState && endState ? 'Perbarui Periode' : 'Aktifkan Periode'}
                     </Button>
-                    {deadlineState && (
+                    {(startState || endState) && (
                       <Button
                         size="sm"
                         variant="outline"
                         className="h-10 text-xs font-bold text-destructive hover:bg-destructive/10"
-                        disabled={deadlineBusy}
-                        onClick={() => void saveDeadline('')}
+                        loading={periodBusy}
+                        onClick={() => {
+                          setStartInput('');
+                          setEndInput('');
+                          void savePeriod('', '');
+                        }}
                       >
-                        Hapus Batas Waktu
+                        Hapus Periode
                       </Button>
                     )}
                   </div>
                 </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Setiap 7 hari dari tanggal mulai = 1 minggu penilaian. Auditor boleh mengisi tiap
+                  form maksimal 1x per minggu per ruangan.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -586,6 +625,8 @@ function AdminHasilPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Petunjuk5RModal open={showGuide} onOpenChange={setShowGuide} />
     </div>
   );
 }

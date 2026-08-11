@@ -77,14 +77,11 @@ export function LoginForm({
               <Field className="pt-1">
                 <Button
                   type="submit"
-                  disabled={loading}
+                  loading={loading}
                   className="w-full h-10 font-bold shadow-sm cursor-pointer"
                 >
                   {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Memverifikasi...
-                    </>
+                    'Memverifikasi...'
                   ) : (
                     <>
                       <LogIn className="mr-2 h-4 w-4" />

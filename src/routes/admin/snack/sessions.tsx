@@ -44,6 +44,7 @@ import {
 
 export const Route = createFileRoute('/admin/snack/sessions')({
   component: AdminSnackSessions,
+  pendingComponent: DataTableSkeleton,
 });
 
 interface SessionRow {
@@ -60,6 +61,8 @@ function AdminSnackSessions() {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   // Create drawer
   const [showCreate, setShowCreate] = useState(false);
@@ -96,12 +99,19 @@ function AdminSnackSessions() {
       setErr('Kuota harus angka >= 0');
       return;
     }
-    await createSession({ data: { name: newName.trim(), quota: q } });
-    setNewName('');
-    setNewQuota('');
-    setShowCreate(false);
-    toast.success('Sesi dibuat!');
-    await load();
+    setCreating(true);
+    try {
+      await createSession({ data: { name: newName.trim(), quota: q } });
+      setNewName('');
+      setNewQuota('');
+      setShowCreate(false);
+      toast.success('Sesi dibuat!');
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Gagal membuat sesi');
+    } finally {
+      setCreating(false);
+    }
   };
 
   const doEdit = async () => {
@@ -122,10 +132,17 @@ function AdminSnackSessions() {
       setErr(`Kuota ${q} kurang dari ${taken} yang sudah terambil. Minimal ${taken}.`);
       return;
     }
-    await updateSession({ data: { id: editTarget.id, name: editName.trim(), quota: q } });
-    setEditTarget(null);
-    toast.success('Sesi diupdate!');
-    await load();
+    setEditing(true);
+    try {
+      await updateSession({ data: { id: editTarget.id, name: editName.trim(), quota: q } });
+      setEditTarget(null);
+      toast.success('Sesi diupdate!');
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Gagal mengupdate sesi');
+    } finally {
+      setEditing(false);
+    }
   };
 
   const toggleActive = async (s: SessionRow) => {
@@ -309,7 +326,11 @@ function AdminSnackSessions() {
             >
               Batal
             </Button>
-            <Button onClick={() => void doCreate()} className="flex-1 sm:flex-none">
+            <Button
+              onClick={() => void doCreate()}
+              loading={creating}
+              className="flex-1 sm:flex-none"
+            >
               Simpan
             </Button>
           </div>
@@ -357,7 +378,7 @@ function AdminSnackSessions() {
             >
               Batal
             </Button>
-            <Button onClick={() => void doEdit()} className="flex-1 sm:flex-none">
+            <Button onClick={() => void doEdit()} loading={editing} className="flex-1 sm:flex-none">
               Simpan
             </Button>
           </div>

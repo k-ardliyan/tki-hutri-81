@@ -28,7 +28,7 @@ export const roomAreas = [
   { id: 'implementator', name: 'CS & Implementator', icon: 'fa-gears' },
   {
     id: 'hardware-finance',
-    name: 'Hardware & Finance',
+    name: 'Hardware, Finance & Legal',
     icon: 'fa-microchip',
   },
   { id: 'sales', name: 'Sales Marketing', icon: 'fa-handshake' },

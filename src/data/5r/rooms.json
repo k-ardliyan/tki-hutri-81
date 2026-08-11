@@ -3,14 +3,14 @@
   "rooms": [
     {
       "id": "implementator",
-      "name": "CS dan Implementator",
+      "name": "CS & Implementator",
       "icon": "fa-gears",
       "sortOrder": 1,
       "pic": "Mei Ambarwati"
     },
     {
       "id": "hardware-finance",
-      "name": "Hardware & Finance",
+      "name": "Hardware, Finance & Legal",
       "icon": "fa-microchip",
       "sortOrder": 2,
       "pic": "Ipok Diva Nain"

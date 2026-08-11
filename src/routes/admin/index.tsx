@@ -1,7 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { CircleCheck, ClipboardList, Paintbrush, SquarePen, TriangleAlert } from 'lucide-react';
-import { useMemo } from 'react';
+import {
+  CircleCheck,
+  ClipboardList,
+  HelpCircle,
+  Paintbrush,
+  SquarePen,
+  TriangleAlert,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { z } from 'zod';
+import { Petunjuk5RModal } from '../../components/5r/Petunjuk5RModal';
 import { ChartAreaInteractive } from '../../components/chart-area-interactive';
 import { ChartBarStrength } from '../../components/chart-bar-strength';
 import { SectionCards } from '../../components/section-cards';
@@ -17,6 +25,7 @@ import SectionHeader from '../../components/ui/SectionHeader';
 import { Skeleton } from '../../components/ui/skeleton';
 import {
   ActivityListSkeleton,
+  AdminDashboardSkeleton,
   ChartSkeleton,
   RoomListSkeleton,
   SectionCardsSkeleton,
@@ -24,10 +33,11 @@ import {
 import { StatusBadge } from '../../components/ui/status-badge';
 import type { FiveRForm, FiveRSubmission } from '../../data/5r';
 import { isDekorasiSubmission } from '../../data/5r';
+import { buildWeeklySeries, currentWeekNumber } from '../../lib/dateUtils';
 import { useSubmissions } from '../../lib/queries';
 import type { SubmissionScore } from '../../lib/scoring';
 import { aggregateRoom, round1, scoreSubmission } from '../../lib/scoring';
-import { getForms, getRooms } from '../../server/functions/5r';
+import { getForms, getRooms, getSettings } from '../../server/functions/5r';
 
 const searchSchema = z.object({
   room: z.string().optional(),
@@ -36,18 +46,23 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/admin/')({
   validateSearch: searchSchema,
   loader: async () => {
-    const [rooms, forms] = await Promise.all([getRooms(), getForms()]);
-    return { rooms, forms };
+    const [rooms, forms, settings] = await Promise.all([getRooms(), getForms(), getSettings()]);
+    return { rooms, forms, startDate: settings.startDate, endDate: settings.endDate };
   },
   component: AdminDashboardPage,
+  pendingComponent: AdminDashboardSkeleton,
 });
 
 function AdminDashboardPage() {
-  const { rooms, forms } = Route.useLoaderData();
+  const { rooms, forms, startDate, endDate } = Route.useLoaderData();
   const navigate = useNavigate();
   const { data: submissions = [], isLoading } = useSubmissions();
+  const [showGuide, setShowGuide] = useState(false);
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
+  const currentWeek = startDate ? currentWeekNumber(new Date(startDate)) : 0;
+  const isCurrentWeek = (s: FiveRSubmission): boolean =>
+    currentWeek > 0 && (s.weekNumber ?? 1) === currentWeek;
 
   // ── Hitung semua skor 5R (dekorasi TIDAK dicampur ke statistik 5R) ──
   const scored = useMemo(() => {
@@ -69,13 +84,13 @@ function AdminDashboardPage() {
   const totalSubs = submissions.length;
   const avgScore =
     scored.length > 0 ? round1(scored.reduce((s, x) => s + x.final, 0) / scored.length) : 0;
-  const roomsDone = new Set(submissions.map((s) => s.roomId)).size;
+  // Cakupan ruangan = ruangan dengan penilaian 5R (dekorasi TIDAK membuat ruangan "dinilai").
+  const roomsDone = new Set(
+    submissions.filter((s) => !isDekorasiSubmission(s.formId)).map((s) => s.roomId)
+  ).size;
   const coveragePct = rooms.length > 0 ? Math.round((roomsDone / rooms.length) * 100) : 0;
 
-  const todayKey = new Date().toDateString();
-  const todayCount = submissions.filter(
-    (s) => new Date(s.createdAt).toDateString() === todayKey
-  ).length;
+  const weekCount = submissions.filter((s) => isCurrentWeek(s)).length;
 
   // ── Room status (hanya 5R — dekorasi tidak dicampur) ──
   const roomStatus = rooms.map((room) => {
@@ -131,7 +146,15 @@ function AdminDashboardPage() {
       return { sub: s, form, room, score };
     });
 
-  const calendar = useMemo(() => buildDailySeries(submissions), [submissions]);
+  const calendar = useMemo(
+    // Dekorasi tidak ikut statistik 5R — filter sebelum agregasi.
+    () =>
+      buildWeeklySeries(
+        submissions.filter((s) => !isDekorasiSubmission(s.formId)),
+        startDate
+      ),
+    [submissions, startDate]
+  );
 
   const avgLabel = avgScore >= 80 ? 'Baik' : avgScore >= 60 ? 'Cukup' : 'Perlu Perbaikan';
 
@@ -142,12 +165,12 @@ function AdminDashboardPage() {
       action: (
         <Badge variant="outline">
           <CircleCheck className="mr-1 size-3.5" />
-          {todayCount > 0 ? `${todayCount} hari ini` : 'Belum ada'}
+          {weekCount > 0 ? `${weekCount} minggu ini` : 'Belum ada'}
         </Badge>
       ),
       footer: (
         <div className="text-muted-foreground">
-          {todayCount > 0 ? 'Hari ini aktif' : 'Belum ada penilaian hari ini'}
+          {weekCount > 0 ? 'Minggu ini aktif' : 'Belum ada penilaian minggu ini'}
         </div>
       ),
     },
@@ -202,7 +225,7 @@ function AdminDashboardPage() {
       <div className="space-y-6">
         <PageHeader
           title="Dashboard Audit 5R"
-          subtitle={`${formatLongDate(new Date())} · Masa penilaian 10–27 Agustus`}
+          subtitle={`${formatLongDate(new Date())} · ${periodLabel(startDate, endDate)}`}
           action={
             <div className="flex items-center gap-2">
               <Button
@@ -243,20 +266,31 @@ function AdminDashboardPage() {
       {/* Header */}
       <PageHeader
         title="Dashboard Audit 5R"
-        subtitle={`${formatLongDate(new Date())} · Masa penilaian 10–27 Agustus`}
+        subtitle={`${formatLongDate(new Date())} · ${periodLabel(startDate, endDate)}`}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGuide(true)}
+              className="text-xs font-bold cursor-pointer"
+            >
+              <HelpCircle size={14} className="mr-1 text-primary" />
+              Petunjuk
+            </Button>
             <Button
               onClick={() => navigate({ to: '/admin/isi' })}
               variant="outline"
-              className="hidden shrink-0 sm:inline-flex"
+              size="sm"
+              className="hidden shrink-0 sm:inline-flex text-xs font-bold"
             >
               <SquarePen size={14} className="mr-1.5" />
               Isi 5R
             </Button>
             <Button
               onClick={() => navigate({ to: '/admin/isi', search: { form: 'dekorasi' } })}
-              className="hidden shrink-0 sm:inline-flex"
+              size="sm"
+              className="hidden shrink-0 sm:inline-flex text-xs font-bold"
             >
               <Paintbrush size={14} className="mr-1.5" />
               Isi Dekorasi
@@ -289,7 +323,11 @@ function AdminDashboardPage() {
       )}
 
       {/* Aktivitas */}
-      <ChartAreaInteractive data={calendar} />
+      <ChartAreaInteractive
+        data={calendar}
+        subtitle="Jumlah penilaian per minggu"
+        showRange={false}
+      />
 
       {/* Room status */}
       <section>
@@ -372,28 +410,10 @@ function AdminDashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Petunjuk5RModal open={showGuide} onOpenChange={setShowGuide} />
     </div>
   );
-}
-
-// ── Chart helpers ──
-
-/** Seri harian penilaian untuk 90 hari terakhir (termasuk hari tanpa data). */
-function buildDailySeries(submissions: FiveRSubmission[]): { date: string; count: number }[] {
-  const days: { date: string; count: number }[] = [];
-  const now = new Date();
-  const countMap = new Map<string, number>();
-  for (const s of submissions) {
-    const key = s.createdAt.slice(0, 10);
-    countMap.set(key, (countMap.get(key) ?? 0) + 1);
-  }
-  for (let i = 89; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    days.push({ date: key, count: countMap.get(key) ?? 0 });
-  }
-  return days;
 }
 
 // ── helpers ──
@@ -405,6 +425,15 @@ function formatLongDate(d: Date): string {
     month: 'long',
     year: 'numeric',
   });
+}
+
+/** Label periode penilaian dari settings (fallback kalau belum di-set). */
+function periodLabel(startDate: string | null, endDate: string | null): string {
+  if (startDate && endDate) {
+    const fmt: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+    return `Masa penilaian ${new Date(startDate).toLocaleDateString('id-ID', fmt)} - ${new Date(endDate).toLocaleDateString('id-ID', fmt)}`;
+  }
+  return 'Periode penilaian belum diatur';
 }
 
 function timeAgo(iso: string): string {

@@ -1,6 +1,7 @@
 /**
  * ChartAreaInteractive — area chart aktivitas (block dashboard-01), data real.
- * Seri harian { date: 'YYYY-MM-DD', count } + toggle 7/30/90 hari.
+ * Default: seri harian { date: 'YYYY-MM-DD', count } + toggle 7/30/90 hari.
+ * Set `showRange={false}` utk seri mingguan/agregat tanpa filter hari (render semua titik).
  */
 import * as React from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
@@ -43,10 +44,13 @@ export function ChartAreaInteractive({
   data,
   title = 'Aktivitas Penilaian',
   subtitle = 'Jumlah penilaian per hari',
+  showRange = true,
 }: {
   data: { date: string; count: number }[];
   title?: string;
   subtitle?: string;
+  /** false = data sudah agregat (mis. per minggu) — render semua, tanpa toggle range. */
+  showRange?: boolean;
 }) {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = React.useState('30d');
@@ -58,6 +62,8 @@ export function ChartAreaInteractive({
   }, [isMobile]);
 
   const filteredData = React.useMemo(() => {
+    // Data agregat (mingguan) tanpa toggle — render semua titik apa adanya.
+    if (!showRange) return data;
     const referenceDate = new Date();
     let daysToSubtract = 90;
     if (timeRange === '30d') daysToSubtract = 30;
@@ -65,7 +71,7 @@ export function ChartAreaInteractive({
     const startDate = new Date(referenceDate);
     startDate.setDate(startDate.getDate() - daysToSubtract);
     return data.filter((item) => new Date(item.date) >= startDate);
-  }, [data, timeRange]);
+  }, [data, timeRange, showRange]);
 
   const rangeLabel =
     timeRange === '7d'
@@ -80,28 +86,32 @@ export function ChartAreaInteractive({
         <CardTitle>{title}</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">{subtitle}</span>
-          <span className="@[540px]/card:hidden">{rangeLabel}</span>
+          <span className="@[540px]/card:hidden">{showRange ? rangeLabel : subtitle}</span>
         </CardDescription>
         <CardAction>
-          <ToggleGroup
-            type="single"
-            value={timeRange}
-            onValueChange={setTimeRange}
-            variant="outline"
-            className="hidden *:data-[slot=toggle-group-item]:px-4! @[767px]/card:flex"
-          >
-            <ToggleGroupItem value="90d">3 bulan</ToggleGroupItem>
-            <ToggleGroupItem value="30d">30 hari</ToggleGroupItem>
-            <ToggleGroupItem value="7d">7 hari</ToggleGroupItem>
-          </ToggleGroup>
-          <Combobox
-            options={timeRangeOptions}
-            value={timeRange}
-            onValueChange={setTimeRange}
-            showSearch={false}
-            size="sm"
-            triggerClassName="w-36 @[767px]/card:hidden h-8"
-          />
+          {showRange ? (
+            <>
+              <ToggleGroup
+                type="single"
+                value={timeRange}
+                onValueChange={setTimeRange}
+                variant="outline"
+                className="hidden *:data-[slot=toggle-group-item]:px-4! @[767px]/card:flex"
+              >
+                <ToggleGroupItem value="90d">3 bulan</ToggleGroupItem>
+                <ToggleGroupItem value="30d">30 hari</ToggleGroupItem>
+                <ToggleGroupItem value="7d">7 hari</ToggleGroupItem>
+              </ToggleGroup>
+              <Combobox
+                options={timeRangeOptions}
+                value={timeRange}
+                onValueChange={setTimeRange}
+                showSearch={false}
+                size="sm"
+                triggerClassName="w-36 @[767px]/card:hidden h-8"
+              />
+            </>
+          ) : null}
         </CardAction>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">

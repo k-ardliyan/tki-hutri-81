@@ -164,31 +164,23 @@ export default function ConfirmForm({
 
         {/* Submit Action */}
         <div className="sticky bottom-0 z-40 -mx-4 -mb-4 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md sm:-mx-6 sm:-mb-6 lg:static lg:mx-0 lg:mb-0 lg:p-0 lg:bg-transparent lg:shadow-none lg:border-t-0">
-          <div className="space-y-1.5 w-full">
-            <Button
-              disabled={selected.size === 0 || submitting}
-              onClick={() => {
-                setConfirming(true);
-                onSubmit([...selected]);
-              }}
-              size="lg"
-              className="w-full text-sm font-bold shadow-md shadow-primary/20"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 size={16} className="mr-2 animate-spin" />
-                  Menyimpan...
-                </>
-              ) : (
-                `Konfirmasi ${selected.size} Porsi`
-              )}
-            </Button>
-            {confirming && (
-              <p className="text-center text-[10px] font-medium text-muted-foreground">
-                Pastikan centang sesuai jumlah snack yang diserahkan.
-              </p>
-            )}
-          </div>
+          <Button
+            disabled={selected.size === 0}
+            loading={submitting}
+            onClick={() => {
+              setConfirming(true);
+              onSubmit([...selected]);
+            }}
+            size="lg"
+            className="w-full text-sm font-bold shadow-md shadow-primary/20"
+          >
+            {submitting ? 'Menyimpan...' : `Konfirmasi ${selected.size} Porsi`}
+          </Button>
+          {confirming && (
+            <p className="text-center text-[10px] font-medium text-muted-foreground mt-1.5">
+              Pastikan centang sesuai jumlah snack yang diserahkan.
+            </p>
+          )}
         </div>
       </div>
     </div>

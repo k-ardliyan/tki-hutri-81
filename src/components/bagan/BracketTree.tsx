@@ -3,7 +3,8 @@
  * Props normalized dari getBracket (server). Match = unit utama.
  * Admin: tombol Input Hasil / Koreksi per match. Publik: read-only.
  */
-import { ChevronRight, Trophy, Users } from 'lucide-react';
+
+import { Award, ChevronRight, Crown, Gift, Medal, Trophy, Users } from 'lucide-react';
 import type { BracketDetailView, MatchView, RoundView } from '../../lib/tournament/types';
 import { Button } from '../ui/button';
 
@@ -207,28 +208,28 @@ const PODIUM_LEVELS = [
   {
     rank: 1,
     label: 'Juara 1',
-    emoji: '🥇',
-    size: 'h-14 w-14 text-2xl',
-    ring: 'ring-amber-300/50 bg-gradient-to-b from-amber-300 to-amber-500',
-    labelCls: 'text-amber-600 dark:text-amber-400',
-    nameCls: 'text-amber-900 dark:text-amber-300',
+    icon: <Crown size={20} className="text-white" />,
+    size: 'h-13 w-13',
+    ring: 'ring-amber-300/60 bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/20',
+    labelCls: 'text-amber-700 dark:text-amber-400',
+    nameCls: 'text-amber-950 dark:text-amber-300',
   },
   {
     rank: 2,
     label: 'Juara 2',
-    emoji: '🥈',
-    size: 'h-12 w-12 text-xl',
-    ring: 'ring-slate-300/60 bg-gradient-to-b from-slate-200 to-slate-400',
-    labelCls: 'text-slate-500 dark:text-slate-400',
+    icon: <Medal size={18} className="text-white" />,
+    size: 'h-11 w-11',
+    ring: 'ring-slate-300/60 bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-500/20',
+    labelCls: 'text-slate-600 dark:text-slate-400',
     nameCls: 'text-slate-800 dark:text-slate-200',
   },
   {
     rank: 3,
     label: 'Juara 3',
-    emoji: '🥉',
-    size: 'h-10 w-10 text-lg',
-    ring: 'ring-amber-700/30 bg-gradient-to-b from-amber-600 to-amber-800',
-    labelCls: 'text-amber-700 dark:text-amber-500',
+    icon: <Award size={16} className="text-white" />,
+    size: 'h-10 w-10',
+    ring: 'ring-amber-700/40 bg-gradient-to-br from-amber-600 to-amber-800 shadow-amber-700/20',
+    labelCls: 'text-amber-800 dark:text-amber-500',
     nameCls: 'text-amber-950 dark:text-amber-300',
   },
 ];
@@ -267,7 +268,7 @@ export function PodiumPanel({
                 <span
                   className={`flex items-center justify-center rounded-full ${l.size} ${l.ring} ring-2 shadow-md select-none`}
                 >
-                  {l.emoji}
+                  {l.icon}
                 </span>
                 <span className={`text-[10px] font-black uppercase tracking-wider ${l.labelCls}`}>
                   {l.label}
@@ -276,8 +277,9 @@ export function PodiumPanel({
                   {teamId !== null ? namaOf(detail, teamId) : '-'}
                 </span>
                 {prize && prize.hadiah.trim() && (
-                  <span className="rounded-md bg-background/60 px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground">
-                    🎁 {prize.hadiah.trim()}
+                  <span className="rounded-md bg-background/80 px-2 py-0.5 text-[9px] font-bold text-muted-foreground border border-border/60 flex items-center gap-1">
+                    <Gift size={10} className="text-amber-600" />
+                    <span>{prize.hadiah.trim()}</span>
                   </span>
                 )}
               </div>
@@ -293,7 +295,7 @@ export function BracketTree({ detail, prizes, admin }: BracketTreeProps) {
   const mainRounds = detail.rounds.filter((r) => r.roundType === 'MAIN');
 
   return (
-    <div className="overflow-x-auto no-scrollbar">
+    <div className="w-full min-w-0 max-w-full overflow-x-auto pb-4 pt-1 touch-pan-x scroll-smooth">
       <div className="flex min-w-max items-start gap-4 p-1">
         {mainRounds.map((r, i) => (
           <div key={r.id} className="flex items-start gap-4">
@@ -337,8 +339,8 @@ export function BracketTree({ detail, prizes, admin }: BracketTreeProps) {
 /** Skeleton berbentuk bracket untuk loading state. */
 export function BracketTreeSkeleton() {
   return (
-    <div className="space-y-3">
-      <div className="flex gap-4 overflow-hidden">
+    <div className="w-full min-w-0 max-w-full space-y-3">
+      <div className="flex gap-4 overflow-x-auto pb-4 pt-1 no-scrollbar">
         {[1, 2, 3].map((c) => (
           <div key={c} className="w-60 shrink-0 space-y-2">
             <div className="h-4 w-24 rounded-md bg-muted/60 animate-pulse" />

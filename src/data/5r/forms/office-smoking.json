@@ -1,6 +1,6 @@
 {
   "id": "office-smoking",
-  "label": "Checklist 5R Office Smoking",
+  "label": "Office Smoking",
   "source": "checklist-5r-office-smoking.md",
   "scale": { "min": 1, "max": 5 },
   "categories": [

@@ -6,6 +6,7 @@ import LogoFtp from '../components/brand/LogoFtp';
 import LogoHutRi81 from '../components/brand/LogoHutRi81';
 import LogoTki from '../components/brand/LogoTki';
 import { LoginForm } from '../components/login-form';
+import { LoginSkeleton } from '../components/ui/skeletons';
 import type { UserRole } from '../lib/auth';
 import { gsap, shouldReduceMotion } from '../lib/gsap';
 import { getSession, login } from '../server/functions/auth';
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/login')({
     return {};
   },
   component: LoginPage,
+  pendingComponent: LoginSkeleton,
 });
 
 export default function LoginPage() {

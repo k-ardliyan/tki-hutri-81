@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { ScoreBoard } from '../components/5r/ScoreBoard';
 import { BracketTree } from '../components/bagan/BracketTree';
-import { LiveScoreSkeleton } from '../components/ui/skeletons';
+import { UnifiedLiveSkeleton } from '../components/ui/skeletons';
 import { getDeadline, getForms, getRooms, getSubmissions } from '../server/functions/5r';
 import { getBaganCompetitions, getBracket } from '../server/functions/bracket';
 
@@ -43,7 +43,7 @@ export const Route = createFileRoute('/live')({
     return { rooms, forms, submissions, deadline: dl.deadline, comps, details };
   },
   component: UnifiedLivePage,
-  pendingComponent: LiveScoreSkeleton,
+  pendingComponent: UnifiedLiveSkeleton,
 });
 
 function UnifiedLivePage() {
@@ -196,7 +196,7 @@ function UnifiedLivePage() {
                         </span>
                       </header>
 
-                      <div className="p-4 sm:p-5">
+                      <div className="p-4 sm:p-5 min-w-0 max-w-full overflow-hidden">
                         {!detail ? (
                           <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-slate-200 py-10 text-center">
                             <Users size={22} className="text-slate-300" />

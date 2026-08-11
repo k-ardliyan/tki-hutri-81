@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { CheckCircle2, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Award, CheckCircle2, Crown, Medal, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { BaganGuide } from '../../components/bagan/BaganGuide';
@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { AdminBaganSkeleton } from '../../components/ui/skeletons';
 import { requireRole } from '../../lib/routeGuard';
 import {
   correctMatchResult,
@@ -51,6 +52,7 @@ import {
 export const Route = createFileRoute('/admin/bagan')({
   beforeLoad: () => requireRole(['superadmin', 'admin', 'petugas']),
   component: AdminBagan,
+  pendingComponent: AdminBaganSkeleton,
 });
 
 type Kategori = 'putra' | 'putri';
@@ -115,7 +117,8 @@ function HadiahInput({
         size="sm"
         variant="outline"
         className="h-8 px-2 text-xs font-bold"
-        disabled={!changed || busy}
+        disabled={!changed}
+        loading={busy}
         onClick={() => void save()}
       >
         Simpan
@@ -422,7 +425,7 @@ function AdminBagan() {
         : 'berlangsung';
 
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 max-w-full space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <PageHeader
           title="Bagan Pertandingan"
@@ -432,7 +435,7 @@ function AdminBagan() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar rounded-2xl border border-border bg-card p-2">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar rounded-2xl border border-border bg-card p-2 w-full min-w-0 max-w-full">
         {comps.flatMap((c) =>
           (['putra', 'putri'] as Kategori[]).map((k) => {
             const key = keyOf(c.id, k);
@@ -801,22 +804,41 @@ function AdminBagan() {
                       teamId !== null
                         ? (detail.participants.find((x) => x.teamId === teamId)?.nama ?? null)
                         : null;
-                    const emoji =
-                      p.place === 1
-                        ? '🥇'
-                        : p.place === 2
-                          ? '🥈'
-                          : p.place === 3
-                            ? '🥉'
-                            : `#${p.place}`;
+                    const renderPlaceBadge = () => {
+                      if (p.place === 1) {
+                        return (
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-xs">
+                            <Crown size={15} />
+                          </span>
+                        );
+                      }
+                      if (p.place === 2) {
+                        return (
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-400 to-slate-600 text-white shadow-xs">
+                            <Medal size={15} />
+                          </span>
+                        );
+                      }
+                      if (p.place === 3) {
+                        return (
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-xs">
+                            <Award size={15} />
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-black">
+                          #{p.place}
+                        </span>
+                      );
+                    };
+
                     return (
                       <div
                         key={p.place}
                         className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/20 px-3 py-2"
                       >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-black">
-                          {emoji}
-                        </span>
+                        {renderPlaceBadge()}
                         <div className="min-w-0 flex-1 basis-40">
                           <p className="text-xs font-black text-foreground">
                             Juara {p.place}
@@ -982,9 +1004,10 @@ function AdminBagan() {
               <Button
                 size="sm"
                 onClick={() => void submitResult()}
-                disabled={busy === 'result' || resultWinner === null}
+                disabled={resultWinner === null}
+                loading={busy === 'result'}
               >
-                {busy === 'result' ? 'Menyimpan...' : 'Simpan Hasil'}
+                Simpan Hasil
               </Button>
             </div>
           </div>
@@ -1084,9 +1107,10 @@ function AdminBagan() {
                 size="sm"
                 variant={correctInvalidate ? 'destructive' : 'default'}
                 onClick={() => void submitCorrect()}
-                disabled={busy === 'correct' || correctWinner === null}
+                disabled={correctWinner === null}
+                loading={busy === 'correct'}
               >
-                {busy === 'correct' ? 'Menyimpan...' : 'Koreksi & Simpan'}
+                Koreksi & Simpan
               </Button>
             </div>
           </div>

@@ -26,6 +26,7 @@ import { getRedemptionSummary, redeemSnack, searchEmployees } from '../../server
 
 export const Route = createFileRoute('/petugas/dashboard')({
   component: PetugasDashboardPage,
+  pendingComponent: PetugasDashboardSkeleton,
 });
 
 interface SearchResult {
@@ -124,26 +125,35 @@ function PetugasDashboardPage() {
     }
   };
 
+  const [redeemingId, setRedeemingId] = useState<number | null>(null);
+
   const redeemOne = async (id: number) => {
     if (!sessionId) {
       setErr('Tidak ada sesi aktif');
       return;
     }
     setErr(null);
-    const res = await redeemSnack({ data: { sessionId, employeeIds: [id], claimedBy } });
-    if (!res.ok) {
-      setErr(res.error ?? 'Gagal');
-      return;
-    }
-    if (res.skipped.length > 0) {
-      const r = res.skipped[0];
-      setErr(`${r.claimedBy} sudah ambil pada ${new Date(r.claimedAt).toLocaleString('id-ID')}`);
-    } else {
-      toast.success('1 porsi dicatat!');
-      setResults([]);
-      setQ('');
-      const s = await getRedemptionSummary({ data: {} });
-      setSummary(s);
+    setRedeemingId(id);
+    try {
+      const res = await redeemSnack({ data: { sessionId, employeeIds: [id], claimedBy } });
+      if (!res.ok) {
+        setErr(res.error ?? 'Gagal');
+        return;
+      }
+      if (res.skipped.length > 0) {
+        const r = res.skipped[0];
+        setErr(`${r.claimedBy} sudah ambil pada ${new Date(r.claimedAt).toLocaleString('id-ID')}`);
+      } else {
+        toast.success('1 porsi dicatat!');
+        setResults([]);
+        setQ('');
+        const s = await getRedemptionSummary({ data: {} });
+        setSummary(s);
+      }
+    } catch {
+      setErr('Terjadi kesalahan saat mencatat snack');
+    } finally {
+      setRedeemingId(null);
     }
   };
 
@@ -290,6 +300,7 @@ function PetugasDashboardPage() {
                   </div>
                   <Button
                     size="sm"
+                    loading={redeemingId === r.id}
                     onClick={() => redeemOne(r.id)}
                     className="shrink-0 rounded-full px-3.5"
                   >

@@ -62,7 +62,7 @@ export const keyDatesSeed = [
 // ─── Room Areas (5 rows) ───
 export const roomAreasSeed = [
   { name: 'Implementator', icon: 'fa-gears', sortOrder: 1 },
-  { name: 'Hardware & Finance', icon: 'fa-microchip', sortOrder: 2 },
+  { name: 'Hardware, Finance & Legal', icon: 'fa-microchip', sortOrder: 2 },
   { name: 'Sales', icon: 'fa-handshake', sortOrder: 3 },
   { name: 'IT Dalam', icon: 'fa-server', sortOrder: 4 },
   { name: 'IT Luar', icon: 'fa-network-wired', sortOrder: 5 },

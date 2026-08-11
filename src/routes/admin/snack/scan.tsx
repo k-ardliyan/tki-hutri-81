@@ -25,12 +25,14 @@ import { Button } from '../../../components/ui/button';
 import { Card, CardContent } from '../../../components/ui/card';
 import { PageHeader } from '../../../components/ui/page-header';
 import { Skeleton } from '../../../components/ui/skeleton';
+import { PetugasDashboardSkeleton } from '../../../components/ui/skeletons';
 import { getSession } from '../../../server/functions/auth';
 import type { RedemptionInfo, SnackTeam } from '../../../server/functions/snack';
 import { getSessions, getTeamByKode, redeemSnack } from '../../../server/functions/snack';
 
 export const Route = createFileRoute('/admin/snack/scan')({
   component: AdminScanPage,
+  pendingComponent: PetugasDashboardSkeleton,
 });
 
 type Stage = 'scan' | 'confirm' | 'dup' | 'success';

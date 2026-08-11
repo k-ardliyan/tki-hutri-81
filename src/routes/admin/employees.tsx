@@ -37,6 +37,7 @@ export const Route = createFileRoute('/admin/employees')({
     await requireRole(['superadmin', 'admin']);
   },
   component: AdminEmployees,
+  pendingComponent: DataTableSkeleton,
 });
 
 interface EmployeeRow {
@@ -61,6 +62,8 @@ function AdminEmployees() {
   const [nip, setNip] = useState('');
   const [divisi, setDivisi] = useState('');
   const [eligible, setEligible] = useState(true);
+
+  const [submitting, setSubmitting] = useState(false);
 
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<EmployeeRow | null>(null);
@@ -100,30 +103,37 @@ function AdminEmployees() {
       setErr('Nama wajib');
       return;
     }
-    if (editId !== null) {
-      await updateEmployee({
-        data: {
-          id: editId,
-          nama: nama.trim(),
-          nip: nip || null,
-          divisi: divisi || null,
-          isSnackEligible: eligible,
-        },
-      });
-      toast.success('Karyawan diupdate!');
-    } else {
-      await createEmployee({
-        data: {
-          nama: nama.trim(),
-          nip: nip || null,
-          divisi: divisi || null,
-          isSnackEligible: eligible,
-        },
-      });
-      toast.success('Karyawan ditambah!');
+    setSubmitting(true);
+    try {
+      if (editId !== null) {
+        await updateEmployee({
+          data: {
+            id: editId,
+            nama: nama.trim(),
+            nip: nip || null,
+            divisi: divisi || null,
+            isSnackEligible: eligible,
+          },
+        });
+        toast.success('Karyawan diupdate!');
+      } else {
+        await createEmployee({
+          data: {
+            nama: nama.trim(),
+            nip: nip || null,
+            divisi: divisi || null,
+            isSnackEligible: eligible,
+          },
+        });
+        toast.success('Karyawan ditambah!');
+      }
+      setShowDrawer(false);
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Gagal menyimpan karyawan');
+    } finally {
+      setSubmitting(false);
     }
-    setShowDrawer(false);
-    await load();
   };
 
   const remove = async () => {
@@ -267,7 +277,7 @@ function AdminEmployees() {
             >
               Batal
             </Button>
-            <Button onClick={submit} className="flex-1 sm:flex-none">
+            <Button onClick={submit} loading={submitting} className="flex-1 sm:flex-none">
               {editId !== null ? 'Simpan' : 'Tambah'}
             </Button>
           </div>

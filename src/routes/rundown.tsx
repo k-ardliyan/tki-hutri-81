@@ -1,5 +1,5 @@
 import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
-import PageFallback from '../components/ui/PageFallback';
+import { RundownSkeleton } from '../components/ui/skeletons';
 import { getRundown } from '../server/functions/rundown';
 
 const RundownPage = lazyRouteComponent(() => import('../components/pages/RundownPage'));
@@ -9,5 +9,5 @@ export const Route = createFileRoute('/rundown')({
     rundown: await getRundown(),
   }),
   component: RundownPage,
-  pendingComponent: PageFallback,
+  pendingComponent: RundownSkeleton,
 });

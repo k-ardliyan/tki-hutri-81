@@ -1,5 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createRootRoute, HeadContent, Outlet, Scripts, useLocation } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+  useLocation,
+  useRouterState,
+} from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import '../styles.css';
@@ -11,6 +18,48 @@ import PageFallback from '../components/ui/PageFallback';
 import { Toaster } from '../components/ui/sonner';
 import { AudienceProvider } from '../context/AudienceContext';
 import { gsap, shouldReduceMotion } from '../lib/gsap';
+
+function NavigationProgressBar() {
+  const isPending = useRouterState({ select: (s) => s.status === 'pending' || s.isLoading });
+  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPending) {
+      setVisible(true);
+      setProgress(30);
+      timer = setTimeout(() => {
+        setProgress(75);
+      }, 120);
+    } else {
+      setProgress(100);
+      timer = setTimeout(() => {
+        setVisible(false);
+        setProgress(0);
+      }, 200);
+    }
+    return () => clearTimeout(timer);
+  }, [isPending]);
+
+  if (!visible && !isPending) return null;
+
+  return (
+    <div
+      role="progressbar"
+      aria-label="Memuat halaman..."
+      className="fixed top-0 left-0 right-0 z-50 h-[3px] overflow-hidden bg-transparent pointer-events-none"
+    >
+      <div
+        className="h-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-400 transition-all duration-200 ease-out shadow-[0_0_10px_rgba(225,29,72,0.9)]"
+        style={{
+          width: `${progress}%`,
+          opacity: isPending ? 1 : 0,
+        }}
+      />
+    </div>
+  );
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -87,6 +136,7 @@ function RootComponent() {
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <AudienceProvider>
+          <NavigationProgressBar />
           <AppLayout />
         </AudienceProvider>
       </QueryClientProvider>
@@ -95,37 +145,41 @@ function RootComponent() {
 }
 
 function AppLayout() {
-  const { pathname } = useLocation();
+  const routerPath = useRouterState({
+    select: (s) =>
+      s.status === 'pending' || s.isLoading
+        ? s.location.pathname
+        : (s.resolvedLocation?.pathname ?? s.location.pathname),
+  });
   const panelRef = useRef<HTMLDivElement>(null);
   const didMountRef = useRef(false);
 
-  const isHome = pathname === '/';
+  const isHome = routerPath === '/';
   const isAdminArea =
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/audit') ||
-    pathname.startsWith('/petugas') ||
-    pathname === '/login';
+    routerPath.startsWith('/admin') ||
+    routerPath.startsWith('/audit') ||
+    routerPath.startsWith('/petugas') ||
+    routerPath === '/login';
 
-  // GSAP page transition — animate on every route change.
-  // Skip di area admin: layout (sidebar) harus tetap, hanya content yang ganti.
+  // GSAP page transition — animate on route change.
   useEffect(() => {
     if (isAdminArea) return;
     if (!panelRef.current || shouldReduceMotion()) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         panelRef.current!,
-        { opacity: 0, y: 12 },
+        { opacity: 0.2, y: 8 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.3,
+          duration: 0.25,
           ease: 'power2.out',
           clearProps: 'all',
         }
       );
     });
     return () => ctx.revert();
-  }, [pathname]);
+  }, [routerPath, isAdminArea]);
 
   // Scroll to top instantly on route change
   useEffect(() => {
@@ -134,7 +188,7 @@ function AppLayout() {
       return;
     }
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [routerPath]);
 
   return (
     <div

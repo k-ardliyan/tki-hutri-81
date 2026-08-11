@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { LombaPageSkeleton } from '../components/ui/skeletons';
 import { getCompetitions } from '../server/functions/competitions';
 
 export const Route = createFileRoute('/lomba')({
@@ -6,6 +7,7 @@ export const Route = createFileRoute('/lomba')({
     competitions: await getCompetitions(),
   }),
   component: LombaLayout,
+  pendingComponent: LombaPageSkeleton,
 });
 
 function LombaLayout() {

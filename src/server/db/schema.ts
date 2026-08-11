@@ -381,6 +381,8 @@ export const fiveRSubmissions = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     createdBy: text('created_by'), // username dari session login
+    // Minggu ke-N relatif ke start_date periode penilaian (1-based).
+    weekNumber: integer('week_number').notNull().default(1),
   },
   (t) => [
     // Dekorasi: sekali per (ruangan, auditor). 5R lain bebas berulang per hari.
@@ -389,15 +391,21 @@ export const fiveRSubmissions = pgTable(
     uniqueIndex('five_r_submissions_dekorasi_once')
       .on(t.roomId, t.createdBy)
       .where(sql`${t.formId} = 'dekorasi'`),
+    // 5R: sekali per (ruangan, form, minggu, auditor) — penilaian per-minggu.
+    uniqueIndex('five_r_submissions_5r_weekly')
+      .on(t.roomId, t.formId, t.weekNumber, t.createdBy)
+      .where(sql`${t.formId} != 'dekorasi'`),
   ]
 );
 
-// ─── Assessment Deadlines (tenggat penilaian per lomba — dekor-5r) ───
+// ─── Assessment Deadlines (periode penilaian per lomba — dekor-5r) ───
 export const assessmentDeadlines = pgTable('assessment_deadlines', {
   competitionId: integer('competition_id')
     .primaryKey()
     .references(() => competitions.id, { onDelete: 'cascade' }),
-  deadline: timestamp('deadline', { withTimezone: true }), // null = belum aktif
+  startDate: timestamp('start_date', { withTimezone: true }), // null = belum aktif
+  endDate: timestamp('end_date', { withTimezone: true }), // null = belum aktif
+  deadline: timestamp('deadline', { withTimezone: true }), // legacy — dipertahankan utk data lama
   note: text('note'),
   updatedBy: text('updated_by'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

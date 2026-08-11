@@ -23,13 +23,14 @@ import {
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { PageHeader } from '../../components/ui/page-header';
-import { Skeleton } from '../../components/ui/skeleton';
+import { PetugasDashboardSkeleton } from '../../components/ui/skeletons';
 import { getSession } from '../../server/functions/auth';
 import type { RedemptionInfo, SnackTeam } from '../../server/functions/snack';
 import { getSessions, getTeamByKode, redeemSnack } from '../../server/functions/snack';
 
 export const Route = createFileRoute('/petugas/')({
   component: PetugasSnackPage,
+  pendingComponent: PetugasDashboardSkeleton,
 });
 
 type Stage = 'scan' | 'confirm' | 'dup' | 'success';
@@ -130,18 +131,7 @@ function PetugasSnackPage() {
   };
 
   if (sessionsLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1.5">
-            <Skeleton className="h-6 w-40 rounded" />
-            <Skeleton className="h-4 w-64 rounded" />
-          </div>
-          <Skeleton className="h-9 w-32 rounded-lg" />
-        </div>
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </div>
-    );
+    return <PetugasDashboardSkeleton />;
   }
 
   return (

@@ -1,5 +1,5 @@
 /**
- * Server functions — 5R audit: forms, rooms, submissions, tenggat penilaian.
+ * Server functions — 5R audit: forms, rooms, submissions, periode penilaian.
  *
  * Auth pindah ke src/server/functions/auth.ts (DB users + cookie session).
  * Forms/rooms = static JSON (src/data/5r). Submissions = DB (five_r_submissions).
@@ -7,13 +7,17 @@
  * Aturan lomba dekor-5r:
  * - Form dekorasi: SEKALI per (ruangan, auditor) — partial unique index
  *   five_r_submissions_dekorasi_once + pre-check + catch 23505.
- * - Tenggat penilaian: deadline global lomba dekor-5r (assessment_deadlines).
- *   Berlaku SEMUA role; admin bisa set/ubah kapan pun (setDeadline role-checked).
+ * - Form 5R: SEKALI per (ruangan, form, MINGGU, auditor) — partial unique index
+ *   five_r_submissions_5r_weekly + pre-check + catch 23505.
+ * - Periode penilaian: start_date/end_date global lomba dekor-5r
+ *   (assessment_deadlines). Berlaku SEMUA role; admin bisa set/ubah kapan pun
+ *   (setSettings role-checked). week_number dihitung relatif ke start_date.
  */
 import { createServerFn } from '@tanstack/react-start';
 import { and, desc, eq } from 'drizzle-orm';
 import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r';
 import { fiveRForms, fiveRRooms, getFiveRForm, getFiveRRoom } from '../../data/5r';
+import { validatePeriod, weekNumber } from '../../lib/dateUtils';
 import { assertDb } from '../db';
 import { isUniqueViolation } from '../db/errors';
 import { assessmentDeadlines, competitions, fiveRSubmissions } from '../db/schema';
@@ -23,16 +27,21 @@ export interface FiveRSubmissionStored extends FiveRSubmission {}
 const DEKOR_5R_SLUG = 'dekor-5r';
 const DEKORASI_FORM_ID = 'dekorasi';
 
-/** Tenggat lomba dekor-5r dari DB; null kalau belum di-set. */
-async function getDeadlineRow() {
+interface AssessmentSettings {
+  startDate: Date | null;
+  endDate: Date | null;
+}
+
+/** Periode penilaian lomba dekor-5r dari DB; null kalau belum di-set. */
+async function getSettingsRow(): Promise<AssessmentSettings> {
   const database = assertDb();
   const [row] = await database
-    .select({ deadline: assessmentDeadlines.deadline })
+    .select({ startDate: assessmentDeadlines.startDate, endDate: assessmentDeadlines.endDate })
     .from(assessmentDeadlines)
     .innerJoin(competitions, eq(assessmentDeadlines.competitionId, competitions.id))
     .where(eq(competitions.slug, DEKOR_5R_SLUG))
     .limit(1);
-  return row?.deadline ?? null;
+  return { startDate: row?.startDate ?? null, endDate: row?.endDate ?? null };
 }
 
 // ─── Data (JSON statis) ───
@@ -49,48 +58,103 @@ export const getRooms = createServerFn({ method: 'GET' }).handler(
   }
 );
 
-// ─── Tenggat penilaian (lomba dekor-5r) ───
+// ─── Periode penilaian (lomba dekor-5r) ───
 
-export const getDeadline = createServerFn({ method: 'GET' }).handler(
-  async (): Promise<{ deadline: string | null }> => {
-    const deadline = await getDeadlineRow();
-    return { deadline: deadline ? deadline.toISOString() : null };
+export const getSettings = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<{ startDate: string | null; endDate: string | null }> => {
+    const settings = await getSettingsRow();
+    return {
+      startDate: settings.startDate ? settings.startDate.toISOString() : null,
+      endDate: settings.endDate ? settings.endDate.toISOString() : null,
+    };
   }
 );
 
-/** Set/hapus tenggat — HANYA superadmin/admin (role check DI HANDLER: ubah aturan lomba). */
+/** Set/hapus periode — HANYA superadmin/admin (role check DI HANDLER: ubah aturan lomba). */
+export const setSettings = createServerFn({ method: 'POST' })
+  .validator((d: { startDate: string | null; endDate: string | null }) => d)
+  .handler(
+    async ({
+      data,
+    }): Promise<{
+      ok: boolean;
+      startDate: string | null;
+      endDate: string | null;
+      error?: string;
+    }> => {
+      const { getSession } = await import('./auth');
+      const session = await getSession();
+      if (!session.role || !['superadmin', 'admin'].includes(session.role)) {
+        return {
+          ok: false,
+          startDate: null,
+          endDate: null,
+          error: 'Hanya admin yang bisa mengatur periode penilaian',
+        };
+      }
+      const database = assertDb();
+      const [comp] = await database
+        .select({ id: competitions.id })
+        .from(competitions)
+        .where(eq(competitions.slug, DEKOR_5R_SLUG))
+        .limit(1);
+      if (!comp)
+        return {
+          ok: false,
+          startDate: null,
+          endDate: null,
+          error: 'Lomba dekor-5r tidak ditemukan',
+        };
+
+      const validation = validatePeriod(data.startDate, data.endDate);
+      if (!validation.ok) {
+        return { ok: false, startDate: null, endDate: null, error: validation.error };
+      }
+      const { startDate, endDate } = validation;
+
+      await database
+        .insert(assessmentDeadlines)
+        .values({
+          competitionId: comp.id,
+          startDate,
+          endDate,
+          note: null,
+          updatedBy: session.username,
+        })
+        .onConflictDoUpdate({
+          target: assessmentDeadlines.competitionId,
+          set: { startDate, endDate, updatedBy: session.username, updatedAt: new Date() },
+        });
+      return {
+        ok: true,
+        startDate: startDate ? startDate.toISOString() : null,
+        endDate: endDate ? endDate.toISOString() : null,
+      };
+    }
+  );
+
+// ─── Backward compat: deadline lama = end_date (data sebelum start_date diperkenalkan) ───
+
+export const getDeadline = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<{ deadline: string | null }> => {
+    const settings = await getSettingsRow();
+    return { deadline: settings.endDate ? settings.endDate.toISOString() : null };
+  }
+);
+
 export const setDeadline = createServerFn({ method: 'POST' })
   .validator((d: { deadline: string | null }) => d)
   .handler(async ({ data }): Promise<{ ok: boolean; deadline: string | null; error?: string }> => {
-    const { getSession } = await import('./auth');
-    const session = await getSession();
-    if (!session.role || !['superadmin', 'admin'].includes(session.role)) {
-      return {
-        ok: false,
-        deadline: null,
-        error: 'Hanya admin yang bisa mengatur tenggat penilaian',
-      };
-    }
-    const database = assertDb();
-    const [comp] = await database
-      .select({ id: competitions.id })
-      .from(competitions)
-      .where(eq(competitions.slug, DEKOR_5R_SLUG))
-      .limit(1);
-    if (!comp) return { ok: false, deadline: null, error: 'Lomba dekor-5r tidak ditemukan' };
-
-    const deadline = data.deadline ? new Date(data.deadline) : null;
-    if (deadline && Number.isNaN(deadline.getTime()))
-      return { ok: false, deadline: null, error: 'Tanggal tenggat tidak valid' };
-
-    await database
-      .insert(assessmentDeadlines)
-      .values({ competitionId: comp.id, deadline, note: null, updatedBy: session.username })
-      .onConflictDoUpdate({
-        target: assessmentDeadlines.competitionId,
-        set: { deadline, updatedBy: session.username, updatedAt: new Date() },
-      });
-    return { ok: true, deadline: deadline ? deadline.toISOString() : null };
+    // Legacy: pertahankan start_date yang sudah ada (kalau ada). Kalau belum ada,
+    // end-only — diizinkan (periode tetap "belum lengkap", submission ditolak).
+    const settings = await getSettingsRow();
+    const res = await setSettings({
+      data: {
+        startDate: settings.startDate ? settings.startDate.toISOString() : null,
+        endDate: data.deadline,
+      },
+    });
+    return { ok: res.ok, deadline: res.endDate, error: res.error };
   });
 
 // ─── Submissions (DB) ───
@@ -111,6 +175,7 @@ export const getSubmissions = createServerFn({ method: 'GET' }).handler(
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
       createdBy: r.createdBy ?? null,
+      weekNumber: r.weekNumber,
     }));
   }
 );
@@ -125,25 +190,59 @@ export const saveSubmission = createServerFn({ method: 'POST' })
     if (!room) return { ok: false, error: `Ruangan tidak dikenal: ${data.roomId}` };
 
     const { min, max } = form.scale;
+    // Semua kriteria WAJIB diisi (nilai angka) — jangan terima submission parsial.
+    const missing: string[] = [];
     for (const cat of form.categories) {
       for (const c of cat.criteria) {
         const v = data.answers[c.id];
-        if (v !== undefined && (typeof v !== 'number' || v < min || v > max)) {
+        if (v === undefined) {
+          missing.push(c.id);
+          continue;
+        }
+        if (typeof v !== 'number' || v < min || v > max) {
           return { ok: false, error: `Skor invalid untuk kriteria ${c.id}` };
         }
       }
+    }
+    if (missing.length > 0) {
+      return {
+        ok: false,
+        error: `Masih ada ${missing.length} kriteria belum diisi (${missing[0]}${missing.length > 1 ? ', ...' : ''}).`,
+      };
     }
 
     // Get username from session (server-side, never trust client)
     const { getSession } = await import('./auth');
     const session = await getSession();
     const createdBy = session.username ?? null;
-
-    // Tenggat penilaian — berlaku semua role (admin bisa ubah deadline kapan pun).
-    const deadline = await getDeadlineRow();
-    if (deadline && new Date() > deadline) {
-      return { ok: false, error: 'Penilaian sudah ditutup (melewati tenggat). Hubungi admin.' };
+    // Wajib login: tanpa createdBy, unique index 5r_weekly/dekorasi_once TIDAK
+    // menolak duplikat (NULL != NULL di Postgres unique) → anonymous bisa spam.
+    if (!createdBy) {
+      return { ok: false, error: 'Sesi tidak valid. Silakan login dulu.' };
     }
+
+    // Periode penilaian — berlaku semua role (admin bisa ubah periode kapan pun).
+    // WAJIB start+end: tanpa periode, weekNumber tidak bermakna dan unique index
+    // 5r_weekly akan mengunci form 5R jadi "sekali total" (regresi dari bebas per hari).
+    const settings = await getSettingsRow();
+    const submittedAt = new Date(data.submittedAt);
+
+    if (!settings.startDate || !settings.endDate) {
+      return { ok: false, error: 'Periode penilaian belum diatur. Hubungi admin.' };
+    }
+    if (submittedAt < settings.startDate) {
+      return { ok: false, error: 'Penilaian belum dibuka (sebelum tanggal mulai).' };
+    }
+    if (submittedAt > settings.endDate) {
+      return { ok: false, error: 'Penilaian sudah ditutup (melewati periode). Hubungi admin.' };
+    }
+    // Server time guard: jangan percaya submittedAt client saja — periode yang
+    // sudah lewat tetap ditolak walau client kirim timestamp di dalam periode.
+    if (new Date() > settings.endDate) {
+      return { ok: false, error: 'Penilaian sudah ditutup (melewati periode). Hubungi admin.' };
+    }
+
+    const weekNum = weekNumber(submittedAt, settings.startDate);
 
     // Dekorasi: sekali per (ruangan, auditor) — fast path pesan ramah.
     if (data.formId === DEKORASI_FORM_ID && createdBy) {
@@ -167,9 +266,31 @@ export const saveSubmission = createServerFn({ method: 'POST' })
         };
     }
 
+    // 5R: sekali per (ruangan, form, minggu, auditor) — fast path pesan ramah.
+    if (data.formId !== DEKORASI_FORM_ID && createdBy) {
+      const database = assertDb();
+      const dup = await database
+        .select({ id: fiveRSubmissions.id })
+        .from(fiveRSubmissions)
+        .where(
+          and(
+            eq(fiveRSubmissions.roomId, data.roomId),
+            eq(fiveRSubmissions.formId, data.formId),
+            eq(fiveRSubmissions.weekNumber, weekNum),
+            eq(fiveRSubmissions.createdBy, createdBy)
+          )
+        )
+        .limit(1);
+      if (dup.length)
+        return {
+          ok: false,
+          error: `Form ini sudah dinilai untuk minggu ke-${weekNum}. Satu form hanya bisa dinilai sekali per minggu per auditor.`,
+        };
+    }
+
     const db = assertDb();
     try {
-      await db
+      const inserted = await db
         .insert(fiveRSubmissions)
         .values({
           id: data.id,
@@ -178,18 +299,35 @@ export const saveSubmission = createServerFn({ method: 'POST' })
           auditor: data.auditor,
           answers: data.answers,
           notes: data.notes,
-          submittedAt: new Date(data.submittedAt),
+          submittedAt,
           createdAt: new Date(data.createdAt),
           updatedAt: new Date(data.updatedAt),
           createdBy,
+          weekNumber: weekNum,
         })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ id: fiveRSubmissions.id });
+
+      // onConflictDoNothing TIDAK melempar — konflik (race: dua submit paralel
+      // sama-sama lolos pre-check) hanya meng-suppress insert → returning kosong.
+      // Jangan return sukses palsu: kalau tidak ada row masuk, lapor error.
+      if (inserted.length === 0) {
+        return {
+          ok: false,
+          error:
+            data.formId === DEKORASI_FORM_ID
+              ? 'Ruangan ini sudah dinilai (lomba dekorasi). Satu ruangan hanya bisa dinilai sekali per auditor.'
+              : `Form ini sudah dinilai untuk minggu ke-${weekNum}. Satu form hanya bisa dinilai sekali per minggu per auditor.`,
+        };
+      }
     } catch (err) {
       if (isUniqueViolation(err)) {
         return {
           ok: false,
           error:
-            'Ruangan ini sudah dinilai (lomba dekorasi). Satu ruangan hanya bisa dinilai sekali per auditor.',
+            data.formId === DEKORASI_FORM_ID
+              ? 'Ruangan ini sudah dinilai (lomba dekorasi). Satu ruangan hanya bisa dinilai sekali per auditor.'
+              : `Form ini sudah dinilai untuk minggu ke-${weekNum}. Satu form hanya bisa dinilai sekali per minggu per auditor.`,
         };
       }
       throw err;
@@ -217,10 +355,10 @@ export const deleteSubmission = createServerFn({ method: 'POST' })
       return { ok: false, error: 'Hanya pemilik penilaian atau admin yang bisa menghapus' };
     }
 
-    // Konsisten dgn save: setelah tenggat, penilaian terkunci (semua role).
-    const deadline = await getDeadlineRow();
-    if (deadline && new Date() > deadline) {
-      return { ok: false, error: 'Penilaian sudah ditutup (melewati tenggat). Hubungi admin.' };
+    // Konsisten dgn save: setelah periode berakhir, penilaian terkunci (semua role).
+    const settings = await getSettingsRow();
+    if (settings.endDate && new Date() > settings.endDate) {
+      return { ok: false, error: 'Penilaian sudah ditutup (melewati periode). Hubungi admin.' };
     }
 
     await db.delete(fiveRSubmissions).where(eq(fiveRSubmissions.id, data.id));

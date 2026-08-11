@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Calendar, Clock3, Eye, Search, Trash2, Trophy, X } from 'lucide-react';
+import { Calendar, Clock3, Eye, HelpCircle, Search, Trash2, Trophy, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { Petunjuk5RModal } from '../../components/5r/Petunjuk5RModal';
 import { ScoreBoard } from '../../components/5r/ScoreBoard';
 import { DataTable, type features } from '../../components/data-table';
 import {
@@ -26,10 +27,10 @@ import { HasilPageSkeleton } from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import type { FiveRForm, FiveRSubmission } from '../../data/5r';
 import { useDebounce } from '../../hooks/use-debounce';
-import { todayPrefix } from '../../lib/dateUtils';
+import { currentWeekNumber, todayPrefix } from '../../lib/dateUtils';
 import { qk, useSubmissions } from '../../lib/queries';
 import { round1, scoreSubmission } from '../../lib/scoring';
-import { deleteSubmission, getDeadline, getForms, getRooms } from '../../server/functions/5r';
+import { deleteSubmission, getForms, getRooms, getSettings } from '../../server/functions/5r';
 
 const searchSchema = z.object({
   room: z.string().optional(),
@@ -38,19 +39,21 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/audit/hasil')({
   validateSearch: searchSchema,
   loader: async () => {
-    const [rooms, forms, dl] = await Promise.all([getRooms(), getForms(), getDeadline()]);
-    return { rooms, forms, deadline: dl.deadline };
+    const [rooms, forms, settings] = await Promise.all([getRooms(), getForms(), getSettings()]);
+    return { rooms, forms, startDate: settings.startDate, endDate: settings.endDate };
   },
   component: AuditHasilPage,
+  pendingComponent: HasilPageSkeleton,
 });
 
 type Tab = 'peringkat' | 'log';
 
 function AuditHasilPage() {
-  const { rooms, forms, deadline } = Route.useLoaderData();
+  const { rooms, forms, startDate, endDate } = Route.useLoaderData();
   const queryClient = useQueryClient();
   const { data: submissions = [], isLoading } = useSubmissions();
   const [tab, setTab] = useState<Tab>('peringkat');
+  const [showGuide, setShowGuide] = useState(false);
   const [dateFilter, setDateFilter] = useState(todayPrefix());
   const [qLog, setQLog] = useState('');
   const debouncedQLog = useDebounce(qLog, 300);
@@ -70,11 +73,12 @@ function AuditHasilPage() {
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
   const roomMap = useMemo(() => new Map(rooms.map((r) => [r.id, r])), [rooms]);
 
-  // Daily log
-  const todayCount = useMemo(() => {
-    const today = todayPrefix();
-    return submissions.filter((s) => s.createdAt.startsWith(today)).length;
-  }, [submissions]);
+  // Statistik minggu aktif
+  const currentWeek = startDate ? currentWeekNumber(new Date(startDate)) : 0;
+  const weekCount = useMemo(() => {
+    if (currentWeek <= 0) return 0;
+    return submissions.filter((s) => (s.weekNumber ?? 1) === currentWeek).length;
+  }, [submissions, currentWeek]);
 
   const dailyLog = useMemo(() => {
     let list = [...submissions];
@@ -185,7 +189,18 @@ function AuditHasilPage() {
     <div className="space-y-4">
       <PageHeader
         title="Hasil Audit 5R"
-        subtitle={`${submissions.length} penilaian total · ${todayCount} hari ini`}
+        subtitle={`${submissions.length} penilaian total · ${weekCount} minggu ini`}
+        action={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGuide(true)}
+            className="text-xs font-bold cursor-pointer"
+          >
+            <HelpCircle size={14} className="mr-1.5 text-primary" />
+            Panduan &amp; Aturan Nilai
+          </Button>
+        }
       />
 
       {/* Modern Main Tab Bar */}
@@ -233,7 +248,7 @@ function AuditHasilPage() {
 
         <div className="text-xs text-muted-foreground flex items-center gap-2">
           <span>
-            Hari ini: <strong className="text-foreground font-bold">{todayCount}</strong> penilaian
+            Minggu ini: <strong className="text-foreground font-bold">{weekCount}</strong> penilaian
           </span>
         </div>
       </div>
@@ -245,8 +260,10 @@ function AuditHasilPage() {
             submissions={submissions}
             rooms={rooms}
             forms={forms}
-            deadline={deadline}
+            deadline={endDate}
             mode="admin"
+            showGuideButton={false}
+            onOpenGuide={() => setShowGuide(true)}
           />
         </div>
       )}
@@ -437,6 +454,8 @@ function AuditHasilPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Petunjuk5RModal open={showGuide} onOpenChange={setShowGuide} />
     </div>
   );
 }

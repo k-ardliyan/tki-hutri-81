@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { DataTableSkeleton } from '../../components/ui/skeletons';
+import { AdminTeamsSkeleton, DataTableSkeleton } from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { requireRole } from '../../lib/routeGuard';
 import { listEmployees } from '../../server/functions/admin';
@@ -60,6 +60,7 @@ export const Route = createFileRoute('/admin/teams')({
     await requireRole(['superadmin', 'admin']);
   },
   component: AdminTeams,
+  pendingComponent: AdminTeamsSkeleton,
 });
 
 type Kategori = 'putra' | 'putri' | 'panitia';
@@ -137,6 +138,8 @@ function AdminTeams() {
   const [memberTeam, setMemberTeam] = useState<TeamRow | null>(null);
   const [employees, setEmployees] = useState<EmployeeRow[]>([]);
   const [selectedEmp, setSelectedEmp] = useState<string>('');
+  const [submittingTeam, setSubmittingTeam] = useState(false);
+  const [submittingMember, setSubmittingMember] = useState(false);
 
   // Delete confirms
   const [deleteTarget, setDeleteTarget] = useState<TeamRow | null>(null);
@@ -225,6 +228,7 @@ function AdminTeams() {
       setErr('Nomor tim wajib angka positif');
       return;
     }
+    setSubmittingTeam(true);
     try {
       if (editId !== null) {
         await updateTeam({
@@ -241,6 +245,8 @@ function AdminTeams() {
       await load();
     } catch (e) {
       setErr(errMsg(e, 'Gagal menyimpan tim'));
+    } finally {
+      setSubmittingTeam(false);
     }
   };
 
@@ -279,6 +285,7 @@ function AdminTeams() {
 
   const submitAddMember = async () => {
     if (!memberTeam || !selectedEmp) return;
+    setSubmittingMember(true);
     try {
       await addTeamMember({ data: { teamId: memberTeam.id, employeeId: Number(selectedEmp) } });
       toast.success('Anggota berhasil ditambahkan');
@@ -287,6 +294,8 @@ function AdminTeams() {
       if (fresh) setMemberTeam(fresh);
     } catch (e) {
       toast.error(errMsg(e, 'Gagal menambah anggota'));
+    } finally {
+      setSubmittingMember(false);
     }
   };
 
@@ -697,6 +706,7 @@ function AdminTeams() {
             </Button>
             <Button
               onClick={() => void submitTeam()}
+              loading={submittingTeam}
               className="flex-1 sm:flex-none rounded-xl font-bold"
             >
               {editId !== null ? 'Simpan Perubahan' : 'Tambah Tim'}
@@ -801,6 +811,7 @@ function AdminTeams() {
               <Button
                 onClick={() => void submitAddMember()}
                 disabled={!selectedEmp}
+                loading={submittingMember}
                 className="shrink-0 rounded-xl font-bold"
               >
                 <Plus size={14} className="mr-1" />

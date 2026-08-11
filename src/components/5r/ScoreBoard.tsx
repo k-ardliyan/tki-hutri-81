@@ -1,16 +1,20 @@
 /**
- * ScoreBoard — papan skor lomba dekor-5r: 5R, Dekorasi, Rekap (70/30).
- * Dipakai: /live (publik), audit/hasil, admin/hasil. Read-only.
+ * ScoreBoard — papan skor lomba dekor-5r: Rekap (70/30), 5R (70%), Dekorasi (30%).
+ * Dipakai: /live (publik), audit/hasil, admin/hasil.
  *
- * 5R = rerata semua audit (semua hari); Dekorasi = rerata semua juri;
+ * 5R = rerata semua audit (semua minggu); Dekorasi = rerata semua juri;
  * Rekap = 5R*0.7 + dekorasi*0.3 — hanya ruangan lengkap yang di-rank.
  */
 
 import {
-  AlertTriangle,
+  Award,
   CheckCircle2,
+  Crown,
+  HelpCircle,
+  Layers,
   Medal,
   Paintbrush,
+  Scale,
   Sigma,
   Sparkles,
   Trophy,
@@ -18,9 +22,11 @@ import {
 import { useMemo, useState } from 'react';
 import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r';
 import { aggregateRoom, combineFinal, round1, scoreSubmission } from '../../lib/scoring';
+import { Badge } from '../ui/badge';
 import RoomIcon from '../ui/RoomIcon';
 import { StatusBadge } from '../ui/status-badge';
 import { deadlineInfo } from './DeadlineBanner';
+import { Petunjuk5RModal } from './Petunjuk5RModal';
 
 interface ScoreBoardProps {
   submissions: FiveRSubmission[];
@@ -28,6 +34,8 @@ interface ScoreBoardProps {
   forms: FiveRForm[];
   deadline: string | null;
   mode: 'live' | 'admin';
+  showGuideButton?: boolean;
+  onOpenGuide?: () => void;
 }
 
 interface RoomScore {
@@ -44,11 +52,27 @@ interface RoomScore {
 
 const FIVE_R_FORMS_EXCLUDED = new Set(['dekorasi']);
 
-export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreBoardProps) {
+export function ScoreBoard({
+  submissions,
+  rooms,
+  forms,
+  deadline,
+  mode,
+  showGuideButton = true,
+  onOpenGuide,
+}: ScoreBoardProps) {
   const isLive = mode === 'live';
-  const [activeTab, setActiveTab] = useState<'rekap' | 'fiveR' | 'dekorasi'>(
-    isLive ? 'fiveR' : 'rekap'
-  );
+  // Default to rekap
+  const [activeTab, setActiveTab] = useState<'rekap' | 'fiveR' | 'dekorasi'>('rekap');
+  const [internalShowGuide, setInternalShowGuide] = useState(false);
+
+  const handleOpenGuide = () => {
+    if (onOpenGuide) {
+      onOpenGuide();
+    } else {
+      setInternalShowGuide(true);
+    }
+  };
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
   const { closed } = deadlineInfo(deadline);
 
@@ -103,60 +127,34 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
     [rows]
   );
 
-  const statusHeader = isLive ? (
-    closed ? (
-      <div className="flex items-start gap-3 rounded-2xl border border-emerald-300/80 bg-emerald-50/70 p-4 text-slate-800 shadow-2xs">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-          <Trophy size={18} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-heading font-black text-slate-900 text-sm">
-            Peringkat &amp; Skor FINAL
-          </p>
-          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-            Masa penilaian lomba telah resmi berakhir.
-          </p>
-        </div>
-      </div>
-    ) : (
-      <div className="flex items-start gap-3 rounded-2xl border border-rose-200/90 bg-rose-50/50 p-4 text-slate-800 shadow-2xs">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-brand-red">
-          <AlertTriangle size={18} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-heading font-black text-slate-900 text-sm">Papan Skor Sementara</p>
-          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-            Skor otomatis diperbarui saat juri dan auditor memasukkan penilaian terbaru.
-          </p>
-        </div>
-      </div>
-    )
-  ) : null;
-
+  // Modern Vector Lucide Badges instead of emojis
   const rankBadge = (rank: number) => {
     if (rank === 1) {
       return (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 font-black text-sm border border-amber-300 shadow-xs">
-          🥇
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-xs shadow-xs ring-2 ring-amber-200">
+          <Crown size={14} className="mr-0.5" />
+          <span>1</span>
         </div>
       );
     }
     if (rank === 2) {
       return (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-700 font-black text-sm border border-slate-300 shadow-xs">
-          🥈
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-400 to-slate-600 text-white font-black text-xs shadow-xs ring-2 ring-slate-200">
+          <Medal size={14} className="mr-0.5" />
+          <span>2</span>
         </div>
       );
     }
     if (rank === 3) {
       return (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-800 font-black text-sm border border-orange-300 shadow-xs">
-          🥉
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 text-white font-black text-xs shadow-xs ring-2 ring-amber-300">
+          <Award size={14} className="mr-0.5" />
+          <span>3</span>
         </div>
       );
     }
     return (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 font-black text-xs">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 font-extrabold text-xs">
         {rank}
       </div>
     );
@@ -194,10 +192,10 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
               key={r.id}
               className={`relative overflow-hidden rounded-3xl p-5 transition-all ${
                 isFirst
-                  ? 'border-2 border-amber-300 bg-gradient-to-b from-amber-50/90 via-amber-50/30 to-white shadow-md shadow-amber-500/10'
+                  ? 'border-2 border-amber-400/80 bg-gradient-to-b from-amber-50/90 via-amber-50/30 to-white shadow-md shadow-amber-500/10'
                   : rank === 2
                     ? 'border border-slate-300 bg-gradient-to-b from-slate-100/80 via-slate-50/30 to-white shadow-xs'
-                    : 'border border-orange-200 bg-gradient-to-b from-orange-50/70 via-amber-50/20 to-white shadow-xs'
+                    : 'border border-amber-200 bg-gradient-to-b from-amber-50/70 via-amber-50/20 to-white shadow-xs'
               }`}
             >
               <div className="flex flex-col justify-between h-full space-y-4">
@@ -205,12 +203,12 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {rankBadge(rank)}
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-600">
                       {rank === 1 ? 'Juara 1' : rank === 2 ? 'Juara 2' : 'Juara 3'}
                     </span>
                   </div>
                   {isFirst && (
-                    <div className="flex items-center gap-1 rounded-full bg-amber-200/80 px-2 py-0.5 text-[10px] font-extrabold text-amber-800">
+                    <div className="flex items-center gap-1 rounded-full bg-amber-200/80 px-2 py-0.5 text-[10px] font-extrabold text-amber-900">
                       <Sparkles size={11} />
                       <span>Teratas</span>
                     </div>
@@ -249,72 +247,86 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
 
   return (
     <div className="space-y-4">
-      {statusHeader}
-
-      {/* Sub-Tab Navigation Switcher */}
-      <div
-        className={`grid gap-1 rounded-2xl border border-border/80 bg-muted/60 p-1 shadow-inner ${
-          isLive ? 'grid-cols-2' : 'grid-cols-3'
-        }`}
-      >
-        {!isLive && (
-          <button
-            type="button"
-            onClick={() => setActiveTab('rekap')}
-            className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-2 text-xs font-bold transition cursor-pointer active:scale-95 ${
-              activeTab === 'rekap'
-                ? 'bg-card text-foreground shadow-xs font-extrabold ring-1 ring-border/60'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Sigma size={13} className="text-brand-red" />
-            <span>Rekap (70/30)</span>
-          </button>
-        )}
+      {/* Sub-Tab Navigation Switcher (Clean, no redundant header) */}
+      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-border/80 bg-muted/60 p-1 shadow-inner">
+        <button
+          type="button"
+          onClick={() => setActiveTab('rekap')}
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 text-xs font-bold transition cursor-pointer active:scale-95 ${
+            activeTab === 'rekap'
+              ? 'bg-card text-foreground shadow-xs font-extrabold ring-1 ring-border/60'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Sigma size={14} className="text-brand-red" />
+          <span>Rekap (70/30)</span>
+        </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('fiveR')}
-          className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-2 text-xs font-bold transition cursor-pointer active:scale-95 ${
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 text-xs font-bold transition cursor-pointer active:scale-95 ${
             activeTab === 'fiveR'
               ? 'bg-card text-foreground shadow-xs font-extrabold ring-1 ring-border/60'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Trophy size={13} className="text-amber-500" />
+          <Trophy size={14} className="text-amber-500" />
           <span>Budaya 5R</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('dekorasi')}
-          className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-2 text-xs font-bold transition cursor-pointer active:scale-95 ${
+          className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 text-xs font-bold transition cursor-pointer active:scale-95 ${
             activeTab === 'dekorasi'
               ? 'bg-card text-foreground shadow-xs font-extrabold ring-1 ring-border/60'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Paintbrush size={13} className="text-sky-600" />
-          <span>Dekorasi Ruangan</span>
+          <Paintbrush size={14} className="text-sky-600" />
+          <span>Dekorasi</span>
         </button>
       </div>
 
       {/* Content: Rekap Gabungan 70/30 */}
       {activeTab === 'rekap' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-2xl border border-rose-200/80 bg-rose-50/50 px-4 py-3 text-xs text-slate-700">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-2xl border border-rose-200/80 bg-rose-50/50 px-4 py-3 text-xs text-slate-700">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-red/10 text-brand-red">
-                <Medal size={15} />
+                <Scale size={15} />
               </div>
               <span>
-                Bobot Nilai Resmi: <strong className="text-slate-900">70% Skor 5R</strong> +{' '}
+                Formula Nilai Akhir: <strong className="text-slate-900">70% Budaya 5R</strong> +{' '}
                 <strong className="text-slate-900">30% Lomba Dekorasi</strong>
               </span>
             </div>
-            <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-slate-200 shadow-2xs self-start sm:self-auto">
-              {rekapRank.length} Ruangan Lengkap
-            </span>
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              <Badge
+                variant="outline"
+                className={`text-[10px] font-extrabold px-2 py-0.5 ${
+                  closed
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-rose-100/80 text-brand-red border-rose-200'
+                }`}
+              >
+                {closed ? 'Skor Final' : 'Skor Sementara'}
+              </Badge>
+              <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-slate-200 shadow-2xs">
+                {rekapRank.length} Ruangan Lengkap
+              </span>
+              {showGuideButton && (
+                <button
+                  type="button"
+                  onClick={handleOpenGuide}
+                  className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1 ml-1"
+                >
+                  <HelpCircle size={12} />
+                  <span>Panduan</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <PodiumView list={rekapRank} scoreKey="total" label="Skor Total" />
@@ -404,6 +416,29 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
       {/* Content: Budaya 5R */}
       {activeTab === 'fiveR' && (
         <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Layers size={15} />
+              </div>
+              <span>Akumulasi nilai seluruh audit berkala mingguan (Bobot 70%).</span>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-extrabold text-foreground border border-border">
+                {fiveRRank.length} Ruangan Dinilai
+              </span>
+              {showGuideButton && (
+                <button
+                  type="button"
+                  onClick={handleOpenGuide}
+                  className="text-[11px] font-bold text-primary hover:underline cursor-pointer shrink-0"
+                >
+                  Panduan 5R
+                </button>
+              )}
+            </div>
+          </div>
+
           <PodiumView list={fiveRRank} scoreKey="fiveR" label="Rata-rata 5R" />
 
           {fiveRRank.length > 0 ? (
@@ -444,12 +479,30 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
       {/* Content: Dekorasi */}
       {activeTab === 'dekorasi' && (
         <div className="space-y-4">
-          {!isLive && (
-            <div className="rounded-2xl border border-sky-200/80 bg-sky-50/60 px-4 py-3 text-xs text-slate-700 leading-relaxed">
-              Lomba Dekorasi Ruangan dinilai 1x oleh tiap juri/auditor. Nilai dihitung dari
-              rata-rata seluruh juri.
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-2xl border border-sky-200/80 bg-sky-50/60 px-4 py-3 text-xs text-slate-700 leading-relaxed">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                <Paintbrush size={15} />
+              </div>
+              <span>
+                Lomba Dekorasi Ruangan dinilai 1x per juri selama periode perlombaan (Bobot 30%).
+              </span>
             </div>
-          )}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-sky-200">
+                {dekorasiRank.length} Ruangan Dinilai
+              </span>
+              {showGuideButton && (
+                <button
+                  type="button"
+                  onClick={handleOpenGuide}
+                  className="text-[11px] font-bold text-primary hover:underline cursor-pointer shrink-0"
+                >
+                  Kriteria Dekorasi
+                </button>
+              )}
+            </div>
+          </div>
 
           <PodiumView list={dekorasiRank} scoreKey="dekorasi" label="Rata-rata Dekorasi" />
 
@@ -486,6 +539,14 @@ export function ScoreBoard({ submissions, rooms, forms, deadline, mode }: ScoreB
             </div>
           )}
         </div>
+      )}
+
+      {!onOpenGuide && (
+        <Petunjuk5RModal
+          open={internalShowGuide}
+          onOpenChange={setInternalShowGuide}
+          variant={isLive ? 'publik' : 'audit'}
+        />
       )}
     </div>
   );
