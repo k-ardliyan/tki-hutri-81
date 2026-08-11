@@ -1,20 +1,17 @@
-import { useEffect, useRef } from "react";
-import { useLocation } from "@tanstack/react-router";
-import {
-  useAudienceNavigate,
-  useAudience,
-} from "../../context/AudienceContext";
-import LogoTki from "../brand/LogoTki";
-import LogoFtp from "../brand/LogoFtp";
-import LogoHutRi81 from "../brand/LogoHutRi81";
-import { gsap, shouldReduceMotion } from "../../lib/gsap";
+import { useLocation } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
+import { useAudience, useAudienceNavigate } from '../../context/AudienceContext';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
+import LogoFtp from '../brand/LogoFtp';
+import LogoHutRi81 from '../brand/LogoHutRi81';
+import LogoTki from '../brand/LogoTki';
 
 const NAV = [
-  { id: "beranda", label: "Beranda", path: "/" },
-  { id: "lomba", label: "Lomba", path: "/lomba" },
-  { id: "rundown", label: "Rundown", path: "/rundown" },
-  { id: "live", label: "Live Score", path: "/live" },
-  { id: "tim", label: "Tim", path: "/tim" },
+  { id: 'beranda', label: 'Beranda', path: '/' },
+  { id: 'lomba', label: 'Lomba', path: '/lomba' },
+  { id: 'rundown', label: 'Rundown', path: '/rundown' },
+  { id: 'live', label: 'Live Score', path: '/live' },
+  { id: 'tim', label: 'Tim', path: '/tim' },
 ];
 
 export default function SiteHeader() {
@@ -28,18 +25,19 @@ export default function SiteHeader() {
   const navRef = useRef<HTMLElement>(null);
 
   const activeId =
-    NAV.find((n) => pathname === n.path || (n.path !== "/" && pathname.startsWith(n.path)))?.id ?? "beranda";
+    NAV.find((n) => pathname === n.path || (n.path !== '/' && pathname.startsWith(n.path)))?.id ??
+    'beranda';
 
   useEffect(() => {
     if (!headerRef.current || shouldReduceMotion()) return undefined;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
       if (headerRef.current) {
         tl.fromTo(
           headerRef.current,
           { y: -20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.45, clearProps: "all" },
+          { y: 0, opacity: 1, duration: 0.45, clearProps: 'all' }
         );
       }
       if (logosRef.current) {
@@ -50,28 +48,28 @@ export default function SiteHeader() {
             scale: 1,
             opacity: 1,
             duration: 0.4,
-            ease: "back.out(1.5)",
-            clearProps: "all",
+            ease: 'back.out(1.5)',
+            clearProps: 'all',
           },
-          "-=0.2",
+          '-=0.2'
         );
       }
       if (navRef.current) {
         tl.fromTo(
           navRef.current,
           { opacity: 0, y: -6 },
-          { opacity: 1, y: 0, duration: 0.3, clearProps: "all" },
-          "-=0.2",
+          { opacity: 1, y: 0, duration: 0.3, clearProps: 'all' },
+          '-=0.2'
         );
       }
       if (chipRef.current) {
         tl.fromTo(
           chipRef.current,
           { opacity: 0, scale: 0.85 },
-          { opacity: 1, scale: 1, duration: 0.3, clearProps: "all" },
-          "-=0.2",
+          { opacity: 1, scale: 1, duration: 0.3, clearProps: 'all' },
+          '-=0.2'
         );
-        const liveDot = chipRef.current.querySelector(".live-dot");
+        const liveDot = chipRef.current.querySelector('.live-dot');
         if (liveDot) {
           gsap.to(liveDot, {
             scale: 1.35,
@@ -79,7 +77,7 @@ export default function SiteHeader() {
             duration: 1.1,
             yoyo: true,
             repeat: -1,
-            ease: "sine.inOut",
+            ease: 'sine.inOut',
           });
         }
       }
@@ -92,11 +90,7 @@ export default function SiteHeader() {
     if (!navRef.current || shouldReduceMotion()) return;
     const active = navRef.current.querySelector('[data-active="true"]');
     if (!active) return;
-    gsap.fromTo(
-      active,
-      { scale: 0.94 },
-      { scale: 1, duration: 0.28, ease: "back.out(2)" },
-    );
+    gsap.fromTo(active, { scale: 0.94 }, { scale: 1, duration: 0.28, ease: 'back.out(2)' });
   }, [activeId]);
 
   return (
@@ -110,13 +104,10 @@ export default function SiteHeader() {
         <button
           ref={brandRef}
           type="button"
-          onClick={() => navigate("/")}
+          onClick={() => navigate('/')}
           className="flex min-w-0 cursor-pointer items-center gap-2.5 text-left transition hover:opacity-90 active:scale-[0.98] sm:gap-3"
         >
-          <div
-            ref={logosRef}
-            className="flex shrink-0 items-center gap-2 sm:gap-3"
-          >
+          <div ref={logosRef} className="flex shrink-0 items-center gap-2 sm:gap-3">
             <LogoHutRi81 className="h-9 sm:h-10 w-auto shrink-0" animate />
             <div className="h-5 sm:h-7 w-px bg-slate-200 shrink-0" />
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -146,14 +137,14 @@ export default function SiteHeader() {
               <button
                 key={item.id}
                 type="button"
-                data-active={active ? "true" : "false"}
+                data-active={active ? 'true' : 'false'}
                 onClick={() => {
                   navigate(item.path);
                 }}
                 className={`cursor-pointer rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
                   active
-                    ? "bg-brand-red text-white shadow-md shadow-red-600/25"
-                    : "text-slate-600 hover:bg-white hover:text-slate-900"
+                    ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
+                    : 'text-slate-600 hover:bg-white hover:text-slate-900'
                 }`}
               >
                 {item.label}

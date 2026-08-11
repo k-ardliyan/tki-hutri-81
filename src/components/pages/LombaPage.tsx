@@ -1,44 +1,55 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useLoaderData } from "@tanstack/react-router";
-import { useAudience, useAudienceNavigate } from "../../context/AudienceContext";
-import { createPortal } from "react-dom";
-import { assets } from "../../assets";
+import { useLoaderData, useParams } from '@tanstack/react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { assets } from '../../assets';
+import { useAudience, useAudienceNavigate } from '../../context/AudienceContext';
 
 const lombaAssets: Record<string, string> = assets.lomba as Record<string, string>;
-import { LazyImage } from "../ui/LazyImage";
-import gsap, { shouldReduceMotion } from "../../lib/gsap";
+
+import gsap, { shouldReduceMotion } from '../../lib/gsap';
+import { LazyImage } from '../ui/LazyImage';
 
 const tone = {
   red: {
-    border: "border-rose-200",
-    head: "from-brand-deep to-brand-red",
-    soft: "bg-rose-50 text-brand-red",
-    step: "bg-brand-red text-white",
-    rail: "bg-rose-200",
-    ring: "ring-brand-red/25",
+    border: 'border-rose-200',
+    head: 'from-brand-deep to-brand-red',
+    soft: 'bg-rose-50 text-brand-red',
+    step: 'bg-brand-red text-white',
+    rail: 'bg-rose-200',
+    ring: 'ring-brand-red/25',
   },
   amber: {
-    border: "border-amber-200",
-    head: "from-amber-500 to-orange-500",
-    soft: "bg-amber-50 text-amber-800",
-    step: "bg-amber-500 text-white",
-    rail: "bg-amber-200",
-    ring: "ring-amber-500/25",
+    border: 'border-amber-200',
+    head: 'from-amber-500 to-orange-500',
+    soft: 'bg-amber-50 text-amber-800',
+    step: 'bg-amber-500 text-white',
+    rail: 'bg-amber-200',
+    ring: 'ring-amber-500/25',
   },
   blue: {
-    border: "border-sky-200",
-    head: "from-sky-600 to-blue-700",
-    soft: "bg-sky-50 text-sky-800",
-    step: "bg-sky-600 text-white",
-    rail: "bg-sky-200",
-    ring: "ring-sky-500/25",
+    border: 'border-sky-200',
+    head: 'from-sky-600 to-blue-700',
+    soft: 'bg-sky-50 text-sky-800',
+    step: 'bg-sky-600 text-white',
+    rail: 'bg-sky-200',
+    ring: 'ring-sky-500/25',
   },
 };
 
-function BranchChips({ competitions, activeId, onSelect, compact = false }: { competitions: Competition[]; activeId: string; onSelect: (id: string) => void; compact?: boolean }) {
+function BranchChips({
+  competitions,
+  activeId,
+  onSelect,
+  compact = false,
+}: {
+  competitions: Competition[];
+  activeId: string;
+  onSelect: (id: string) => void;
+  compact?: boolean;
+}) {
   return (
     <div
-      className={`flex gap-2 ${compact ? "" : "overflow-x-auto overscroll-x-contain pb-0.5 no-scrollbar"}`}
+      className={`flex gap-2 ${compact ? '' : 'overflow-x-auto overscroll-x-contain pb-0.5 no-scrollbar'}`}
     >
       {competitions.map((c) => {
         const selected = activeId === c.id;
@@ -49,18 +60,18 @@ function BranchChips({ competitions, activeId, onSelect, compact = false }: { co
             onClick={() => onSelect(c.id)}
             className={`flex cursor-pointer items-center gap-2 rounded-2xl border text-left transition active:scale-[0.98] ${
               compact
-                ? "min-w-0 flex-1 px-2 py-1.5 sm:px-2.5"
-                : "min-w-[148px] shrink-0 px-2.5 py-2 sm:min-w-0 sm:flex-1"
+                ? 'min-w-0 flex-1 px-2 py-1.5 sm:px-2.5'
+                : 'min-w-[148px] shrink-0 px-2.5 py-2 sm:min-w-0 sm:flex-1'
             } ${
               selected
-                ? "border-brand-red bg-brand-soft shadow-sm ring-1 ring-brand-red/25"
-                : "border-slate-200 bg-white hover:border-slate-300"
+                ? 'border-brand-red bg-brand-soft shadow-sm ring-1 ring-brand-red/25'
+                : 'border-slate-200 bg-white hover:border-slate-300'
             }`}
           >
             <img
               src={lombaAssets[c.imageKey]}
               alt=""
-              className={`shrink-0 rounded-xl object-cover ${compact ? "h-8 w-8" : "h-10 w-10"}`}
+              className={`shrink-0 rounded-xl object-cover ${compact ? 'h-8 w-8' : 'h-10 w-10'}`}
             />
             <div className="min-w-0">
               {!compact && (
@@ -70,7 +81,7 @@ function BranchChips({ competitions, activeId, onSelect, compact = false }: { co
               )}
               <p
                 className={`truncate font-bold text-slate-900 ${
-                  compact ? "text-xs sm:text-sm" : "text-sm"
+                  compact ? 'text-xs sm:text-sm' : 'text-sm'
                 }`}
               >
                 {c.short}
@@ -91,15 +102,21 @@ interface WorkflowStep {
   icon: string;
 }
 
-function WorkflowDesktop({ steps, t }: { steps: WorkflowStep[]; t: { rail: string; step: string; soft: string; } }) {
+function WorkflowDesktop({
+  steps,
+  t,
+}: {
+  steps: WorkflowStep[];
+  t: { rail: string; step: string; soft: string };
+}) {
   const n = steps.length;
   // Warna path & panah selaras tone
   const lineClass = t.rail;
-  const arrowWrap = t.step.includes("brand-red")
-    ? "bg-white text-brand-red ring-rose-100"
-    : t.step.includes("amber")
-      ? "bg-white text-amber-600 ring-amber-100"
-      : "bg-white text-sky-600 ring-sky-100";
+  const arrowWrap = t.step.includes('brand-red')
+    ? 'bg-white text-brand-red ring-rose-100'
+    : t.step.includes('amber')
+      ? 'bg-white text-amber-600 ring-amber-100'
+      : 'bg-white text-sky-600 ring-sky-100';
 
   // Pusat node ke-i (equal columns, no gap): (i + 0.5) / n
   // Titik tengah segmen i→i+1: (i + 1) / n
@@ -164,17 +181,13 @@ function WorkflowDesktop({ steps, t }: { steps: WorkflowStep[]; t: { rail: strin
                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                   Langkah {w.step}
                 </p>
-                <p className="mt-1 text-sm font-bold leading-snug text-slate-900">
-                  {w.title}
-                </p>
+                <p className="mt-1 text-sm font-bold leading-snug text-slate-900">{w.title}</p>
                 <p
                   className={`mt-2 inline-flex self-center rounded-full px-2.5 py-0.5 text-[10px] font-bold ${t.soft}`}
                 >
                   {w.time}
                 </p>
-                <p className="mt-2.5 flex-1 text-[11px] leading-relaxed text-slate-500">
-                  {w.desc}
-                </p>
+                <p className="mt-2.5 flex-1 text-[11px] leading-relaxed text-slate-500">{w.desc}</p>
               </div>
             </li>
           ))}
@@ -184,7 +197,13 @@ function WorkflowDesktop({ steps, t }: { steps: WorkflowStep[]; t: { rail: strin
   );
 }
 
-function WorkflowMobile({ steps, t }: { steps: WorkflowStep[]; t: { rail: string; step: string; soft: string; } }) {
+function WorkflowMobile({
+  steps,
+  t,
+}: {
+  steps: WorkflowStep[];
+  t: { rail: string; step: string; soft: string };
+}) {
   return (
     <div className="relative space-y-0 sm:hidden">
       <div className={`absolute bottom-4 left-[15px] top-4 w-0.5 ${t.rail}`} />
@@ -198,15 +217,11 @@ function WorkflowMobile({ steps, t }: { steps: WorkflowStep[]; t: { rail: string
           <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-2.5">
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-bold text-slate-900">{w.title}</p>
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${t.soft}`}
-              >
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${t.soft}`}>
                 {w.time}
               </span>
             </div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
-              {w.desc}
-            </p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">{w.desc}</p>
           </div>
         </div>
       ))}
@@ -223,7 +238,7 @@ interface Competition {
   tone: string;
   imageKey: string;
   summary: string;
-  rooms?: { id: string; name: string; icon: string; }[];
+  rooms?: { id: string; name: string; icon: string }[];
   workflow: WorkflowStep[];
   forPeserta: any;
   forPanitia: any;
@@ -264,14 +279,14 @@ function StickyBranchBar({
   useEffect(() => {
     if (!mounted || !open || !panelRef.current) return undefined;
     if (shouldReduceMotion()) {
-      gsap.set(panelRef.current, { clearProps: "all", y: 0, opacity: 1 });
+      gsap.set(panelRef.current, { clearProps: 'all', y: 0, opacity: 1 });
       return undefined;
     }
     gsap.killTweensOf(panelRef.current);
     gsap.fromTo(
       panelRef.current,
       { y: -28, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+      { y: 0, opacity: 1, duration: 0.38, ease: 'power3.out' }
     );
     return undefined;
   }, [mounted, open]);
@@ -292,13 +307,15 @@ function StickyBranchBar({
       y: -22,
       opacity: 0,
       duration: 0.28,
-      ease: "power2.in",
+      ease: 'power2.in',
       onComplete: () => {
         closingRef.current = false;
         setMounted(false);
       },
     });
-    return () => { tw.kill(); };
+    return () => {
+      tw.kill();
+    };
   }, [open, mounted]);
 
   // Dropdown menu animation
@@ -309,9 +326,9 @@ function StickyBranchBar({
       gsap.fromTo(
         menuRef.current,
         { y: -8, opacity: 0, scale: 0.97 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.28, ease: "power3.out" },
+        { y: 0, opacity: 1, scale: 1, duration: 0.28, ease: 'power3.out' }
       );
-      const chips = menuRef.current.querySelectorAll("[data-branch-chip]");
+      const chips = menuRef.current.querySelectorAll('[data-branch-chip]');
       if (chips.length) {
         gsap.fromTo(
           chips,
@@ -321,9 +338,9 @@ function StickyBranchBar({
             opacity: 1,
             duration: 0.22,
             stagger: 0.04,
-            ease: "power2.out",
+            ease: 'power2.out',
             delay: 0.05,
-          },
+          }
         );
       }
     }
@@ -359,13 +376,11 @@ function StickyBranchBar({
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 Ganti cabang · {active.number}
               </p>
-              <p className="truncate text-sm font-bold text-slate-900">
-                {active.short}
-              </p>
+              <p className="truncate text-sm font-bold text-slate-900">{active.short}</p>
             </div>
             <span
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200 transition ${
-                menuOpen ? "rotate-180 text-brand-red" : ""
+                menuOpen ? 'rotate-180 text-brand-red' : ''
               }`}
             >
               <i className="fa-solid fa-chevron-down text-xs" />
@@ -388,8 +403,8 @@ function StickyBranchBar({
                       onClick={() => onSelect(c.id)}
                       className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition sm:px-2.5 ${
                         selected
-                          ? "border-brand-red bg-brand-soft shadow-sm ring-1 ring-brand-red/25"
-                          : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
+                          ? 'border-brand-red bg-brand-soft shadow-sm ring-1 ring-brand-red/25'
+                          : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
                       }`}
                     >
                       <img
@@ -422,12 +437,10 @@ export default function LombaPage() {
   const navigate = useAudienceNavigate();
   const { isPanitia } = useAudience();
   // Kalau bukan panitia, audience selalu dikunci ke "peserta"
-  const [audience, setAudience] = useState(isPanitia ? "peserta" : "peserta");
-  const effectiveAudience = isPanitia ? audience : "peserta";
+  const [audience, setAudience] = useState(isPanitia ? 'peserta' : 'peserta');
+  const effectiveAudience = isPanitia ? audience : 'peserta';
   const [activeId, setActiveId] = useState(() => {
-    return paramId && competitions.some((c) => c.id === paramId)
-      ? paramId
-      : competitions[0].id;
+    return paramId && competitions.some((c) => c.id === paramId) ? paramId : competitions[0].id;
   });
   const [stickyOn, setStickyOn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -443,10 +456,10 @@ export default function LombaPage() {
 
   const active = useMemo(
     () => competitions.find((c) => c.id === activeId) || competitions[0],
-    [activeId],
+    [activeId]
   );
   const t = (tone as Record<string, typeof tone.red>)[active.tone] || tone.red;
-  const role: any = effectiveAudience === "peserta" ? active.forPeserta : active.forPanitia;
+  const role: any = effectiveAudience === 'peserta' ? active.forPeserta : active.forPanitia;
 
   // Sticky only when branch chips are fully out of the viewport
   useEffect(() => {
@@ -455,12 +468,11 @@ export default function LombaPage() {
     const io = new IntersectionObserver(
       ([entry]) => {
         // intersectionRatio === 0 → tidak kelihatan sama sekali
-        const fullyHidden =
-          !entry.isIntersecting && entry.intersectionRatio === 0;
+        const fullyHidden = !entry.isIntersecting && entry.intersectionRatio === 0;
         setStickyOn(fullyHidden);
         if (!fullyHidden) setMenuOpen(false);
       },
-      { root: null, threshold: [0, 0.01, 0.1], rootMargin: "0px" },
+      { root: null, threshold: [0, 0.01, 0.1], rootMargin: '0px' }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -473,8 +485,8 @@ export default function LombaPage() {
     navigate('/lomba/' + id, { replace: true });
     requestAnimationFrame(() => {
       detailTopRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
+        behavior: 'smooth',
+        block: 'start',
       });
     });
   };
@@ -499,9 +511,10 @@ export default function LombaPage() {
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
           {isPanitia ? (
             <>
-              Pilih cabang di bawah. Beralih antara mode <span className="font-semibold text-slate-800">Peserta</span>{' '}
-              untuk aturan bermain, atau{' '}
-              <span className="font-semibold text-slate-800">Panitia</span> untuk peralatan, sesi, dan format putra/putri.
+              Pilih cabang di bawah. Beralih antara mode{' '}
+              <span className="font-semibold text-slate-800">Peserta</span> untuk aturan bermain,
+              atau <span className="font-semibold text-slate-800">Panitia</span> untuk peralatan,
+              sesi, dan format putra/putri.
             </>
           ) : (
             <>Pilih cabang lomba di bawah untuk melihat aturan dan alur bermain.</>
@@ -529,9 +542,7 @@ export default function LombaPage() {
             rootMargin="600px"
             fetchPriority="low"
           />
-          <div
-            className={`absolute inset-0 bg-gradient-to-t ${t.head} opacity-85`}
-          />
+          <div className={`absolute inset-0 bg-gradient-to-t ${t.head} opacity-85`} />
           <div className="relative flex h-full min-h-[150px] flex-col justify-end gap-2 px-4 py-5 text-white sm:min-h-[200px] sm:px-7 sm:py-6">
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">
               Lomba {active.number} · {active.category}
@@ -539,9 +550,7 @@ export default function LombaPage() {
             <h3 className="font-heading text-xl font-extrabold leading-tight sm:text-3xl">
               {active.title}
             </h3>
-            <p className="max-w-3xl text-sm leading-relaxed text-white/90">
-              {active.summary}
-            </p>
+            <p className="max-w-3xl text-sm leading-relaxed text-white/90">{active.summary}</p>
           </div>
         </div>
 
@@ -597,76 +606,72 @@ export default function LombaPage() {
               </p>
               <div className="rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
                 <div className="grid grid-cols-2 gap-1.5">
-                {[
-                  {
-                    id: "peserta",
-                    label: "Peserta",
-                    sub: "Aturan bermain",
-                    icon: "fa-user",
-                    activeClass:
-                      "bg-emerald-600 text-white shadow-md shadow-emerald-600/25",
-                  },
-                  {
-                    id: "panitia",
-                    label: "Panitia",
-                    sub: "Peralatan & sesi",
-                    icon: "fa-clipboard-list",
-                    activeClass:
-                      "bg-sky-600 text-white shadow-md shadow-sky-600/25",
-                  },
-                ].map((opt) => {
-                  const on = audience === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setAudience(opt.id)}
-                      className={`rounded-xl px-3 py-3 text-left transition ${
-                        on
-                          ? opt.activeClass
-                          : "bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <i className={`fa-solid ${opt.icon} text-sm`} />
-                        <span className="text-sm font-bold">{opt.label}</span>
-                      </div>
-                      <p
-                        className={`mt-1 text-[10px] font-medium ${on ? "text-white/80" : "text-slate-500"}`}
+                  {[
+                    {
+                      id: 'peserta',
+                      label: 'Peserta',
+                      sub: 'Aturan bermain',
+                      icon: 'fa-user',
+                      activeClass: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25',
+                    },
+                    {
+                      id: 'panitia',
+                      label: 'Panitia',
+                      sub: 'Peralatan & sesi',
+                      icon: 'fa-clipboard-list',
+                      activeClass: 'bg-sky-600 text-white shadow-md shadow-sky-600/25',
+                    },
+                  ].map((opt) => {
+                    const on = audience === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setAudience(opt.id)}
+                        className={`rounded-xl px-3 py-3 text-left transition ${
+                          on ? opt.activeClass : 'bg-white text-slate-600 hover:bg-slate-50'
+                        }`}
                       >
-                        {opt.sub}
-                      </p>
-                    </button>
-                  );
-                })}
+                        <div className="flex items-center gap-2">
+                          <i className={`fa-solid ${opt.icon} text-sm`} />
+                          <span className="text-sm font-bold">{opt.label}</span>
+                        </div>
+                        <p
+                          className={`mt-1 text-[10px] font-medium ${on ? 'text-white/80' : 'text-slate-500'}`}
+                        >
+                          {opt.sub}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
           )}
 
           <div
             className={`rounded-3xl border p-4 sm:p-6 ${
-              effectiveAudience === "peserta"
-                ? "border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30"
-                : "border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30"
+              effectiveAudience === 'peserta'
+                ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30'
+                : 'border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30'
             }`}
           >
             <div className="mb-5 flex items-center justify-between border-b border-slate-200/60 pb-3.5">
               <div className="flex items-center gap-2.5">
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-md ${
-                    effectiveAudience === "peserta" ? "bg-emerald-600" : "bg-sky-600"
+                    effectiveAudience === 'peserta' ? 'bg-emerald-600' : 'bg-sky-600'
                   }`}
                 >
                   <i
                     className={`fa-solid ${
-                      effectiveAudience === "peserta" ? "fa-shield-halved" : "fa-clipboard-check"
+                      effectiveAudience === 'peserta' ? 'fa-shield-halved' : 'fa-clipboard-check'
                     } text-base`}
                   />
                 </span>
                 <div>
                   <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
-                    {effectiveAudience === "peserta" ? "Panduan Peserta" : "Instruksi Panitia"}
+                    {effectiveAudience === 'peserta' ? 'Panduan Peserta' : 'Instruksi Panitia'}
                   </p>
                   <h4 className="font-heading text-lg font-black text-slate-900">
                     {role.headline}
@@ -679,7 +684,9 @@ export default function LombaPage() {
             {role.points?.length > 0 && (
               <div>
                 <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  {effectiveAudience === "peserta" ? "Ketentuan & Aturan Khusus" : "Tugas & Tanggung Jawab"}
+                  {effectiveAudience === 'peserta'
+                    ? 'Ketentuan & Aturan Khusus'
+                    : 'Tugas & Tanggung Jawab'}
                 </p>
                 <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {role.points.map((p: { title: string; text: string }) => (
@@ -688,7 +695,9 @@ export default function LombaPage() {
                       className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-slate-300"
                     >
                       <div className="flex items-center gap-2">
-                        <span className={`h-2 w-2 rounded-full ${effectiveAudience === "peserta" ? "bg-emerald-500" : "bg-sky-500"}`} />
+                        <span
+                          className={`h-2 w-2 rounded-full ${effectiveAudience === 'peserta' ? 'bg-emerald-500' : 'bg-sky-500'}`}
+                        />
                         <p className="text-sm font-extrabold text-slate-900">{p.title}</p>
                       </div>
                       <p className="mt-1.5 flex-1 text-xs leading-relaxed text-slate-600">
@@ -701,7 +710,7 @@ export default function LombaPage() {
             )}
 
             {/* Tips & Trik khusus Peserta */}
-            {effectiveAudience === "peserta" && role.tips?.length > 0 && (
+            {effectiveAudience === 'peserta' && role.tips?.length > 0 && (
               <div className="mt-5 rounded-2xl border border-amber-200/80 bg-amber-50/60 p-4">
                 <div className="mb-2.5 flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500 text-white text-xs shadow-sm">
@@ -726,7 +735,7 @@ export default function LombaPage() {
             )}
 
             {/* Section khusus Panitia: Tools, Checklist, Format Putra & Putri */}
-            {effectiveAudience === "panitia" && (
+            {effectiveAudience === 'panitia' && (
               <div className="mt-5 space-y-4">
                 {role.tools?.length > 0 && (
                   <div>
@@ -802,7 +811,6 @@ export default function LombaPage() {
           </div>
         </div>
       </article>
-
     </div>
   );
 }

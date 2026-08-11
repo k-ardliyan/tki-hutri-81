@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
-import { useAudienceNavigate } from '../../context/AudienceContext'
-import { getEventPhase, SIMULATED_DATES } from '../../lib/eventPhase'
-import { useCountdown } from '../../hooks/useCountdown'
+import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useAudienceNavigate } from '../../context/AudienceContext';
+import { useCountdown } from '../../hooks/useCountdown';
+import { getEventPhase, SIMULATED_DATES } from '../../lib/eventPhase';
 
 function DynamicCountdown({ targetDate, label }: { targetDate: string | null; label?: string }) {
-  const { days, hours, mins, secs, done } = useCountdown(targetDate || '2026-08-13T12:45:00')
+  const { days, hours, mins, secs, done } = useCountdown(targetDate || '2026-08-13T12:45:00');
 
-  if (!targetDate || done) return null
+  if (!targetDate || done) return null;
 
   return (
     <div className="mt-3 rounded-2xl border border-white/20 bg-black/25 p-2.5 sm:p-3.5 backdrop-blur-md">
@@ -19,70 +19,90 @@ function DynamicCountdown({ targetDate, label }: { targetDate: string | null; la
       </div>
       <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center">
         <div className="rounded-xl bg-white/15 border border-white/25 py-1 sm:py-1.5 px-0.5 backdrop-blur-md shadow-inner">
-          <span className="font-heading text-base sm:text-2xl font-black text-white drop-shadow-sm">{days}</span>
-          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">Hari</span>
+          <span className="font-heading text-base sm:text-2xl font-black text-white drop-shadow-sm">
+            {days}
+          </span>
+          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">
+            Hari
+          </span>
         </div>
         <div className="rounded-xl bg-white/15 border border-white/25 py-1 sm:py-1.5 px-0.5 backdrop-blur-md shadow-inner">
-          <span className="font-heading text-base sm:text-2xl font-black text-white drop-shadow-sm">{hours}</span>
-          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">Jam</span>
+          <span className="font-heading text-base sm:text-2xl font-black text-white drop-shadow-sm">
+            {hours}
+          </span>
+          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">
+            Jam
+          </span>
         </div>
         <div className="rounded-xl bg-white/15 border border-white/25 py-1 sm:py-1.5 px-0.5 backdrop-blur-md shadow-inner">
-          <span className="font-heading text-base sm:text-2xl font-black text-white drop-shadow-sm">{mins}</span>
-          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">Menit</span>
+          <span className="font-heading text-base sm:text-2xl font-black text-white drop-shadow-sm">
+            {mins}
+          </span>
+          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">
+            Menit
+          </span>
         </div>
         <div className="rounded-xl bg-white/15 border border-white/25 py-1 sm:py-1.5 px-0.5 backdrop-blur-md shadow-inner">
-          <span className="font-heading text-base sm:text-2xl font-black text-amber-300 drop-shadow-sm">{secs}</span>
-          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">Detik</span>
+          <span className="font-heading text-base sm:text-2xl font-black text-amber-300 drop-shadow-sm">
+            {secs}
+          </span>
+          <span className="block text-[7px] sm:text-[9px] font-bold uppercase tracking-wider text-white/80">
+            Detik
+          </span>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?: (data: ReturnType<typeof getEventPhase>) => void }) {
-  const navigate = useAudienceNavigate()
-  const [selectedSimDate, setSelectedSimDate] = useState<string | null>(null)
-  const [phaseData, setPhaseData] = useState(() => getEventPhase(null))
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isClosing, setIsClosing] = useState(false)
+export default function EventStatusReminder({
+  onPhaseChange,
+}: {
+  onPhaseChange?: (data: ReturnType<typeof getEventPhase>) => void;
+}) {
+  const navigate = useAudienceNavigate();
+  const [selectedSimDate, setSelectedSimDate] = useState<string | null>(null);
+  const [phaseData, setPhaseData] = useState(() => getEventPhase(null));
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const handleCloseModal = useCallback(() => {
-    if (isClosing) return
-    setIsClosing(true)
+    if (isClosing) return;
+    setIsClosing(true);
     setTimeout(() => {
-      setIsModalOpen(false)
-      setIsClosing(false)
-    }, 280)
-  }, [isClosing])
+      setIsModalOpen(false);
+      setIsClosing(false);
+    }, 280);
+  }, [isClosing]);
 
   useEffect(() => {
     // getEventPhase JS accepts string | null but TS infers only null from default param
-    const data = getEventPhase(selectedSimDate as Parameters<typeof getEventPhase>[0])
-    setPhaseData(data)
+    const data = getEventPhase(selectedSimDate as Parameters<typeof getEventPhase>[0]);
+    setPhaseData(data);
     if (onPhaseChange) {
-      onPhaseChange(data)
+      onPhaseChange(data);
     }
-  }, [selectedSimDate, onPhaseChange])
+  }, [selectedSimDate, onPhaseChange]);
 
   // Prevent background scroll and add Escape key listener for accessibility
   useEffect(() => {
-    if (!isModalOpen) return undefined
+    if (!isModalOpen) return undefined;
 
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleCloseModal()
+        handleCloseModal();
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isModalOpen, handleCloseModal])
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen, handleCloseModal]);
 
   return (
     <>
@@ -121,10 +141,7 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
 
         {/* Live Milestone Countdown Timer */}
         {phaseData.targetDate && (
-          <DynamicCountdown
-            targetDate={phaseData.targetDate}
-            label={phaseData.targetLabel}
-          />
+          <DynamicCountdown targetDate={phaseData.targetDate} label={phaseData.targetLabel} />
         )}
 
         {/* Compact Action Bar */}
@@ -162,7 +179,7 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
           </div>
           <div className="flex flex-wrap gap-1">
             {SIMULATED_DATES.map((item, index) => {
-              const isSelected = selectedSimDate === item.value
+              const isSelected = selectedSimDate === item.value;
               return (
                 <button
                   key={index}
@@ -176,7 +193,7 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
                 >
                   {item.label}
                 </button>
-              )
+              );
             })}
           </div>
         </div>
@@ -224,7 +241,10 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
                       <i className="fa-solid fa-bell text-xl" />
                     </div>
                     <div>
-                      <h4 id="modal-reminder-title" className="font-heading text-lg sm:text-xl font-black text-white leading-tight drop-shadow-sm">
+                      <h4
+                        id="modal-reminder-title"
+                        className="font-heading text-lg sm:text-xl font-black text-white leading-tight drop-shadow-sm"
+                      >
                         Pengingat Penting Acara
                       </h4>
                       <p id="modal-reminder-subtitle" className="text-[11px] text-white/70">
@@ -246,7 +266,9 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
                 <div className="relative z-10 overflow-y-auto flex-1 my-3 pr-1 space-y-3 no-scrollbar max-h-[50dvh]">
                   {/* Modal Active Status Banner */}
                   <div className="rounded-2xl bg-white/10 p-3.5 sm:p-4 border border-white/15 backdrop-blur-md">
-                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase border ${phaseData.badgeColor}`}>
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase border ${phaseData.badgeColor}`}
+                    >
                       {phaseData.badgeLabel}
                     </span>
                     <h5 className="mt-2 font-heading text-base sm:text-lg font-extrabold text-white">
@@ -273,9 +295,7 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
                             <i className={`fa-solid ${rem.icon}`} />
                           </div>
                           <div>
-                            <h6 className="text-xs font-extrabold text-white">
-                              {rem.title}
-                            </h6>
+                            <h6 className="text-xs font-extrabold text-white">{rem.title}</h6>
                             <p className="text-xs text-white/80 leading-relaxed mt-0.5">
                               {rem.text}
                             </p>
@@ -292,8 +312,8 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
                     <button
                       type="button"
                       onClick={() => {
-                        handleCloseModal()
-                        setTimeout(() => navigate(phaseData.action.link), 280)
+                        handleCloseModal();
+                        setTimeout(() => navigate(phaseData.action.link), 280);
                       }}
                       className="flex-1 min-h-[44px] rounded-xl bg-brand-red px-4 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700 active:scale-95 text-center"
                     >
@@ -314,6 +334,5 @@ export default function EventStatusReminder({ onPhaseChange }: { onPhaseChange?:
           document.body
         )}
     </>
-  )
+  );
 }
-

@@ -1,8 +1,8 @@
-import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router'
-import PageFallback from '../components/ui/PageFallback'
-import { getTeams, getTeamSummary } from '../server/functions/teams'
+import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
+import { TimPageSkeleton } from '../components/ui/skeletons';
+import { getTeamSummary, getTeams } from '../server/functions/teams';
 
-const TimPage = lazyRouteComponent(() => import('../components/pages/TimPage'))
+const TimPage = lazyRouteComponent(() => import('../components/pages/TimPage'));
 
 export const Route = createFileRoute('/tim')({
   loader: async () => ({
@@ -10,5 +10,5 @@ export const Route = createFileRoute('/tim')({
     summary: await getTeamSummary(),
   }),
   component: TimPage,
-  pendingComponent: PageFallback,
-})
+  pendingComponent: TimPageSkeleton,
+});

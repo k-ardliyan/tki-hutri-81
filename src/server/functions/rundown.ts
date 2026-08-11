@@ -4,8 +4,8 @@
  *
  * Static data fallback until DATABASE_URL is configured.
  */
-import { createServerFn } from '@tanstack/react-start'
-import { rundown } from '../../data/content'
+import { createServerFn } from '@tanstack/react-start';
+import { rundown } from '../../data/content';
 // import { assertDb } from '../db' // TODO: uncomment when DB ready
 
 /**
@@ -28,5 +28,5 @@ export const getRundown = createServerFn({ method: 'GET' }).handler(async () => 
   // return phases
 
   // Static fallback — data already has nested items
-  return rundown
-})
+  return rundown;
+});

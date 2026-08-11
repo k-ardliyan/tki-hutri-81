@@ -1,22 +1,65 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createRootRoute,
   HeadContent,
   Outlet,
   Scripts,
   useLocation,
-} from '@tanstack/react-router'
-import '../styles.css'
-import { gsap, shouldReduceMotion } from '../lib/gsap'
-import { Toaster } from '../components/ui/sonner'
-import { AudienceProvider } from '../context/AudienceContext'
-import SiteHeader from '../components/layout/Header'
-import BottomNav from '../components/layout/BottomNav'
-import SiteFooter from '../components/layout/SiteFooter'
-import Hero from '../components/hero/Hero'
-import PageFallback from '../components/ui/PageFallback'
+  useRouterState,
+} from '@tanstack/react-router';
+import type { ReactNode } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import '../styles.css';
+import Hero from '../components/hero/Hero';
+import BottomNav from '../components/layout/BottomNav';
+import SiteHeader from '../components/layout/Header';
+import SiteFooter from '../components/layout/SiteFooter';
+import PageFallback from '../components/ui/PageFallback';
+import { Toaster } from '../components/ui/sonner';
+import { AudienceProvider } from '../context/AudienceContext';
+import { gsap, shouldReduceMotion } from '../lib/gsap';
+
+function NavigationProgressBar() {
+  const isPending = useRouterState({ select: (s) => s.status === 'pending' || s.isLoading });
+  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPending) {
+      setVisible(true);
+      setProgress(30);
+      timer = setTimeout(() => {
+        setProgress(75);
+      }, 120);
+    } else {
+      setProgress(100);
+      timer = setTimeout(() => {
+        setVisible(false);
+        setProgress(0);
+      }, 200);
+    }
+    return () => clearTimeout(timer);
+  }, [isPending]);
+
+  if (!visible && !isPending) return null;
+
+  return (
+    <div
+      role="progressbar"
+      aria-label="Memuat halaman..."
+      className="fixed top-0 left-0 right-0 z-50 h-[3px] overflow-hidden bg-transparent pointer-events-none"
+    >
+      <div
+        className="h-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-400 transition-all duration-200 ease-out shadow-[0_0_10px_rgba(225,29,72,0.9)]"
+        style={{
+          width: `${progress}%`,
+          opacity: isPending ? 1 : 0,
+        }}
+      />
+    </div>
+  );
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -33,7 +76,8 @@ export const Route = createRootRoute({
       { name: 'googlebot', content: 'noindex, nofollow' },
       {
         name: 'description',
-        content: 'Portal Resmi Kegiatan & Panduan Lomba HUT RI ke-81 PT TKI x PT FTP. Semangat Merdeka, Kerja Rapi, Juara Bersama.',
+        content:
+          'Portal Resmi Kegiatan & Panduan Lomba HUT RI ke-81 PT TKI x PT FTP. Semangat Merdeka, Kerja Rapi, Juara Bersama.',
       },
       { name: 'author', content: 'PT TKI x PT FTP' },
       // Open Graph / Social Media Sharing
@@ -42,7 +86,8 @@ export const Route = createRootRoute({
       { property: 'og:title', content: 'Peringatan HUT RI ke-81 - PT TKI x PT FTP' },
       {
         property: 'og:description',
-        content: 'Portal Resmi Kegiatan, Panduan Lomba & Budaya 5R HUT RI ke-81 PT TKI x PT FTP Salatiga. Rayakan kemerdekaan bersama!',
+        content:
+          'Portal Resmi Kegiatan, Panduan Lomba & Budaya 5R HUT RI ke-81 PT TKI x PT FTP Salatiga. Rayakan kemerdekaan bersama!',
       },
       { property: 'og:image', content: '/og-image.webp' },
       { property: 'og:image:type', content: 'image/webp' },
@@ -55,7 +100,8 @@ export const Route = createRootRoute({
       { name: 'twitter:title', content: 'Peringatan HUT RI ke-81 - PT TKI x PT FTP' },
       {
         name: 'twitter:description',
-        content: 'Portal Resmi Kegiatan, Panduan Lomba & Budaya 5R HUT RI ke-81 PT TKI x PT FTP Salatiga. Rayakan kemerdekaan bersama!',
+        content:
+          'Portal Resmi Kegiatan, Panduan Lomba & Budaya 5R HUT RI ke-81 PT TKI x PT FTP Salatiga. Rayakan kemerdekaan bersama!',
       },
       { name: 'twitter:image', content: '/og-image.webp' },
       { name: 'twitter:image:alt', content: 'Banner Peringatan HUT RI ke-81 PT TKI x PT FTP' },
@@ -77,65 +123,79 @@ export const Route = createRootRoute({
   }),
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
-})
+});
 
 function RootComponent() {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } } }),
-  )
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
+      })
+  );
   return (
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <AudienceProvider>
+          <NavigationProgressBar />
           <AppLayout />
         </AudienceProvider>
       </QueryClientProvider>
     </RootDocument>
-  )
+  );
 }
 
 function AppLayout() {
-  const { pathname } = useLocation()
-  const panelRef = useRef<HTMLDivElement>(null)
-  const didMountRef = useRef(false)
+  const routerPath = useRouterState({
+    select: (s) =>
+      s.status === 'pending' || s.isLoading
+        ? s.location.pathname
+        : (s.resolvedLocation?.pathname ?? s.location.pathname),
+  });
+  const panelRef = useRef<HTMLDivElement>(null);
+  const didMountRef = useRef(false);
 
-  const isHome = pathname === '/'
-  const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/audit') || pathname.startsWith('/petugas') || pathname === '/login'
+  const isHome = routerPath === '/';
+  const isAdminArea =
+    routerPath.startsWith('/admin') ||
+    routerPath.startsWith('/audit') ||
+    routerPath.startsWith('/petugas') ||
+    routerPath === '/login';
 
-  // GSAP page transition — animate on every route change.
-  // Skip di area admin: layout (sidebar) harus tetap, hanya content yang ganti.
+  // GSAP page transition — animate on route change.
   useEffect(() => {
-    if (isAdminArea) return
-    if (!panelRef.current || shouldReduceMotion()) return
+    if (isAdminArea) return;
+    if (!panelRef.current || shouldReduceMotion()) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         panelRef.current!,
-        { opacity: 0, y: 12 },
+        { opacity: 0.2, y: 8 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.3,
+          duration: 0.25,
           ease: 'power2.out',
           clearProps: 'all',
-        },
-      )
-    })
-    return () => ctx.revert()
-  }, [pathname])
+        }
+      );
+    });
+    return () => ctx.revert();
+  }, [routerPath, isAdminArea]);
 
   // Scroll to top instantly on route change
   useEffect(() => {
     if (!didMountRef.current) {
-      didMountRef.current = true
-      return
+      didMountRef.current = true;
+      return;
     }
-    window.scrollTo(0, 0)
-  }, [pathname])
+    window.scrollTo(0, 0);
+  }, [routerPath]);
 
   return (
-    <div className={`flex min-h-screen flex-col overflow-x-clip text-foreground antialiased ${
-      isAdminArea ? 'bg-background' : 'bg-canvas landing-gradient'
-    }`}>
+    <div
+      className={`flex min-h-screen flex-col overflow-x-clip text-foreground antialiased ${
+        isAdminArea ? 'bg-background' : 'bg-canvas landing-gradient'
+      }`}
+    >
       {!isAdminArea && <SiteHeader />}
 
       {isAdminArea ? (
@@ -143,11 +203,7 @@ function AppLayout() {
           <Outlet />
         </Suspense>
       ) : (
-        <main
-          className={`mb-auto ${
-            'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
-          }`}
-        >
+        <main className={`mb-auto ${'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
           {isHome && <Hero />}
           <div className="shell py-6 sm:py-8">
             <div ref={panelRef}>
@@ -162,7 +218,7 @@ function AppLayout() {
       {!isAdminArea && <SiteFooter />}
       {!isAdminArea && <BottomNav />}
     </div>
-  )
+  );
 }
 
 function NotFoundComponent() {
@@ -179,7 +235,7 @@ function NotFoundComponent() {
         </a>
       </div>
     </RootDocument>
-  )
+  );
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
@@ -194,5 +250,5 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

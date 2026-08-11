@@ -1,59 +1,48 @@
-import { useEffect, useMemo, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod'
-import { Printer } from 'lucide-react'
-import { Card, CardContent } from '../../../components/ui/card'
-import { PageHeader } from '../../../components/ui/page-header'
-import { getTeamsWithMembers } from '../../../server/functions/snack'
-import type { SnackTeam } from '../../../server/functions/snack'
-import GelangPrint from '../../../components/snack/GelangPrint'
-import BarcodeAll from '../../../components/snack/BarcodeAll'
-import { Skeleton } from '../../../components/ui/skeleton'
-
-import { Combobox, type ComboboxOption } from '../../../components/ui/combobox'
+import { createFileRoute } from '@tanstack/react-router';
+import { Printer } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
+import BarcodeAll from '../../../components/snack/BarcodeAll';
+import GelangPrint from '../../../components/snack/GelangPrint';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Combobox, type ComboboxOption } from '../../../components/ui/combobox';
+import { PageHeader } from '../../../components/ui/page-header';
+import { DataTableSkeleton } from '../../../components/ui/skeletons';
+import type { SnackTeam } from '../../../server/functions/snack';
+import { getTeamsWithMembers } from '../../../server/functions/snack';
 
 const searchSchema = z.object({
   team: z.string().optional(),
-})
+});
 
 export const Route = createFileRoute('/admin/snack/gelang')({
   validateSearch: searchSchema,
   component: GelangPage,
-})
+  pendingComponent: DataTableSkeleton,
+});
 
 function GelangPage() {
-  const { team: teamParam } = Route.useSearch()
-  const [teams, setTeams] = useState<SnackTeam[]>([])
-  const [selected, setSelected] = useState<SnackTeam | null>(null)
-  const [teamsLoading, setTeamsLoading] = useState(true)
+  const { team: teamParam } = Route.useSearch();
+  const [teams, setTeams] = useState<SnackTeam[]>([]);
+  const [selected, setSelected] = useState<SnackTeam | null>(null);
+  const [teamsLoading, setTeamsLoading] = useState(true);
 
   const teamOptions = useMemo<ComboboxOption[]>(
     () => teams.map((t) => ({ value: t.kode, label: `${t.nama} (${t.members.length} org)` })),
     [teams]
-  )
+  );
 
   useEffect(() => {
     void getTeamsWithMembers().then((t) => {
-      setTeams(t)
-      const found = t.find((x) => x.kode === teamParam) ?? null
-      setSelected(found)
-      setTeamsLoading(false)
-    })
-  }, [teamParam])
+      setTeams(t);
+      const found = t.find((x) => x.kode === teamParam) ?? null;
+      setSelected(found);
+      setTeamsLoading(false);
+    });
+  }, [teamParam]);
 
   if (teamsLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1.5">
-            <Skeleton className="h-6 w-48 rounded" />
-            <Skeleton className="h-4 w-72 rounded" />
-          </div>
-          <Skeleton className="h-9 w-48 rounded-lg" />
-        </div>
-        <Skeleton className="h-48 w-full rounded-xl" />
-      </div>
-    )
+    return <DataTableSkeleton />;
   }
 
   return (
@@ -66,8 +55,8 @@ function GelangPage() {
             options={teamOptions}
             value={selected?.kode ?? ''}
             onValueChange={(val) => {
-              const t = teams.find((x) => x.kode === val)
-              setSelected(t ?? null)
+              const t = teams.find((x) => x.kode === val);
+              setSelected(t ?? null);
             }}
             placeholder="Pilih kelompok..."
             searchPlaceholder="Cari kelompok..."
@@ -80,8 +69,12 @@ function GelangPage() {
         <Card className="p-8 text-center">
           <CardContent className="flex flex-col items-center gap-2">
             <Printer size={24} className="text-muted-foreground/40" />
-            <p className="text-sm font-bold text-foreground/80">Pilih kelompok untuk generate gelang</p>
-            <p className="text-xs text-muted-foreground">Gelang dicetak per anggota, QR berisi kode tim.</p>
+            <p className="text-sm font-bold text-foreground/80">
+              Pilih kelompok untuk generate gelang
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Gelang dicetak per anggota, QR berisi kode tim.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -91,5 +84,5 @@ function GelangPage() {
       {/* Barcode semua tim — download satu PNG */}
       <BarcodeAll />
     </div>
-  )
+  );
 }

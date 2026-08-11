@@ -3,138 +3,165 @@
  * CTA "Ambil Tanpa QR" prominent di atas → buka Drawer search (bottom sheet).
  * Detail per tim: accordion siapa sudah ambil.
  */
-import { useEffect, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { ChevronRight, Loader2, Search, UserPlus, Users } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Badge } from '../../components/ui/badge'
-import { Card, CardContent } from '../../components/ui/card'
-import { Input } from '../../components/ui/input'
-import { Label } from '../../components/ui/label'
-import { SectionCards } from '../../components/section-cards'
-import { PageHeader } from '../../components/ui/page-header'
-import { StatusBadge } from '../../components/ui/status-badge'
-import { Alert, AlertDescription } from '../../components/ui/alert'
-import { PetugasDashboardSkeleton } from '../../components/ui/skeletons'
-import { ResponsiveDialog } from '../../components/ui/responsive-dialog'
-import SnackTeamAccordion from '../../components/snack/SnackTeamAccordion'
-import { getRedemptionSummary, searchEmployees, redeemSnack } from '../../server/functions/snack'
-import { getSession } from '../../server/functions/auth'
-import { useDebounce } from '../../hooks/use-debounce'
+
+import { createFileRoute } from '@tanstack/react-router';
+import { ChevronRight, Loader2, Search, UserPlus, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { SectionCards } from '../../components/section-cards';
+import SnackTeamAccordion from '../../components/snack/SnackTeamAccordion';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { PageHeader } from '../../components/ui/page-header';
+import { ResponsiveDialog } from '../../components/ui/responsive-dialog';
+import { PetugasDashboardSkeleton } from '../../components/ui/skeletons';
+import { StatusBadge } from '../../components/ui/status-badge';
+import { useDebounce } from '../../hooks/use-debounce';
+import { getSession } from '../../server/functions/auth';
+import { getRedemptionSummary, redeemSnack, searchEmployees } from '../../server/functions/snack';
 
 export const Route = createFileRoute('/petugas/dashboard')({
   component: PetugasDashboardPage,
-})
+  pendingComponent: PetugasDashboardSkeleton,
+});
 
 interface SearchResult {
-  id: number
-  nama: string
-  nip: string | null
-  divisi: string | null
+  id: number;
+  nama: string;
+  nip: string | null;
+  divisi: string | null;
 }
 
 type Summary = {
-  active: { id: number; name: string; quota: number; isActive: boolean; createdAt: Date } | null
+  active: { id: number; name: string; quota: number; isActive: boolean; createdAt: Date } | null;
   teams: Array<{
-    id: number
-    nama: string
-    kode: string
-    kategori: string
-    total: number
-    redeemed: number
-    done: boolean
-    full: boolean
-  }>
-  totalRedeemed: number
-  totalQuota: number
-  sessions: Array<{ id: number; name: string; quota: number; isActive: boolean; createdAt: Date }>
-}
+    id: number;
+    nama: string;
+    kode: string;
+    kategori: string;
+    total: number;
+    redeemed: number;
+    done: boolean;
+    full: boolean;
+  }>;
+  totalRedeemed: number;
+  totalQuota: number;
+  sessions: Array<{ id: number; name: string; quota: number; isActive: boolean; createdAt: Date }>;
+};
 
 function PetugasDashboardPage() {
-  const [summary, setSummary] = useState<Summary | null>(null)
-  const [summaryLoading, setSummaryLoading] = useState(true)
-  const [claimedBy, setClaimedBy] = useState('')
-  const [sessionId, setSessionId] = useState<number | null>(null)
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [claimedBy, setClaimedBy] = useState('');
+  const [sessionId, setSessionId] = useState<number | null>(null);
 
   // Drawer "Ambil Tanpa QR"
-  const [showSearch, setShowSearch] = useState(false)
-  const [q, setQ] = useState('')
-  const debouncedQ = useDebounce(q, 300)
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
+  const [showSearch, setShowSearch] = useState(false);
+  const [q, setQ] = useState('');
+  const debouncedQ = useDebounce(q, 300);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
       try {
-        const [s, sess] = await Promise.all([getRedemptionSummary({ data: {} }), getSession()])
-        setSummary(s)
-        setClaimedBy(sess.username ?? 'petugas')
-        setSessionId(s.active?.id ?? null)
+        const [s, sess] = await Promise.all([getRedemptionSummary({ data: {} }), getSession()]);
+        setSummary(s);
+        setClaimedBy(sess.username ?? 'petugas');
+        setSessionId(s.active?.id ?? null);
       } finally {
-        setSummaryLoading(false)
+        setSummaryLoading(false);
       }
-    }
-    void init()
-  }, [])
+    };
+    void init();
+  }, []);
 
   useEffect(() => {
-    if (!debouncedQ.trim()) { setResults([]); return }
-    const doSearchDebounced = async () => {
-      setErr(null)
-      setSearching(true)
-      try {
-        const res = await searchEmployees({ data: { q: debouncedQ.trim(), limit: 8 } })
-        setResults(res)
-      } catch {
-        setErr('Gagal mencari karyawan')
-      } finally {
-        setSearching(false)
-      }
+    if (!debouncedQ.trim()) {
+      setResults([]);
+      return;
     }
-    void doSearchDebounced()
-  }, [debouncedQ])
+    const doSearchDebounced = async () => {
+      setErr(null);
+      setSearching(true);
+      try {
+        const res = await searchEmployees({ data: { q: debouncedQ.trim(), limit: 8 } });
+        setResults(res);
+      } catch {
+        setErr('Gagal mencari karyawan');
+      } finally {
+        setSearching(false);
+      }
+    };
+    void doSearchDebounced();
+  }, [debouncedQ]);
 
   const openSearch = () => {
-    setQ(''); setResults([]); setErr(null); setShowSearch(true)
-  }
+    setQ('');
+    setResults([]);
+    setErr(null);
+    setShowSearch(true);
+  };
 
   const doSearch = async () => {
-    setErr(null)
-    if (!q.trim()) { setResults([]); return }
-    setSearching(true)
-    try {
-      const res = await searchEmployees({ data: { q, limit: 8 } })
-      setResults(res)
-    } catch {
-      setErr('Gagal mencari karyawan')
-    } finally {
-      setSearching(false)
+    setErr(null);
+    if (!q.trim()) {
+      setResults([]);
+      return;
     }
-  }
+    setSearching(true);
+    try {
+      const res = await searchEmployees({ data: { q, limit: 8 } });
+      setResults(res);
+    } catch {
+      setErr('Gagal mencari karyawan');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const [redeemingId, setRedeemingId] = useState<number | null>(null);
 
   const redeemOne = async (id: number) => {
-    if (!sessionId) { setErr('Tidak ada sesi aktif'); return }
-    setErr(null)
-    const res = await redeemSnack({ data: { sessionId, employeeIds: [id], claimedBy } })
-    if (!res.ok) { setErr(res.error ?? 'Gagal'); return }
-    if (res.skipped.length > 0) {
-      const r = res.skipped[0]
-      setErr(`${r.claimedBy} sudah ambil pada ${new Date(r.claimedAt).toLocaleString('id-ID')}`)
-    } else {
-      toast.success('1 porsi dicatat!')
-      setResults([]); setQ('')
-      const s = await getRedemptionSummary({ data: {} })
-      setSummary(s)
+    if (!sessionId) {
+      setErr('Tidak ada sesi aktif');
+      return;
     }
-  }
+    setErr(null);
+    setRedeemingId(id);
+    try {
+      const res = await redeemSnack({ data: { sessionId, employeeIds: [id], claimedBy } });
+      if (!res.ok) {
+        setErr(res.error ?? 'Gagal');
+        return;
+      }
+      if (res.skipped.length > 0) {
+        const r = res.skipped[0];
+        setErr(`${r.claimedBy} sudah ambil pada ${new Date(r.claimedAt).toLocaleString('id-ID')}`);
+      } else {
+        toast.success('1 porsi dicatat!');
+        setResults([]);
+        setQ('');
+        const s = await getRedemptionSummary({ data: {} });
+        setSummary(s);
+      }
+    } catch {
+      setErr('Terjadi kesalahan saat mencatat snack');
+    } finally {
+      setRedeemingId(null);
+    }
+  };
 
-  const active = summary?.active
-  const teams = summary?.teams ?? []
+  const active = summary?.active;
+  const teams = summary?.teams ?? [];
 
   // Show full-page skeleton while data loads
-  if (summaryLoading) return <PetugasDashboardSkeleton />
+  if (summaryLoading) return <PetugasDashboardSkeleton />;
 
   return (
     <div className="space-y-4">
@@ -155,7 +182,9 @@ function PetugasDashboardPage() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-extrabold text-white">Ambil Snack Tanpa QR</span>
-          <span className="block text-xs text-white/80">Cari karyawan, catat pengambilan langsung</span>
+          <span className="block text-xs text-white/80">
+            Cari karyawan, catat pengambilan langsung
+          </span>
         </span>
         <ChevronRight size={18} className="text-white/70" />
       </button>
@@ -176,10 +205,13 @@ function PetugasDashboardPage() {
           },
           {
             label: 'Porsi Terambil',
-            value: `${active ? summary?.totalRedeemed ?? 0 : 0}/${active?.quota ?? 0}`,
+            value: `${active ? (summary?.totalRedeemed ?? 0) : 0}/${active?.quota ?? 0}`,
             action: (
               <StatusBadge status="warning">
-                {active ? Math.round(((summary?.totalRedeemed ?? 0) / Math.max(1, active.quota)) * 100) : 0}%
+                {active
+                  ? Math.round(((summary?.totalRedeemed ?? 0) / Math.max(1, active.quota)) * 100)
+                  : 0}
+                %
               </StatusBadge>
             ),
           },
@@ -211,7 +243,10 @@ function PetugasDashboardPage() {
             <Label>Cari Karyawan</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search size={14} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60" />
+                <Search
+                  size={14}
+                  className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60"
+                />
                 <Input
                   type="text"
                   value={q}
@@ -239,8 +274,12 @@ function PetugasDashboardPage() {
           {!searching && results.length === 0 && !err && (
             <div className="rounded-xl bg-muted/50 px-4 py-6 text-center">
               <Users size={20} className="mx-auto text-muted-foreground/40" />
-              <p className="mt-2 text-xs font-semibold text-muted-foreground">Ketik nama atau NIP untuk mencari</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground/70">Karyawan PKL tidak tampil (tidak eligible)</p>
+              <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                Ketik nama atau NIP untuk mencari
+              </p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground/70">
+                Karyawan PKL tidak tampil (tidak eligible)
+              </p>
             </div>
           )}
 
@@ -254,9 +293,17 @@ function PetugasDashboardPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground/90">{r.nama}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">{r.divisi ?? '—'}{r.nip ? ` · ${r.nip}` : ''}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">
+                      {r.divisi ?? '—'}
+                      {r.nip ? ` · ${r.nip}` : ''}
+                    </p>
                   </div>
-                  <Button size="sm" onClick={() => redeemOne(r.id)} className="shrink-0 rounded-full px-3.5">
+                  <Button
+                    size="sm"
+                    loading={redeemingId === r.id}
+                    onClick={() => redeemOne(r.id)}
+                    className="shrink-0 rounded-full px-3.5"
+                  >
                     Ambil
                   </Button>
                 </div>
@@ -266,5 +313,5 @@ function PetugasDashboardPage() {
         </div>
       </ResponsiveDialog>
     </div>
-  )
+  );
 }

@@ -2,9 +2,9 @@
  * PetugasShell — wrapper AppShell untuk area petugas snack.
  * Nav: Scan, Dashboard (read-only).
  */
-import { Gauge, QrCode } from 'lucide-react'
-import AppShell from './AppShell'
-import type { NavSection } from '../../lib/nav'
+import { Gauge, QrCode } from 'lucide-react';
+import type { NavSection } from '../../lib/nav';
+import AppShell from './AppShell';
 
 const NAV: NavSection[] = [
   {
@@ -14,12 +14,12 @@ const NAV: NavSection[] = [
       { id: 'dashboard', label: 'Dashboard', icon: Gauge, path: '/petugas/dashboard' },
     ],
   },
-]
+];
 
 export default function PetugasShell({ children }: { children: React.ReactNode }) {
   return (
     <AppShell nav={NAV} title="Petugas Snack">
       {children}
     </AppShell>
-  )
+  );
 }

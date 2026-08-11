@@ -5,190 +5,228 @@
  * - Restart camera control when camera stream stops or errors
  * - Improved responsive desktop/mobile layout
  */
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo } from 'react'
-import { RotateCcw, CameraOff, Loader2, Video, Search, Keyboard } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Card } from '../ui/card'
-import { Input } from '../ui/input'
-import { Label } from '../ui/label'
-import { Combobox, type ComboboxOption } from '../ui/combobox'
-import type { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+
+import type { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { CameraOff, Keyboard, Loader2, RotateCcw, Search, Video } from 'lucide-react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Combobox, type ComboboxOption } from '../ui/combobox';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 interface CameraDevice {
-  id: string
-  label: string
+  id: string;
+  label: string;
 }
 
 export interface ScannerHandle {
   /** Resume scanning setelah parent menampilkan modal "kode tidak dikenal". */
-  resume: () => Promise<void>
+  resume: () => Promise<void>;
 }
 
 interface ScannerProps {
-  onScan: (kode: string) => Promise<boolean> | boolean
-  onError?: (err: string) => void
+  onScan: (kode: string) => Promise<boolean> | boolean;
+  onError?: (err: string) => void;
 }
 
 const isMobile = () =>
   typeof window !== 'undefined' &&
-  (window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+  (window.matchMedia('(pointer: coarse)').matches ||
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
 
-const DECODE_COOLDOWN_MS = 1200
+const DECODE_COOLDOWN_MS = 1200;
 
 const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onScan, onError }, ref) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const instRef = useRef<Html5Qrcode | null>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const mountedRef = useRef(true)
-  const cooldownRef = useRef(0)
-  const onScanRef = useRef(onScan)
-  onScanRef.current = onScan
+  const containerRef = useRef<HTMLDivElement>(null);
+  const instRef = useRef<Html5Qrcode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mountedRef = useRef(true);
+  const cooldownRef = useRef(0);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
-  const [starting, setStarting] = useState(true)
-  const [camError, setCamError] = useState<string | null>(null)
-  const [manual, setManual] = useState('')
-  const [cameras, setCameras] = useState<CameraDevice[]>([])
-  const [currentCamIdx, setCurrentCamIdx] = useState(0)
-  const [mobile, setMobile] = useState(false)
+  const [starting, setStarting] = useState(true);
+  const [camError, setCamError] = useState<string | null>(null);
+  const [manual, setManual] = useState('');
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const [currentCamIdx, setCurrentCamIdx] = useState(0);
+  const [mobile, setMobile] = useState(false);
 
   const cameraOptions = useMemo<ComboboxOption[]>(
     () => cameras.map((c, i) => ({ value: String(i), label: c.label })),
     [cameras]
-  )
+  );
 
   const killCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop())
-      streamRef.current = null
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
     if (instRef.current) {
-      try { instRef.current.stop().catch(() => {}) } catch { /* ignore */ }
-      instRef.current = null
+      try {
+        instRef.current.stop().catch(() => {});
+      } catch {
+        /* ignore */
+      }
+      instRef.current = null;
     }
     if (containerRef.current) {
       containerRef.current.querySelectorAll('video').forEach((v) => {
-        v.srcObject = null
-      })
-      containerRef.current.innerHTML = ''
+        v.srcObject = null;
+      });
+      containerRef.current.innerHTML = '';
     }
-  }, [])
+  }, []);
 
-  const startScanner = useCallback(async (camIdx?: number) => {
-    if (typeof window === 'undefined') return
+  const startScanner = useCallback(
+    async (camIdx?: number) => {
+      if (typeof window === 'undefined') return;
 
-    killCamera()
-    if (!mountedRef.current) return
-    setStarting(true)
-    setCamError(null)
+      killCamera();
+      if (!mountedRef.current) return;
+      setStarting(true);
+      setCamError(null);
 
-    try {
-      const mod = await import('html5-qrcode')
-      if (!mountedRef.current) return
-      const Html5QrcodeClass: typeof Html5Qrcode = mod.Html5Qrcode
-      const fmt = mod.Html5QrcodeSupportedFormats as typeof Html5QrcodeSupportedFormats
+      try {
+        const mod = await import('html5-qrcode');
+        if (!mountedRef.current) return;
+        const Html5QrcodeClass: typeof Html5Qrcode = mod.Html5Qrcode;
+        const fmt = mod.Html5QrcodeSupportedFormats as typeof Html5QrcodeSupportedFormats;
 
-      const devices = await Html5QrcodeClass.getCameras()
-      if (!mountedRef.current) return
-      const camList: CameraDevice[] = devices.map((d) => ({ id: d.id, label: d.label || `Kamera ${d.id}` }))
-      setCameras(camList)
+        const devices = await Html5QrcodeClass.getCameras();
+        if (!mountedRef.current) return;
+        const camList: CameraDevice[] = devices.map((d) => ({
+          id: d.id,
+          label: d.label || `Kamera ${d.id}`,
+        }));
+        setCameras(camList);
 
-      if (!containerRef.current || !mountedRef.current) return
+        if (!containerRef.current || !mountedRef.current) return;
 
-      instRef.current = new Html5QrcodeClass('snack-qr-reader', { formatsToSupport: [fmt.QR_CODE] } as never)
-      const inst = instRef.current
+        instRef.current = new Html5QrcodeClass('snack-qr-reader', {
+          formatsToSupport: [fmt.QR_CODE],
+        } as never);
+        const inst = instRef.current;
 
-      const idx = camIdx ?? 0
-      const cam = camList[idx]
-      const cameraConfig = mobile
-        ? { facingMode: idx % 2 === 0 ? 'environment' : 'user' }
-        : cam ? cam.id : { facingMode: 'environment' }
+        const idx = camIdx ?? 0;
+        const cam = camList[idx];
+        const cameraConfig = mobile
+          ? { facingMode: idx % 2 === 0 ? 'environment' : 'user' }
+          : cam
+            ? cam.id
+            : { facingMode: 'environment' };
 
-      await inst.start(
-        cameraConfig,
-        { fps: 10, qrbox: { width: 230, height: 230 } },
-        async (decodedText: string) => {
-          const code = decodedText.trim().toUpperCase()
-          if (cooldownRef.current > Date.now()) return
-          cooldownRef.current = Date.now() + DECODE_COOLDOWN_MS
+        await inst.start(
+          cameraConfig,
+          { fps: 10, qrbox: { width: 230, height: 230 } },
+          async (decodedText: string) => {
+            const code = decodedText.trim().toUpperCase();
+            if (cooldownRef.current > Date.now()) return;
+            cooldownRef.current = Date.now() + DECODE_COOLDOWN_MS;
 
-          try { await inst.pause(true) } catch { /* ignore */ }
+            try {
+              await inst.pause(true);
+            } catch {
+              /* ignore */
+            }
 
-          try {
-            await onScanRef.current(code)
-          } catch {
-            try { await inst.resume() } catch { /* ignore */ }
-          }
-        },
-        () => {},
-      )
+            try {
+              await onScanRef.current(code);
+            } catch {
+              try {
+                await inst.resume();
+              } catch {
+                /* ignore */
+              }
+            }
+          },
+          () => {}
+        );
 
-      if (!mountedRef.current) {
-        killCamera()
-        return
+        if (!mountedRef.current) {
+          killCamera();
+          return;
+        }
+
+        const video = containerRef.current?.querySelector('video') ?? null;
+        const stream = video?.srcObject as MediaStream | null;
+        streamRef.current = stream;
+
+        if (stream) {
+          stream.getTracks().forEach((t) => {
+            t.addEventListener('ended', () => {
+              streamRef.current = null;
+            });
+          });
+        }
+
+        setStarting(false);
+        setCamError(null);
+      } catch (e) {
+        if (!mountedRef.current) return;
+        const msg = e instanceof Error ? e.message : 'Kamera tidak tersedia';
+        setCamError(msg);
+        setStarting(false);
+        onError?.(msg);
       }
-
-      const video = containerRef.current?.querySelector('video') ?? null
-      const stream = video?.srcObject as MediaStream | null
-      streamRef.current = stream
-
-      if (stream) {
-        stream.getTracks().forEach((t) => {
-          t.addEventListener('ended', () => {
-            streamRef.current = null
-          })
-        })
-      }
-
-      setStarting(false)
-      setCamError(null)
-    } catch (e) {
-      if (!mountedRef.current) return
-      const msg = e instanceof Error ? e.message : 'Kamera tidak tersedia'
-      setCamError(msg)
-      setStarting(false)
-      onError?.(msg)
-    }
-  }, [mobile, onError, killCamera])
+    },
+    [mobile, onError, killCamera]
+  );
 
   useImperativeHandle(ref, () => ({
     resume: async () => {
-      if (!instRef.current || !mountedRef.current) return
+      if (!instRef.current || !mountedRef.current) return;
       try {
-        await instRef.current.resume()
-        if (!mountedRef.current) return
-        setStarting(false)
-        setCamError(null)
-      } catch { /* ignore */ }
+        await instRef.current.resume();
+        if (!mountedRef.current) return;
+        setStarting(false);
+        setCamError(null);
+      } catch {
+        /* ignore */
+      }
     },
-  }))
+  }));
 
   useEffect(() => {
-    mountedRef.current = true
-    setMobile(isMobile())
-    void startScanner(0)
+    mountedRef.current = true;
+    setMobile(isMobile());
+    void startScanner(0);
     return () => {
-      mountedRef.current = false
-      killCamera()
-    }
+      mountedRef.current = false;
+      killCamera();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const switchCamera = async () => {
-    const nextIdx = cameras.length > 0 ? (currentCamIdx + 1) % cameras.length : 0
-    setCurrentCamIdx(nextIdx)
-    await startScanner(nextIdx)
-  }
+    const nextIdx = cameras.length > 0 ? (currentCamIdx + 1) % cameras.length : 0;
+    setCurrentCamIdx(nextIdx);
+    await startScanner(nextIdx);
+  };
 
   const handleRestartCamera = async () => {
-    await startScanner(currentCamIdx)
-  }
+    await startScanner(currentCamIdx);
+  };
 
   return (
     <div className="max-w-md mx-auto space-y-4">
       {/* Camera Viewport Card */}
       <Card className="overflow-hidden border border-border shadow-xs">
         <div className="relative aspect-square w-full bg-slate-950 overflow-hidden">
-          <div id="snack-qr-reader" ref={containerRef} className="flex h-full w-full items-center justify-center" />
+          <div
+            id="snack-qr-reader"
+            ref={containerRef}
+            className="flex h-full w-full items-center justify-center"
+          />
 
           {/* Switch Camera Mobile Button */}
           {mobile && !starting && !camError && cameras.length > 1 && (
@@ -218,7 +256,9 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
               </div>
               <div className="space-y-1 max-w-xs">
                 <p className="text-xs font-bold text-slate-200">{camError}</p>
-                <p className="text-[11px] text-slate-400">Kamera tidak aktif atau izin ditolak. Gunakan pencarian manual atau muat ulang.</p>
+                <p className="text-[11px] text-slate-400">
+                  Kamera tidak aktif atau izin ditolak. Gunakan pencarian manual atau muat ulang.
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -241,9 +281,9 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
                 options={cameraOptions}
                 value={String(currentCamIdx)}
                 onValueChange={(val) => {
-                  const idx = Number(val)
-                  setCurrentCamIdx(idx)
-                  void startScanner(idx)
+                  const idx = Number(val);
+                  setCurrentCamIdx(idx);
+                  void startScanner(idx);
                 }}
                 showSearch={false}
                 size="sm"
@@ -287,7 +327,7 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
             placeholder="Contoh: PUTRA-1 / PANITIA"
             className="flex-1 uppercase font-mono text-xs h-9 bg-background"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && manual.trim()) onScan(manual.trim())
+              if (e.key === 'Enter' && manual.trim()) onScan(manual.trim());
             }}
           />
           <Button
@@ -300,7 +340,7 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
         </div>
       </Card>
     </div>
-  )
-})
+  );
+});
 
-export default Scanner
+export default Scanner;

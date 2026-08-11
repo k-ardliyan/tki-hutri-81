@@ -1,29 +1,30 @@
-import { useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { Card, CardContent } from '../../../components/ui/card'
-import { Badge } from '../../../components/ui/badge'
-import { SectionCards } from '../../../components/section-cards'
-import { PageHeader } from '../../../components/ui/page-header'
-import { StatusBadge } from '../../../components/ui/status-badge'
-import { Users, PackageCheck, UtensilsCrossed, Percent } from 'lucide-react'
-import { useRedemptionSummary } from '../../../lib/queries'
-import SnackTeamAccordion from '../../../components/snack/SnackTeamAccordion'
-import SessionPicker from '../../../components/snack/SessionPicker'
-import { SnackDashboardSkeleton } from '../../../components/ui/skeletons'
+import { createFileRoute } from '@tanstack/react-router';
+import { PackageCheck, Percent, Users, UtensilsCrossed } from 'lucide-react';
+import { useState } from 'react';
+import { SectionCards } from '../../../components/section-cards';
+import SessionPicker from '../../../components/snack/SessionPicker';
+import SnackTeamAccordion from '../../../components/snack/SnackTeamAccordion';
+import { Badge } from '../../../components/ui/badge';
+import { Card, CardContent } from '../../../components/ui/card';
+import { PageHeader } from '../../../components/ui/page-header';
+import { SnackDashboardSkeleton } from '../../../components/ui/skeletons';
+import { StatusBadge } from '../../../components/ui/status-badge';
+import { useRedemptionSummary } from '../../../lib/queries';
 
 export const Route = createFileRoute('/admin/snack/')({
   component: AdminSnackDashboard,
-})
+  pendingComponent: SnackDashboardSkeleton,
+});
 
 function AdminSnackDashboard() {
-  const [selectedSession, setSelectedSession] = useState<number | null>(null)
-  const { data: summary, isLoading } = useRedemptionSummary(selectedSession ?? undefined)
+  const [selectedSession, setSelectedSession] = useState<number | null>(null);
+  const { data: summary, isLoading } = useRedemptionSummary(selectedSession ?? undefined);
 
-  const active = summary?.active
-  const teams = summary?.teams ?? []
-  const sessions = summary?.sessions ?? []
+  const active = summary?.active;
+  const teams = summary?.teams ?? [];
+  const sessions = summary?.sessions ?? [];
 
-  if (isLoading) return <SnackDashboardSkeleton />
+  if (isLoading) return <SnackDashboardSkeleton />;
 
   return (
     <div className="space-y-6">
@@ -75,7 +76,10 @@ function AdminSnackDashboard() {
           },
           {
             label: 'Kuota Terpakai',
-            value: active && summary.totalQuota > 0 ? `${Math.round((summary.totalRedeemed / summary.totalQuota) * 100)}%` : '0%',
+            value:
+              active && summary.totalQuota > 0
+                ? `${Math.round((summary.totalRedeemed / summary.totalQuota) * 100)}%`
+                : '0%',
             action: (
               <Badge variant="outline">
                 <Percent className="size-3.5" />
@@ -97,5 +101,5 @@ function AdminSnackDashboard() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

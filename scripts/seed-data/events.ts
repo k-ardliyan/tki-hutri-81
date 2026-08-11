@@ -23,7 +23,7 @@ export const eventsSeed = [
     tagline:
       'Rayakan kemerdekaan lewat lomba, kreativitas, dan kebersamaan dalam semangat HUT RI ke-81.',
   },
-]
+];
 
 // ─── Key Dates (5 rows) ───
 export const keyDatesSeed = [
@@ -57,16 +57,16 @@ export const keyDatesSeed = [
     detail: 'Pemenang diumumkan dan hadiah dibagikan setelah kajian Jumat.',
     sortOrder: 5,
   },
-]
+];
 
 // ─── Room Areas (5 rows) ───
 export const roomAreasSeed = [
   { name: 'Implementator', icon: 'fa-gears', sortOrder: 1 },
-  { name: 'Hardware & Finance', icon: 'fa-microchip', sortOrder: 2 },
+  { name: 'Hardware, Finance & Legal', icon: 'fa-microchip', sortOrder: 2 },
   { name: 'Sales', icon: 'fa-handshake', sortOrder: 3 },
   { name: 'IT Dalam', icon: 'fa-server', sortOrder: 4 },
   { name: 'IT Luar', icon: 'fa-network-wired', sortOrder: 5 },
-]
+];
 
 // ─── Landing Highlights (4 rows) ───
 export const landingHighlightsSeed = [
@@ -74,7 +74,7 @@ export const landingHighlightsSeed = [
   { label: 'Jenis lomba', value: '3', hint: 'Dekorasi & 5R · Balon · Air', sortOrder: 2 },
   { label: 'Hari puncak', value: '13 Ags', hint: 'Mulai pukul 12.45 WIB', sortOrder: 3 },
   { label: 'Pengumuman', value: '28 Ags', hint: 'Setelah kajian Jumat', sortOrder: 4 },
-]
+];
 
 // ─── Rundown Phases (5 rows) ───
 // slug derived from id: "phase-kickoff" → "phase-kickoff"
@@ -84,7 +84,7 @@ export const rundownPhasesSeed = [
   { slug: 'phase-nilai', phase: 'Penilaian 5R', highlight: false, sortOrder: 3 },
   { slug: 'phase-peak', phase: 'Hari Puncak · 13 Agustus', highlight: true, sortOrder: 4 },
   { slug: 'phase-award', phase: 'Pengumuman', highlight: false, sortOrder: 5 },
-]
+];
 
 // ─── Rundown Items (10 rows) ───
 // phaseId references rundownPhases by sortOrder (1–5)
@@ -150,4 +150,4 @@ export const rundownItemsSeed = [
     note: 'Pemenang setiap lomba dan kategori diumumkan setelah kajian Jumat.',
     sortOrder: 1,
   },
-]
+];

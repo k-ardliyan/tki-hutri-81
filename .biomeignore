@@ -1,0 +1,6 @@
+﻿src/routeTree.gen.ts
+.tanstack/**
+.output/**
+dist/**
+src/components/ui/**
+src/assets/**

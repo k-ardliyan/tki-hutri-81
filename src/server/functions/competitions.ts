@@ -4,8 +4,8 @@
  *
  * Static data fallback until DATABASE_URL is configured.
  */
-import { createServerFn } from '@tanstack/react-start'
-import { competitions } from '../../data/content'
+import { createServerFn } from '@tanstack/react-start';
+import { competitions } from '../../data/content';
 // import { assertDb } from '../db' // TODO: uncomment when DB ready
 
 /**
@@ -26,8 +26,8 @@ export const getCompetitions = createServerFn({ method: 'GET' }).handler(async (
   // })
 
   // Static fallback
-  return competitions
-})
+  return competitions;
+});
 
 /**
  * Returns a single competition by slug with all sections.
@@ -49,5 +49,5 @@ export const getCompetition = createServerFn({ method: 'GET' })
     // })
 
     // Static fallback — competitions use id as the slug key
-    return competitions.find((c) => c.id === data.slug) ?? null
-  })
+    return competitions.find((c) => c.id === data.slug) ?? null;
+  });

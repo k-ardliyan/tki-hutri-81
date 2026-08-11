@@ -1,6 +1,6 @@
 {
   "id": "office-smoking",
-  "label": "Checklist 5R Office Smoking",
+  "label": "Office Smoking",
   "source": "checklist-5r-office-smoking.md",
   "scale": { "min": 1, "max": 5 },
   "categories": [
@@ -15,10 +15,19 @@
           "text": "Barang tidak penting sudah disingkirkan",
           "options": [
             { "score": 1, "desc": "Banyak barang tidak penting masih menumpuk di area kerja" },
-            { "score": 2, "desc": "Sebagian barang tidak penting sudah dipindahkan, namun masih mengganggu" },
-            { "score": 3, "desc": "Barang tidak penting mulai berkurang tetapi masih ada beberapa" },
+            {
+              "score": 2,
+              "desc": "Sebagian barang tidak penting sudah dipindahkan, namun masih mengganggu"
+            },
+            {
+              "score": 3,
+              "desc": "Barang tidak penting mulai berkurang tetapi masih ada beberapa"
+            },
             { "score": 4, "desc": "Hampir semua barang tidak penting sudah disingkirkan" },
-            { "score": 5, "desc": "Semua barang tidak penting sudah disingkirkan dan area kerja rapi" }
+            {
+              "score": 5,
+              "desc": "Semua barang tidak penting sudah disingkirkan dan area kerja rapi"
+            }
           ]
         },
         {
@@ -41,7 +50,10 @@
             { "score": 1, "desc": "Peralatan rusak bercampur dengan peralatan normal" },
             { "score": 2, "desc": "Ada beberapa peralatan rusak yang belum dipisahkan" },
             { "score": 3, "desc": "Sebagian besar peralatan rusak sudah dipisahkan" },
-            { "score": 4, "desc": "Hampir semua peralatan rusak sudah dipisahkan dan diberi tanda" },
+            {
+              "score": 4,
+              "desc": "Hampir semua peralatan rusak sudah dipisahkan dan diberi tanda"
+            },
             { "score": 5, "desc": "Semua peralatan rusak dipisahkan dengan jelas dan aman" }
           ]
         },
@@ -221,9 +233,18 @@
           "text": "Bau asap tidak menyebar ke area non-smoking",
           "options": [
             { "score": 1, "desc": "Bau asap sangat menyebar ke area non-smoking" },
-            { "score": 2, "desc": "Bau asap sering tercium di area non-smoking (4-5 kali dalam 1 minggu)" },
-            { "score": 3, "desc": "Bau asap kadang masih tercium di area non-smoking (3-4 kali dalam 1 minggu)" },
-            { "score": 4, "desc": "Bau asap sesekali menyebar ke area non-smoking (1-2 kali dalam 1 minggu)" },
+            {
+              "score": 2,
+              "desc": "Bau asap sering tercium di area non-smoking (4-5 kali dalam 1 minggu)"
+            },
+            {
+              "score": 3,
+              "desc": "Bau asap kadang masih tercium di area non-smoking (3-4 kali dalam 1 minggu)"
+            },
+            {
+              "score": 4,
+              "desc": "Bau asap sesekali menyebar ke area non-smoking (1-2 kali dalam 1 minggu)"
+            },
             { "score": 5, "desc": "Bau asap tidak menyebar sama sekali ke area non-smoking" }
           ]
         },
@@ -244,11 +265,26 @@
           "order": 19,
           "text": "Tidak ada peralatan kantin yang tertinggal di area kerja",
           "options": [
-            { "score": 1, "desc": "Peralatan (gelas, piring) kantin / fasilitas kantor / pribadi tertinggal dan berserakan di area kerja dalam keadaan kotor (lebih dari 4)" },
-            { "score": 2, "desc": "Peralatan (gelas, piring) kantin / fasilitas kantor / pribadi tertinggal dan berserakan di area kerja dalam keadaan kotor (3 pcs)" },
-            { "score": 3, "desc": "Peralatan (gelas, piring) kantin / fasilitas kantor / pribadi tertinggal dan berserakan di area kerja dalam keadaan kotor (2 pcs)" },
-            { "score": 4, "desc": "Hampir semua peralatan kantin sudah dikembalikan ke tempatnya (hanya 1 yang tertinggal)" },
-            { "score": 5, "desc": "Tidak ada peralatan kantin yang tertinggal, area kerja bersih dan tertata" }
+            {
+              "score": 1,
+              "desc": "Peralatan (gelas, piring) kantin / fasilitas kantor / pribadi tertinggal dan berserakan di area kerja dalam keadaan kotor (lebih dari 4)"
+            },
+            {
+              "score": 2,
+              "desc": "Peralatan (gelas, piring) kantin / fasilitas kantor / pribadi tertinggal dan berserakan di area kerja dalam keadaan kotor (3 pcs)"
+            },
+            {
+              "score": 3,
+              "desc": "Peralatan (gelas, piring) kantin / fasilitas kantor / pribadi tertinggal dan berserakan di area kerja dalam keadaan kotor (2 pcs)"
+            },
+            {
+              "score": 4,
+              "desc": "Hampir semua peralatan kantin sudah dikembalikan ke tempatnya (hanya 1 yang tertinggal)"
+            },
+            {
+              "score": 5,
+              "desc": "Tidak ada peralatan kantin yang tertinggal, area kerja bersih dan tertata"
+            }
           ]
         }
       ]
@@ -345,7 +381,10 @@
             { "score": 1, "desc": "Banyak puntung dibuang sembarangan" },
             { "score": 2, "desc": "Sebagian karyawan masih membuang puntung sembarangan" },
             { "score": 3, "desc": "Mayoritas karyawan sudah membuang puntung pada tempatnya" },
-            { "score": 4, "desc": "Hampir semua karyawan disiplin membuang puntung pada tempatnya" },
+            {
+              "score": 4,
+              "desc": "Hampir semua karyawan disiplin membuang puntung pada tempatnya"
+            },
             { "score": 5, "desc": "Semua karyawan selalu membuang puntung pada tempatnya" }
           ]
         },

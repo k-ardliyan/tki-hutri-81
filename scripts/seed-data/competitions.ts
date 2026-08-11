@@ -44,7 +44,7 @@ export const competitionsSeed = [
       'Oper gelas bocor melewati atas kepala hingga air terkumpul di galon penampung. Tim dengan volume air terbanyak dalam 3 menit menjadi pemenang.',
     sortOrder: 3,
   },
-]
+];
 
 // ─── Competition Sections (9 rows: 3 competitions × 3 sections) ───
 // competitionId references competitions by sortOrder (1–3)
@@ -321,12 +321,7 @@ export const competitionSectionsSeed = [
           text: 'Penyisihan terdiri dari 2 sesi dengan pembagian 3 dan 2 kelompok. Empat volume terbanyak secara keseluruhan maju ke final.',
         },
       ],
-      tools: [
-        'Ember berisi air',
-        'Gelas bocor',
-        'Galon penampung kosong',
-        'Timer 3 menit',
-      ],
+      tools: ['Ember berisi air', 'Gelas bocor', 'Galon penampung kosong', 'Timer 3 menit'],
       putra: [
         'Penyisihan: 2 sesi, masing-masing diikuti 4 kelompok.',
         'Final: 2 kelompok dengan volume air terbanyak dari setiap sesi, total 4 kelompok.',
@@ -338,4 +333,4 @@ export const competitionSectionsSeed = [
     },
     sortOrder: 3,
   },
-]
+];

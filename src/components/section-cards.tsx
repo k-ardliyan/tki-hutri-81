@@ -2,7 +2,7 @@
  * SectionCards — stat cards pattern dari block dashboard-01.
  * CardHeader: label + value besar + action badge; CardFooter: hint.
  */
-import type * as React from "react"
+import type * as React from 'react';
 import {
   Card,
   CardAction,
@@ -10,23 +10,23 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card"
+} from '~/components/ui/card';
 
 export interface SectionCardData {
-  label: string
-  value: string
+  label: string;
+  value: string;
   /** Badge di kanan atas (delta/status). */
-  action?: React.ReactNode
+  action?: React.ReactNode;
   /** Baris hint di bawah. */
-  footer?: React.ReactNode
+  footer?: React.ReactNode;
 }
 
 export function SectionCards({
   stats,
   gridClass = 'grid-cols-2 lg:grid-cols-4',
 }: {
-  stats: SectionCardData[]
-  gridClass?: string
+  stats: SectionCardData[];
+  gridClass?: string;
 }) {
   return (
     <div className={`grid gap-3 ${gridClass}`}>
@@ -37,18 +37,14 @@ export function SectionCards({
         >
           <CardHeader>
             <CardDescription>{s.label}</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
-              {s.value}
-            </CardTitle>
+            <CardTitle className="text-2xl font-semibold tabular-nums">{s.value}</CardTitle>
             {s.action && <CardAction>{s.action}</CardAction>}
           </CardHeader>
           {s.footer && (
-            <CardFooter className="flex-col items-start gap-1.5 text-sm">
-              {s.footer}
-            </CardFooter>
+            <CardFooter className="flex-col items-start gap-1.5 text-sm">{s.footer}</CardFooter>
           )}
         </Card>
       ))}
     </div>
-  )
+  );
 }

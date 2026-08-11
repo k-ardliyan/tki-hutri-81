@@ -1,69 +1,69 @@
-import { useEffect, useRef } from 'react'
-import { useAudienceNavigate } from '../../context/AudienceContext'
-import EventStatusReminder from './EventStatusReminder'
-import LogoHutRi81 from '../brand/LogoHutRi81'
-import LogoTki from '../brand/LogoTki'
-import LogoFtp from '../brand/LogoFtp'
-import SalatigaRibbonSvg from '../brand/SalatigaRibbonSvg'
-import { gsap, shouldReduceMotion } from '../../lib/gsap'
+import { useEffect, useRef } from 'react';
+import { useAudienceNavigate } from '../../context/AudienceContext';
+import { gsap, shouldReduceMotion } from '../../lib/gsap';
+import LogoFtp from '../brand/LogoFtp';
+import LogoHutRi81 from '../brand/LogoHutRi81';
+import LogoTki from '../brand/LogoTki';
+import SalatigaRibbonSvg from '../brand/SalatigaRibbonSvg';
+import EventStatusReminder from './EventStatusReminder';
 
 export default function Hero() {
-  const navigate = useAudienceNavigate()
-  const rootRef = useRef<HTMLElement>(null)
-  const cardRef = useRef<HTMLDivElement>(null)
+  const navigate = useAudienceNavigate();
+  const rootRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!rootRef.current || shouldReduceMotion()) return undefined
+    if (!rootRef.current || shouldReduceMotion()) return undefined;
 
     const ctx = gsap.context(() => {
       // Stagger entrance reveal — fromTo with clearProps:'all' prevents stuck invisible elements
       gsap.fromTo(
         '.hero-animate',
         { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.65, stagger: 0.08, ease: 'power3.out', clearProps: 'all' },
-      )
+        { y: 0, opacity: 1, duration: 0.65, stagger: 0.08, ease: 'power3.out', clearProps: 'all' }
+      );
 
       // Mouse Parallax 3D Tilt Effect on Countdown Card
       if (cardRef.current) {
-        const card = cardRef.current
-        const xTo = gsap.quickTo(card, 'rotationY', { duration: 0.4, ease: 'power2.out' })
-        const yTo = gsap.quickTo(card, 'rotationX', { duration: 0.4, ease: 'power2.out' })
+        const card = cardRef.current;
+        const xTo = gsap.quickTo(card, 'rotationY', { duration: 0.4, ease: 'power2.out' });
+        const yTo = gsap.quickTo(card, 'rotationX', { duration: 0.4, ease: 'power2.out' });
 
         // Throttled parallax — max once per frame (requestAnimationFrame)
-        let rafId = 0
+        let rafId = 0;
         const handleMouseMove = (e: MouseEvent) => {
-          if (rafId) return
+          if (rafId) return;
           rafId = requestAnimationFrame(() => {
-            rafId = 0
-            const rect = card.getBoundingClientRect()
-            const x = e.clientX - rect.left - rect.width / 2
-            const y = e.clientY - rect.top - rect.height / 2
-            xTo(x * 0.03)
-            yTo(-y * 0.03)
-          })
-        }
+            rafId = 0;
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            xTo(x * 0.03);
+            yTo(-y * 0.03);
+          });
+        };
 
         const handleMouseLeave = () => {
-          if (rafId) cancelAnimationFrame(rafId)
-          rafId = 0
-          xTo(0)
-          yTo(0)
-        }
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = 0;
+          xTo(0);
+          yTo(0);
+        };
 
-        card.addEventListener('mousemove', handleMouseMove)
-        card.addEventListener('mouseleave', handleMouseLeave)
+        card.addEventListener('mousemove', handleMouseMove);
+        card.addEventListener('mouseleave', handleMouseLeave);
 
         return () => {
-          if (rafId) cancelAnimationFrame(rafId)
-          rafId = 0
-          card.removeEventListener('mousemove', handleMouseMove)
-          card.removeEventListener('mouseleave', handleMouseLeave)
-        }
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = 0;
+          card.removeEventListener('mousemove', handleMouseMove);
+          card.removeEventListener('mouseleave', handleMouseLeave);
+        };
       }
-    }, rootRef)
+    }, rootRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
     <section
@@ -84,11 +84,21 @@ export default function Hero() {
         <div className="space-y-3.5 sm:space-y-5 w-full max-w-full overflow-hidden">
           {/* Animated Dual White Logos Header — Prominent HUT RI 81 + Sleek TKI x FTP Logos */}
           <div className="hero-animate flex flex-wrap items-center gap-2 sm:gap-4 max-w-full">
-            <LogoHutRi81 variant="white" animate className="h-9 sm:h-16 w-auto drop-shadow-md shrink-0" />
+            <LogoHutRi81
+              variant="white"
+              animate
+              className="h-9 sm:h-16 w-auto drop-shadow-md shrink-0"
+            />
             <div className="h-6 sm:h-11 w-px bg-white/35 shrink-0" />
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               <LogoTki variant="white" animate className="h-3.5 sm:h-6 w-auto drop-shadow-md" />
-              <svg viewBox="0 0 16 16" className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0 text-white/45 stroke-current" fill="none" strokeWidth="1.2" strokeLinecap="round">
+              <svg
+                viewBox="0 0 16 16"
+                className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0 text-white/45 stroke-current"
+                fill="none"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              >
                 <line x1="4" y1="4" x2="12" y2="12" />
                 <line x1="12" y1="4" x2="4" y2="12" />
               </svg>
@@ -135,12 +145,15 @@ export default function Hero() {
 
         {/* Right Column: Vertically Centered Event Status & Reminder Card */}
         <div className="hero-animate w-full max-w-full overflow-hidden [perspective:1000px] lg:self-center">
-          <div ref={cardRef} className="transition-transform duration-200 w-full max-w-full" style={shouldReduceMotion() ? undefined : { willChange: 'transform' }}>
+          <div
+            ref={cardRef}
+            className="transition-transform duration-200 w-full max-w-full"
+            style={shouldReduceMotion() ? undefined : { willChange: 'transform' }}
+          >
             <EventStatusReminder />
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
-

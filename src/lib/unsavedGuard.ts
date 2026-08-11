@@ -6,21 +6,21 @@
  * di localStorage, jadi guard ini murni pencegahan accidental-tap.
  */
 
-let dirty = false
-let listener: ((d: boolean) => void) | null = null
+let dirty = false;
+let listener: ((d: boolean) => void) | null = null;
 
 export function setFormDirty(d: boolean) {
-  dirty = d
-  listener?.(d)
+  dirty = d;
+  listener?.(d);
 }
 
 export function isFormDirty() {
-  return dirty
+  return dirty;
 }
 
 export function subscribeFormDirty(fn: (d: boolean) => void) {
-  listener = fn
+  listener = fn;
   return () => {
-    if (listener === fn) listener = null
-  }
+    if (listener === fn) listener = null;
+  };
 }
