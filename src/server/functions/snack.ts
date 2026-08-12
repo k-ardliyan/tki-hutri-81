@@ -245,24 +245,37 @@ export const getCurrentSnackSession = createServerFn({ method: 'GET' }).handler(
     const db = assertDb();
     const now = new Date();
     const sessions = await toSessionMeta(db, now);
-    const published = sessions.filter((s) => s.status === 'published');
-    const active =
-      published.find((s) => s.effectiveStatus === 'active' || s.effectiveStatus === 'paused') ??
-      null;
-    const nextSession =
-      published
-        .filter((s) => s.startsAt && new Date(s.startsAt) > now)
-        .sort((a, b) => new Date(a.startsAt!).getTime() - new Date(b.startsAt!).getTime())[0] ??
-      null;
-    return {
-      session: active,
-      effectiveStatus: active ? active.effectiveStatus : 'NO_ACTIVE_SESSION',
-      nextSession: nextSession
-        ? { id: nextSession.id, name: nextSession.name, startsAt: nextSession.startsAt }
-        : null,
-    };
+    return resolveCurrentSession(sessions, now);
   }
 );
+
+/**
+ * Resolver murni (tanpa query) — dipakai getCurrentSnackSession dan
+ * getRedemptionSummary agar toSessionMeta tidak jalan 2× per request.
+ */
+function resolveCurrentSession(
+  sessions: SnackSessionWithMeta[],
+  now: Date
+): {
+  session: SnackSessionWithMeta | null;
+  effectiveStatus: SessionEffectiveStatus | 'NO_ACTIVE_SESSION';
+  nextSession: { id: number; name: string; startsAt: string | null } | null;
+} {
+  const published = sessions.filter((s) => s.status === 'published');
+  const active =
+    published.find((s) => s.effectiveStatus === 'active' || s.effectiveStatus === 'paused') ?? null;
+  const nextSession =
+    published
+      .filter((s) => s.startsAt && new Date(s.startsAt) > now)
+      .sort((a, b) => new Date(a.startsAt!).getTime() - new Date(b.startsAt!).getTime())[0] ?? null;
+  return {
+    session: active,
+    effectiveStatus: active ? active.effectiveStatus : 'NO_ACTIVE_SESSION',
+    nextSession: nextSession
+      ? { id: nextSession.id, name: nextSession.name, startsAt: nextSession.startsAt }
+      : null,
+  };
+}
 
 /** Admin: buat sesi DRAFT. Schedule + stock opsional saat draft. */
 export const createSession = createServerFn({ method: 'POST' })
@@ -993,7 +1006,7 @@ export const getRedemptionSummary = createServerFn({ method: 'GET' })
     const db = assertDb();
     const now = new Date();
     const sessions = await toSessionMeta(db, now);
-    const current = await getCurrentSnackSession();
+    const current = resolveCurrentSession(sessions, now);
     let session = null;
     if (data.sessionId) {
       session = sessions.find((s) => s.id === data.sessionId) ?? null;

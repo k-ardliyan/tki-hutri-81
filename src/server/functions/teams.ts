@@ -14,6 +14,7 @@ import { dataKelompok, summaryKelompok } from '../../data/kelompok';
 import { assertDb, db } from '../db';
 import { isUniqueViolation } from '../db/errors';
 import { employees, teamMembers, teams } from '../db/schema';
+import { adminOnly } from '../middleware/auth';
 
 type KategoriTeam = 'putra' | 'putri' | 'panitia';
 
@@ -32,45 +33,48 @@ interface TeamMemberShape {
   divisi: string | null;
 }
 
-export const listTeams = createServerFn({ method: 'GET' }).handler(async () => {
-  const database = assertDb();
-  const teamRows = await database
-    .select()
-    .from(teams)
-    .orderBy(
-      sql`case when ${teams.kategori} = 'putra' then 1 when ${teams.kategori} = 'putri' then 2 else 3 end`,
-      teams.nomor
-    );
-  const memberRows = await database
-    .select({
-      id: teamMembers.id,
-      teamId: teamMembers.teamId,
-      employeeId: teamMembers.employeeId,
-      sortOrder: teamMembers.sortOrder,
-      nama: employees.nama,
-      nip: employees.nip,
-      divisi: employees.divisi,
-    })
-    .from(teamMembers)
-    .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
-    .orderBy(teamMembers.sortOrder);
-  const byTeam = new Map<number, TeamMemberShape[]>();
-  for (const m of memberRows) {
-    const list = byTeam.get(m.teamId) ?? [];
-    list.push({
-      id: m.id,
-      employeeId: m.employeeId,
-      sortOrder: m.sortOrder,
-      nama: m.nama,
-      nip: m.nip,
-      divisi: m.divisi,
-    });
-    byTeam.set(m.teamId, list);
-  }
-  return teamRows.map((t) => ({ ...t, members: byTeam.get(t.id) ?? [] }));
-});
+export const listTeams = createServerFn({ method: 'GET' })
+  .middleware([adminOnly])
+  .handler(async () => {
+    const database = assertDb();
+    const teamRows = await database
+      .select()
+      .from(teams)
+      .orderBy(
+        sql`case when ${teams.kategori} = 'putra' then 1 when ${teams.kategori} = 'putri' then 2 else 3 end`,
+        teams.nomor
+      );
+    const memberRows = await database
+      .select({
+        id: teamMembers.id,
+        teamId: teamMembers.teamId,
+        employeeId: teamMembers.employeeId,
+        sortOrder: teamMembers.sortOrder,
+        nama: employees.nama,
+        nip: employees.nip,
+        divisi: employees.divisi,
+      })
+      .from(teamMembers)
+      .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
+      .orderBy(teamMembers.sortOrder);
+    const byTeam = new Map<number, TeamMemberShape[]>();
+    for (const m of memberRows) {
+      const list = byTeam.get(m.teamId) ?? [];
+      list.push({
+        id: m.id,
+        employeeId: m.employeeId,
+        sortOrder: m.sortOrder,
+        nama: m.nama,
+        nip: m.nip,
+        divisi: m.divisi,
+      });
+      byTeam.set(m.teamId, list);
+    }
+    return teamRows.map((t) => ({ ...t, members: byTeam.get(t.id) ?? [] }));
+  });
 
 export const createTeam = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: { kategori: KategoriTeam; nomor: number | null; nama: string; kode?: string | null }) => d
   )
@@ -107,6 +111,7 @@ export const createTeam = createServerFn({ method: 'POST' })
   });
 
 export const updateTeam = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       id: number;
@@ -162,6 +167,7 @@ export const updateTeam = createServerFn({ method: 'POST' })
   });
 
 export const deleteTeam = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { id: number }) => d)
   .handler(async ({ data }) => {
     const database = assertDb();
@@ -172,6 +178,7 @@ export const deleteTeam = createServerFn({ method: 'POST' })
 // ─── Admin: Team Members ───
 
 export const addTeamMember = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { teamId: number; employeeId: number }) => d)
   .handler(async ({ data }) => {
     const database = assertDb();
@@ -193,6 +200,7 @@ export const addTeamMember = createServerFn({ method: 'POST' })
   });
 
 export const removeTeamMember = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { id: number }) => d)
   .handler(async ({ data }) => {
     const database = assertDb();

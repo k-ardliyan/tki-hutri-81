@@ -21,6 +21,7 @@ import { validatePeriod, weekNumber } from '../../lib/dateUtils';
 import { assertDb } from '../db';
 import { isUniqueViolation } from '../db/errors';
 import { assessmentDeadlines, competitions, fiveRSubmissions } from '../db/schema';
+import { adminOnly, authMiddleware } from '../middleware/auth';
 
 export interface FiveRSubmissionStored extends FiveRSubmission {}
 
@@ -72,26 +73,18 @@ export const getSettings = createServerFn({ method: 'GET' }).handler(
 
 /** Set/hapus periode — HANYA superadmin/admin (role check DI HANDLER: ubah aturan lomba). */
 export const setSettings = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { startDate: string | null; endDate: string | null }) => d)
   .handler(
     async ({
       data,
+      context,
     }): Promise<{
       ok: boolean;
       startDate: string | null;
       endDate: string | null;
       error?: string;
     }> => {
-      const { getSession } = await import('./auth');
-      const session = await getSession();
-      if (!session.role || !['superadmin', 'admin'].includes(session.role)) {
-        return {
-          ok: false,
-          startDate: null,
-          endDate: null,
-          error: 'Hanya admin yang bisa mengatur periode penilaian',
-        };
-      }
       const database = assertDb();
       const [comp] = await database
         .select({ id: competitions.id })
@@ -111,6 +104,7 @@ export const setSettings = createServerFn({ method: 'POST' })
         return { ok: false, startDate: null, endDate: null, error: validation.error };
       }
       const { startDate, endDate } = validation;
+      const { auth } = context as { auth: { username: string | null } };
 
       await database
         .insert(assessmentDeadlines)
@@ -119,11 +113,11 @@ export const setSettings = createServerFn({ method: 'POST' })
           startDate,
           endDate,
           note: null,
-          updatedBy: session.username,
+          updatedBy: auth.username,
         })
         .onConflictDoUpdate({
           target: assessmentDeadlines.competitionId,
-          set: { startDate, endDate, updatedBy: session.username, updatedAt: new Date() },
+          set: { startDate, endDate, updatedBy: auth.username, updatedAt: new Date() },
         });
       return {
         ok: true,
@@ -164,17 +158,22 @@ export const getSubmissions = createServerFn({ method: 'GET' }).handler(
   async (): Promise<FiveRSubmissionStored[]> => {
     const db = assertDb();
     const rows = await db.select().from(fiveRSubmissions).orderBy(desc(fiveRSubmissions.createdAt));
+    const { getSession } = await import('./auth');
+    const session = await getSession();
+    // Publik (tanpa login): /live scoreboard — sembunyikan field privat.
+    // Halaman audit/admin (wajib login) dapat data penuh (createdBy/notes).
+    const isPrivate = session.role !== null;
     return rows.map((r) => ({
       id: r.id,
       roomId: r.roomId,
       formId: r.formId,
       auditor: r.auditor,
       answers: r.answers as Record<string, number>,
-      notes: r.notes as Record<string, string>,
+      notes: isPrivate ? (r.notes as Record<string, string>) : ({} as Record<string, string>),
       submittedAt: r.submittedAt.toISOString(),
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
-      createdBy: r.createdBy ?? null,
+      createdBy: isPrivate ? (r.createdBy ?? null) : null,
       weekNumber: r.weekNumber,
     }));
   }
@@ -182,8 +181,9 @@ export const getSubmissions = createServerFn({ method: 'GET' }).handler(
 
 /** Validasi + simpan submission ke DB. */
 export const saveSubmission = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .validator((d: FiveRSubmission) => d)
-  .handler(async ({ data }): Promise<{ ok: boolean; id?: string; error?: string }> => {
+  .handler(async ({ data, context }): Promise<{ ok: boolean; id?: string; error?: string }> => {
     const form = getFiveRForm(data.formId);
     const room = getFiveRRoom(data.roomId);
     if (!form) return { ok: false, error: `Form tidak dikenal: ${data.formId}` };
@@ -212,9 +212,8 @@ export const saveSubmission = createServerFn({ method: 'POST' })
     }
 
     // Get username from session (server-side, never trust client)
-    const { getSession } = await import('./auth');
-    const session = await getSession();
-    const createdBy = session.username ?? null;
+    const { auth } = context as { auth: { username: string | null } };
+    const createdBy = auth.username ?? null;
     // Wajib login: tanpa createdBy, unique index 5r_weekly/dekorasi_once TIDAK
     // menolak duplikat (NULL != NULL di Postgres unique) → anonymous bisa spam.
     if (!createdBy) {
@@ -337,10 +336,10 @@ export const saveSubmission = createServerFn({ method: 'POST' })
 
 /** Hapus submission by id — hanya pemiliknya atau admin; diblokir setelah tenggat. */
 export const deleteSubmission = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .validator((d: { id: string }) => d)
-  .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
-    const { getSession } = await import('./auth');
-    const session = await getSession();
+  .handler(async ({ data, context }): Promise<{ ok: boolean; error?: string }> => {
+    const { auth } = context as { auth: { role: string | null; username: string | null } };
 
     const db = assertDb();
     const [row] = await db
@@ -350,8 +349,8 @@ export const deleteSubmission = createServerFn({ method: 'POST' })
       .limit(1);
     if (!row) return { ok: true }; // sudah tidak ada — idempotent
 
-    const isAdmin = session.role === 'superadmin' || session.role === 'admin';
-    if (!isAdmin && session.username !== row.createdBy) {
+    const isAdmin = auth.role === 'superadmin' || auth.role === 'admin';
+    if (!isAdmin && auth.username !== row.createdBy) {
       return { ok: false, error: 'Hanya pemilik penilaian atau admin yang bisa menghapus' };
     }
 
