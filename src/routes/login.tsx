@@ -12,7 +12,7 @@ import { gsap, shouldReduceMotion } from '../lib/gsap';
 import { getSession, login } from '../server/functions/auth';
 
 function homeForRole(role: UserRole): string {
-  if (role === 'petugas') return '/petugas';
+  if (role === 'petugas') return '/snack/distribution';
   if (role === 'audit') return '/audit';
   return '/admin';
 }

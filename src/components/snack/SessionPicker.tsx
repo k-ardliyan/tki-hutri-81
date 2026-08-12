@@ -1,11 +1,12 @@
 /**
  * SessionPicker — combobox sesi snack (shadcn Popover + Command).
- * Mobile-first: trigger menampilkan sesi terpilih, popover berisi pencarian.
+ * Menampilkan status efektif sesi (aktif/dijadwalkan/ditutup) + sisa stok.
  */
 
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '../../lib/utils';
+import type { SessionEffectiveStatus, SnackSessionWithMeta } from '../../server/functions/snack';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import {
@@ -18,34 +19,39 @@ import {
 } from '../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
-export interface SessionOption {
-  id: number;
-  name: string;
-  quota: number;
-  isActive: boolean;
-  redeemed?: number;
-  remaining?: number;
-}
+export type SessionOption = SnackSessionWithMeta;
 
 interface SessionPickerProps {
   sessions: SessionOption[];
   value: number | null;
-  onChange: (id: number) => void;
+  /** null = semua sesi / kembali ke sesi otomatis (per konteks halaman). */
+  onChange: (id: number | null) => void;
   placeholder?: string;
+  /** Label opsi "all" (value null). Default 'Semua Sesi'. */
+  allLabel?: string;
 }
+
+const STATUS_BADGE: Record<SessionEffectiveStatus, { label: string; className: string }> = {
+  draft: { label: 'DRAF', className: 'bg-muted text-muted-foreground' },
+  scheduled: { label: 'DIJADWALKAN', className: 'bg-primary/10 text-primary' },
+  active: { label: 'AKTIF', className: 'bg-success/10 text-success' },
+  paused: { label: 'DIJEDA', className: 'bg-warning/10 text-warning' },
+  closed: { label: 'DITUTUP', className: 'bg-muted text-muted-foreground' },
+  archived: { label: 'ARSIP', className: 'bg-muted text-muted-foreground' },
+};
 
 export default function SessionPicker({
   sessions,
   value,
   onChange,
   placeholder = 'Pilih sesi...',
+  allLabel = 'Semua Sesi',
 }: SessionPickerProps) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
 
   const selected = sessions.find((s) => s.id === value) ?? null;
 
-  // Tutup saat q berubah kosong (perilaku combobox standar)
   useEffect(() => {
     if (!open) setQ('');
   }, [open]);
@@ -54,8 +60,8 @@ export default function SessionPicker({
     ? sessions.filter((s) => s.name.toLowerCase().includes(q.trim().toLowerCase()))
     : sessions;
 
-  const pick = (s: SessionOption) => {
-    onChange(s.id);
+  const pick = (s: SessionOption | null) => {
+    onChange(s?.id ?? null);
     setOpen(false);
   };
 
@@ -78,8 +84,27 @@ export default function SessionPicker({
           <CommandList className="max-h-64">
             <CommandEmpty>Tidak ada sesi cocok.</CommandEmpty>
             <CommandGroup>
+              {/* Opsi "Semua Sesi" — clear filter / kembali ke sesi otomatis */}
+              <CommandItem
+                value="__all__"
+                onSelect={() => pick(null)}
+                className="flex items-center justify-between gap-2"
+              >
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={cn('block truncate font-semibold', value === null && 'text-primary')}
+                  >
+                    {allLabel}
+                  </span>
+                  <span className="block text-[10px] text-muted-foreground">
+                    {sessions.length} sesi terdaftar
+                  </span>
+                </span>
+                {value === null && <Check className="size-4 shrink-0 text-primary" />}
+              </CommandItem>
               {filtered.map((s) => {
                 const isSelected = s.id === value;
+                const st = STATUS_BADGE[s.effectiveStatus];
                 return (
                   <CommandItem
                     key={s.id}
@@ -94,16 +119,16 @@ export default function SessionPicker({
                         {s.name}
                       </span>
                       <span className="block text-[10px] text-muted-foreground">
-                        {s.remaining !== undefined && s.remaining > 0
-                          ? `Sisa ${s.remaining} dari ${s.quota}`
-                          : s.remaining === 0 && s.quota > 0
+                        {s.remaining !== null && s.remaining > 0
+                          ? `Sisa ${s.remaining}`
+                          : s.remaining === 0 && (s.stockQuota ?? 0) > 0
                             ? 'Habis'
-                            : `Kuota ${s.quota} porsi`}
+                            : s.entitled > 0
+                              ? `${s.entitled} berhak`
+                              : 'Tanpa stok'}
                       </span>
                     </span>
-                    {s.isActive && (
-                      <Badge className="shrink-0 bg-success/10 text-success">AKTIF</Badge>
-                    )}
+                    <Badge className={cn('shrink-0', st.className)}>{st.label}</Badge>
                     {isSelected && <Check className="size-4 shrink-0 text-primary" />}
                   </CommandItem>
                 );

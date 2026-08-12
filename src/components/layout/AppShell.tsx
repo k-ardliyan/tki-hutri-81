@@ -147,10 +147,14 @@ export default function AppShell({
           onNav={requestNav}
           onLogout={() => void handleLogout()}
         />
-        <SidebarInset>
-          <SiteHeader title={title} />
-          <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 lg:p-6 min-w-0">
-            <div className="mx-auto w-full max-w-7xl min-w-0 space-y-6">{children}</div>
+        <SidebarInset className="print:p-0 print:m-0 print:border-none print:shadow-none print:w-full print:block">
+          <div className="print:hidden">
+            <SiteHeader title={title} />
+          </div>
+          <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 lg:p-6 min-w-0 print:p-0 print:m-0 print:gap-0 print:block print:w-full">
+            <div className="mx-auto w-full max-w-7xl min-w-0 space-y-6 print:max-w-none print:w-full print:p-0 print:m-0 print:space-y-0 print:block">
+              {children}
+            </div>
           </div>
         </SidebarInset>
 

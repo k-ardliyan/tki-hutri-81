@@ -158,7 +158,7 @@ function AppLayout() {
   const isAdminArea =
     routerPath.startsWith('/admin') ||
     routerPath.startsWith('/audit') ||
-    routerPath.startsWith('/petugas') ||
+    routerPath.startsWith('/snack') ||
     routerPath === '/login';
 
   // GSAP page transition — animate on route change.

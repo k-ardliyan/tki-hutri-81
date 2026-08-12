@@ -2,15 +2,16 @@
  * BarcodeAll — QR semua tim snack.
  * - Download PNG: satu gambar grid semua tim.
  * - Download ZIP: satu file PNG per tim (PUTRA-1.png, PUTRA-2.png, dst).
+ * Mobile-First: Grid preview 2-kolom di mobile agar teks & QR terbaca jelas.
  */
 
 import JSZip from 'jszip';
-import { Download, FileArchive, Loader2 } from 'lucide-react';
+import { Download, FileArchive, Loader2, QrCode } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
-import { getTeamsWithMembers } from '../../server/functions/snack';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import { Button } from '~/components/ui/button';
+import { Card, CardContent } from '~/components/ui/card';
+import { getTeamsWithMembers } from '~/server/functions/snack';
 
 interface TeamBrief {
   id: number;
@@ -199,73 +200,84 @@ export default function BarcodeAll() {
   };
 
   return (
-    <Card>
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Barcode Semua Tim</p>
-          <p className="text-[10px] text-muted-foreground/70">
-            {teams.length} tim · PNG grid, atau ZIP per tim (PNG + SVG)
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void downloadZip()}
-            disabled={teams.length === 0 || busy !== null}
-            className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10"
-          >
-            {busy === 'zip' ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <>
-                <FileArchive size={12} className="mr-1.5" />
-                Download ZIP
-              </>
-            )}
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => void downloadPng()}
-            disabled={teams.length === 0 || busy !== null}
-          >
-            {busy === 'png' ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <>
-                <Download size={12} className="mr-1.5" />
-                Download PNG
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Grid preview */}
-      {teams.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 px-4 pb-4 sm:grid-cols-4 lg:grid-cols-5">
-          {teams.map((t) => (
-            <div
-              key={t.id}
-              className="flex flex-col items-center rounded-md border border-border bg-white px-2 py-2 text-center"
-            >
-              <div className="flex h-16 w-16 items-center justify-center bg-white">
-                {qrMap[t.kode] ? (
-                  <img
-                    src={qrMap[t.kode]}
-                    alt={`Barcode ${t.kode}`}
-                    className="h-full w-full object-contain"
-                  />
-                ) : (
-                  <span className="text-[8px] text-muted-foreground/40">QR</span>
-                )}
-              </div>
-              <p className="mt-1 text-[9px] font-extrabold text-primary">{t.kode}</p>
-              <p className="truncate text-[8px] text-muted-foreground/70">{t.nama}</p>
+    <Card className="rounded-2xl border border-border/80 shadow-xs overflow-hidden">
+      <CardContent className="p-4 space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <QrCode size={16} className="text-primary" />
+              <p className="text-xs sm:text-sm font-bold text-foreground">
+                Download Master Barcode Semua Kelompok
+              </p>
             </div>
-          ))}
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {teams.length} kelompok terdaftar · format PNG Grid atau ZIP per tim (PNG + SVG)
+            </p>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void downloadZip()}
+              disabled={teams.length === 0 || busy !== null}
+              className="flex-1 sm:flex-initial h-9 rounded-xl border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 text-xs font-bold"
+            >
+              {busy === 'zip' ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <>
+                  <FileArchive size={13} className="mr-1.5" />
+                  Download ZIP
+                </>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void downloadPng()}
+              disabled={teams.length === 0 || busy !== null}
+              className="flex-1 sm:flex-initial h-9 rounded-xl text-xs font-bold"
+            >
+              {busy === 'png' ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <>
+                  <Download size={13} className="mr-1.5" />
+                  Download PNG
+                </>
+              )}
+            </Button>
+          </div>
         </div>
-      )}
+
+        {/* Grid Preview (2 cols on mobile, 3-5 on larger screens) */}
+        {teams.length > 0 && (
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 pt-2 border-t border-border/60">
+            {teams.map((t) => (
+              <div
+                key={t.id}
+                className="flex flex-col items-center rounded-xl border border-border/80 bg-background p-3 text-center shadow-2xs hover:border-primary/40 transition-colors"
+              >
+                <div className="flex size-20 items-center justify-center bg-white p-1 rounded-lg border border-slate-100 shadow-2xs">
+                  {qrMap[t.kode] ? (
+                    <img
+                      src={qrMap[t.kode]}
+                      alt={`Barcode ${t.kode}`}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <span className="text-[9px] text-muted-foreground/40">QR</span>
+                  )}
+                </div>
+                <p className="mt-2 text-xs font-black font-mono text-primary">{t.kode}</p>
+                <p className="truncate text-[10px] text-muted-foreground max-w-full font-medium">
+                  {t.nama}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
