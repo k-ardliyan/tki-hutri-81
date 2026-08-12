@@ -31,8 +31,8 @@ import {
   Timer,
   Trash2,
   Trophy,
-  UserX,
   Users,
+  UserX,
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
