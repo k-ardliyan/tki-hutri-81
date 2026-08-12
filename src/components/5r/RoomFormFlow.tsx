@@ -19,7 +19,13 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RoomListSkeleton } from '~/components/loading/skeletons';
-import type { FiveRForm, FiveRRoom, FiveRSubmission } from '../../data/5r';
+import {
+  type FiveRForm,
+  type FiveRRoom,
+  type FiveRSubmission,
+  getRecommendedFormId,
+  isRecommendedForm,
+} from '../../data/5r';
 import { useDebounce } from '../../hooks/use-debounce';
 import { currentWeekNumber, formatWeekRange, todayPrefix, totalWeeks } from '../../lib/dateUtils';
 import { useSubmissions } from '../../lib/queries';
@@ -413,7 +419,7 @@ export default function RoomFormFlow({
                             <UserCheck size={12} className="text-amber-700 shrink-0" />
                             <span>Sudah Kamu Isi (Sebagian):</span>
                           </div>
-                          <p className="text-[11px] font-semibold text-emerald-800 mt-0.5 truncate pl-4">
+                          <p className="text-[11px] font-semibold text-amber-900 mt-0.5 truncate pl-4">
                             {myPeriodFormsList.join(', ')}
                           </p>
                           <p className="text-[10px] text-amber-800 pl-4 mt-0.5 font-medium italic">
@@ -513,8 +519,9 @@ export default function RoomFormFlow({
           );
       const mySubsForF = subsForF.filter((s) => s.createdBy === me);
 
-      const myLastSub = mySubsForF[mySubsForF.length - 1];
-      const lastSubOverall = subsForF[subsForF.length - 1];
+      // getSubmissions DESC (terbaru index 0) — ambil [0] = submission TERAKHIR
+      const myLastSub = mySubsForF[0];
+      const lastSubOverall = subsForF[0];
 
       const hasSubmittedMyself = mySubsForF.length > 0;
       const hasSubmittedGlobal = subsForF.length > 0;
@@ -541,16 +548,21 @@ export default function RoomFormFlow({
                   ? 'Minggu sudah lewat'
                   : 'Belum dinilai minggu ini';
 
+      const isRecommended = !isDekorasi && isRecommendedForm(roomObj, f.id);
+      const showShimmer = isRecommended && !isLocked && !hasSubmittedMyself;
+
       return (
         <button
           key={f.id}
           type="button"
           disabled={isLocked || hasSubmittedMyself}
           onClick={() => navigate({ to: basePath, search: { room, form: f.id } })}
-          className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition cursor-pointer ${
+          className={`flex w-full items-center justify-between rounded-xl p-3.5 text-left transition cursor-pointer ${
             isLocked || hasSubmittedMyself
-              ? 'opacity-70 bg-muted/25 border-border/80 cursor-not-allowed'
-              : 'bg-card border-border hover:border-primary/50 hover:bg-muted/30 hover:shadow-xs active:scale-[0.99]'
+              ? 'opacity-70 bg-muted/25 border border-border/80 cursor-not-allowed'
+              : showShimmer
+                ? 'shimmer-border-recommended bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] hover:bg-emerald-500/[0.08] hover:shadow-xs active:scale-[0.99]'
+                : 'bg-card border border-border hover:border-primary/40 hover:bg-muted/30 hover:shadow-xs active:scale-[0.99]'
           }`}
         >
           <div className="flex items-start gap-3 min-w-0">
@@ -608,16 +620,32 @@ export default function RoomFormFlow({
                     <Lock size={9} className="mr-0.5 inline" />
                     Minggu Lewat
                   </Badge>
-                ) : hasSubmittedGlobal ? (
-                  <Badge
-                    variant="outline"
-                    className="shrink-0 bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold"
-                  >
-                    {isDekorasi
-                      ? `${subsForF.length}x Juri Lain`
-                      : `${subsForF.length}x Auditor Lain`}
-                  </Badge>
-                ) : null}
+                ) : (
+                  <>
+                    {isRecommended && (
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 bg-emerald-100/70 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300/70 text-[10px] font-extrabold gap-1"
+                      >
+                        <Sparkles
+                          size={10}
+                          className="inline text-emerald-600 dark:text-emerald-400"
+                        />
+                        Direkomendasikan
+                      </Badge>
+                    )}
+                    {hasSubmittedGlobal && (
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold"
+                      >
+                        {isDekorasi
+                          ? `${subsForF.length}x Juri Lain`
+                          : `${subsForF.length}x Auditor Lain`}
+                      </Badge>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Subtitle / Timestamp */}
@@ -799,11 +827,22 @@ export default function RoomFormFlow({
                 {weeks.map((week) => {
                   const range = formatWeekRange(week, start);
                   const isCurrent = week === current;
-                  const weekSubs = allSubs.filter(
-                    (s) => s.roomId === room && s.formId !== 'dekorasi' && s.weekNumber === week
+                  const isPast = week < current;
+                  const myWeek5RSubs = allSubs.filter(
+                    (s) =>
+                      s.roomId === room &&
+                      s.formId !== 'dekorasi' &&
+                      s.weekNumber === week &&
+                      s.createdBy === me
                   );
-                  const weekDoneForms = new Set(weekSubs.map((s) => s.formId)).size;
-                  const week5RTotal = activeForms.filter((f) => f.id !== 'dekorasi').length;
+                  const hasMy5RThisWeek = myWeek5RSubs.length > 0;
+                  const otherWeek5RCount = allSubs.filter(
+                    (s) =>
+                      s.roomId === room &&
+                      s.formId !== 'dekorasi' &&
+                      s.weekNumber === week &&
+                      s.createdBy !== me
+                  ).length;
                   return (
                     <AccordionItem key={week} value={`week-${week}`}>
                       <AccordionTrigger className="px-4 py-3 hover:no-underline data-open:bg-muted/40 rounded-xl">
@@ -831,24 +870,54 @@ export default function RoomFormFlow({
                             <p className="text-[11px] text-muted-foreground">{range}</p>
                           </div>
                         </div>
-                        {week5RTotal > 0 && (
-                          <span
-                            className={`ml-auto mr-2 shrink-0 text-[11px] font-bold ${
-                              weekDoneForms >= week5RTotal
-                                ? 'text-success'
-                                : isCurrent
-                                  ? 'text-primary'
-                                  : 'text-muted-foreground'
-                            }`}
+                        {hasMy5RThisWeek ? (
+                          <Badge
+                            variant="outline"
+                            className="ml-auto mr-2 shrink-0 bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-extrabold"
                           >
-                            {weekDoneForms}/{week5RTotal} form
-                          </span>
+                            <Check size={10} className="mr-0.5 inline" />
+                            Sudah Kamu Nilai
+                          </Badge>
+                        ) : isCurrent ? (
+                          <div className="ml-auto mr-2 shrink-0 flex items-center gap-1.5">
+                            {otherWeek5RCount > 0 && (
+                              <span className="text-[10px] text-muted-foreground/80 hidden sm:inline font-medium">
+                                ({otherWeek5RCount}x juri lain)
+                              </span>
+                            )}
+                            <Badge
+                              variant="outline"
+                              className="bg-amber-100 text-amber-900 border-amber-300 text-[10px] font-bold"
+                            >
+                              Belum Kamu Nilai
+                            </Badge>
+                          </div>
+                        ) : isPast ? (
+                          <Badge
+                            variant="outline"
+                            className="ml-auto mr-2 shrink-0 bg-muted text-muted-foreground text-[10px] font-medium"
+                          >
+                            Minggu Lewat
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="ml-auto mr-2 shrink-0 bg-muted text-muted-foreground text-[10px] font-medium"
+                          >
+                            Terkunci
+                          </Badge>
                         )}
                       </AccordionTrigger>
-                      <AccordionContent className="px-0">
-                        <div className="space-y-2.5 pt-2">
+                      <AccordionContent className="px-0 pt-1 pb-2">
+                        <div className="ml-3 sm:ml-4 pl-3 sm:pl-4.5 border-l-2 border-primary/20 dark:border-primary/30 space-y-2.5 pt-1">
                           {activeForms
                             .filter((f) => f.id !== 'dekorasi')
+                            .sort((a, b) => {
+                              const recId = getRecommendedFormId(roomObj);
+                              if (a.id === recId) return -1;
+                              if (b.id === recId) return 1;
+                              return 0;
+                            })
                             .map((f) => {
                               const formIcon =
                                 f.id === 'office-non-smoking' ? (

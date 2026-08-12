@@ -160,7 +160,47 @@
   .animate-fade-out {
     animation: fadeOut 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+
+  /* Shimmer Animated Border for Recommended 5R Form Card */
+  @keyframes border-shimmer-sweep {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .shimmer-border-recommended {
+    position: relative;
+    border-color: transparent !important;
+  }
+
+  .shimmer-border-recommended::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(
+      90deg,
+      rgba(16, 185, 129, 0.2) 0%,
+      rgba(52, 211, 153, 0.75) 25%,
+      rgba(245, 158, 11, 0.75) 50%,
+      rgba(52, 211, 153, 0.75) 75%,
+      rgba(16, 185, 129, 0.2) 100%
+    );
+    background-size: 250% 100%;
+    animation: border-shimmer-sweep 3.5s linear infinite;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 }
+
 
 /* ═══ Z-Index Scale ═══
  * z-40: sticky navbars (header, admin mobile header)

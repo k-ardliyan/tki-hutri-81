@@ -2,6 +2,8 @@ import {
   Award,
   BookOpen,
   CheckCircle2,
+  Cigarette,
+  CigaretteOff,
   HelpCircle,
   Layers,
   Lock,
@@ -192,12 +194,55 @@ export function Petunjuk5RModal({ open, onOpenChange, variant = 'audit' }: Petun
             </div>
           </div>
 
-          {/* Section 2: Panduan Skala Nilai 1-5 */}
+          {/* Section 2: Pemetaan Form 5R Berdasarkan Area */}
+          <div className="rounded-2xl border border-border bg-card p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-black text-foreground">
+                <BookOpen size={15} className="text-primary shrink-0" />
+                <span>2. Rekomendasi Form 5R (Area Luar vs Dalam)</span>
+              </div>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                Panduan Form
+              </span>
+            </div>
+            <div className="space-y-2 text-[11px]">
+              <div className="rounded-xl border border-amber-300/70 bg-amber-50/60 p-2.5 space-y-1 dark:bg-amber-950/20 dark:border-amber-900/40">
+                <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-300">
+                  <Cigarette size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>Area Luar / Terbuka → Form Office Smoking</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Digunakan untuk <strong>IT Luar</strong>. Memuat kriteria tambahan terkait
+                  pengelolaan asbak, pembuangan puntung rokok, dan ventilasi asap.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-300/70 bg-emerald-50/60 p-2.5 space-y-1 dark:bg-emerald-950/20 dark:border-emerald-900/40">
+                <div className="flex items-center gap-1.5 font-bold text-emerald-900 dark:text-emerald-300">
+                  <CigaretteOff
+                    size={13}
+                    className="text-emerald-600 dark:text-emerald-400 shrink-0"
+                  />
+                  <span>Area Dalam / Ber-AC → Form Office Non-Smoking</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Digunakan untuk{' '}
+                  <strong>
+                    CS &amp; Implementator, Hardware/Finance/Legal, Sales Marketing, dan IT Dalam
+                  </strong>
+                  . Memuat standar kebersihan dan kerapian ruang kerja ber-AC bebas asap rokok.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Panduan Skala Nilai 1-5 */}
           <div className="rounded-2xl border border-border bg-card p-3.5 space-y-2">
             <div className="flex items-center gap-2 font-black text-foreground">
               <Award size={15} className="text-amber-500 shrink-0" />
-              <span>2. Panduan Skala Nilai Objektif (1 s/d 5)</span>
+              <span>3. Panduan Skala Nilai Objektif (1 s/d 5)</span>
             </div>
+
             <div className="space-y-1 text-[11px]">
               <div className="flex items-center justify-between rounded-lg bg-muted/40 px-2.5 py-1.5">
                 <span className="font-bold text-foreground">1 - Tidak Ada / Sangat Buruk</span>
@@ -234,11 +279,11 @@ export function Petunjuk5RModal({ open, onOpenChange, variant = 'audit' }: Petun
             </div>
           </div>
 
-          {/* Section 3: Mekanisme Draft & Periode */}
+          {/* Section 4: Mekanisme Draft & Periode */}
           <div className="rounded-2xl border border-border bg-card p-3.5 space-y-2">
             <div className="flex items-center gap-2 font-black text-foreground">
               <Lock size={15} className="text-rose-500 shrink-0" />
-              <span>3. Sistem Draft &amp; Validasi Periode</span>
+              <span>4. Sistem Draft &amp; Validasi Periode</span>
             </div>
             <ul className="text-muted-foreground space-y-1 list-disc pl-4 text-[11px] leading-relaxed">
               <li>
@@ -256,11 +301,11 @@ export function Petunjuk5RModal({ open, onOpenChange, variant = 'audit' }: Petun
             </ul>
           </div>
 
-          {/* Section 4: Formula Agregasi */}
+          {/* Section 5: Formula Agregasi */}
           <div className="rounded-2xl border border-border bg-card p-3.5 space-y-2">
             <div className="flex items-center gap-2 font-black text-foreground">
               <Scale size={15} className="text-primary shrink-0" />
-              <span>4. Formula Agregasi Skor Sistem</span>
+              <span>5. Formula Agregasi Skor Sistem</span>
             </div>
             <div className="rounded-xl bg-muted/60 p-2.5 text-center font-mono font-bold text-xs text-foreground border border-border/80">
               Skor Total = (70% × Rerata 5R) + (30% × Rerata Dekorasi)

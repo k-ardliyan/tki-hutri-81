@@ -72,6 +72,38 @@ export const Route = createFileRoute('/snack/sessions')({
 
 interface SessionRow extends SnackSessionWithMeta {}
 
+type ConfirmType = 'publish' | 'pause' | 'resume' | 'close';
+
+const CONFIRM_META: Record<
+  ConfirmType,
+  { title: string; desc: (s: SessionRow) => string; label: string; destructive?: boolean }
+> = {
+  publish: {
+    title: 'Publish sesi?',
+    desc: (s) =>
+      `${s.name}. ${s.entitled} karyawan akan berhak mengambil snack. Sesi aktif otomatis saat jadwal tiba.`,
+    label: 'Publish',
+  },
+  pause: {
+    title: 'Jeda distribusi?',
+    desc: (s) =>
+      `${s.name}. Distribusi dihentikan sementara — petugas tidak bisa mengambil snack sampai dilanjutkan.`,
+    label: 'Jeda',
+  },
+  resume: {
+    title: 'Lanjutkan distribusi?',
+    desc: (s) => `${s.name}. Distribusi kembali aktif — petugas bisa mengambil snack lagi.`,
+    label: 'Lanjutkan',
+  },
+  close: {
+    title: 'Tutup sesi?',
+    desc: (s) =>
+      `${s.name}. ${s.redeemed} snack sudah terambil. Distribusi berhenti total — karyawan tidak bisa mengambil lagi. Riwayat pengambilan tetap tersimpan dan tidak bisa dibatalkan.`,
+    label: 'Tutup Sesi',
+    destructive: true,
+  },
+};
+
 const STATUS_BADGE: Record<string, { label: string; className: string; dotClass: string }> = {
   draft: {
     label: 'DRAF',
@@ -110,7 +142,12 @@ function AdminSnackSessions() {
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [publishingId, setPublishingId] = useState<number | null>(null);
+  // Konfirmasi action risk (publish/pause/resume/close)
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'publish' | 'pause' | 'resume' | 'close';
+    session: SessionRow;
+  } | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   // Create drawer
   const [showCreate, setShowCreate] = useState(false);
@@ -151,8 +188,10 @@ function AdminSnackSessions() {
       await createSession({
         data: {
           name: newName.trim(),
-          startsAt: newStarts || null,
-          endsAt: newEnds || null,
+          // datetime-local = jam lokal; konversi ke UTC ISO sebelum kirim
+          // (server prod TZ UTC — parse string lokal mentah = geser 7 jam).
+          startsAt: newStarts ? new Date(newStarts).toISOString() : null,
+          endsAt: newEnds ? new Date(newEnds).toISOString() : null,
           stockQuota: newStock ? Number(newStock) : null,
         },
       });
@@ -182,8 +221,8 @@ function AdminSnackSessions() {
         data: {
           id: editTarget.id,
           name: editName.trim(),
-          startsAt: editStarts || null,
-          endsAt: editEnds || null,
+          startsAt: editStarts ? new Date(editStarts).toISOString() : null,
+          endsAt: editEnds ? new Date(editEnds).toISOString() : null,
           stockQuota: editStock ? Number(editStock) : null,
         },
       });
@@ -195,36 +234,37 @@ function AdminSnackSessions() {
     }
   };
 
-  const doPublish = async (s: SessionRow) => {
-    setErr(null);
-    setPublishingId(s.id);
+  const doPublish = async (s: SessionRow) => setConfirmAction({ type: 'publish', session: s });
+  const doPause = async (s: SessionRow) => setConfirmAction({ type: 'pause', session: s });
+  const doResume = async (s: SessionRow) => setConfirmAction({ type: 'resume', session: s });
+  const doClose = async (s: SessionRow) => setConfirmAction({ type: 'close', session: s });
+
+  /** Jalankan action risk setelah konfirmasi dialog (try/catch — error tampil di alert). */
+  const runConfirmed = async () => {
+    if (!confirmAction) return;
+    const { type, session } = confirmAction;
+    setConfirming(true);
     try {
-      const res = await publishSession({ data: { id: s.id } });
-      toast.success(`Sesi dipublish — ${res.entitled} karyawan berhak snack`);
+      if (type === 'publish') {
+        const res = await publishSession({ data: { id: session.id } });
+        toast.success(`Sesi dipublish — ${res.entitled} karyawan berhak snack`);
+      } else if (type === 'pause') {
+        await pauseSession({ data: { id: session.id } });
+        toast.success('Distribusi dijeda');
+      } else if (type === 'resume') {
+        await resumeSession({ data: { id: session.id } });
+        toast.success('Distribusi dilanjutkan');
+      } else {
+        await closeSession({ data: { id: session.id } });
+        toast.success('Sesi ditutup');
+      }
+      setConfirmAction(null);
       await load();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Gagal publish');
+      setErr(e instanceof Error ? e.message : 'Gagal menjalankan aksi');
     } finally {
-      setPublishingId(null);
+      setConfirming(false);
     }
-  };
-
-  const doPause = async (s: SessionRow) => {
-    await pauseSession({ data: { id: s.id } });
-    await load();
-    toast.success('Distribusi dijeda');
-  };
-
-  const doResume = async (s: SessionRow) => {
-    await resumeSession({ data: { id: s.id } });
-    await load();
-    toast.success('Distribusi dilanjutkan');
-  };
-
-  const doClose = async (s: SessionRow) => {
-    await closeSession({ data: { id: s.id } });
-    await load();
-    toast.success('Sesi ditutup');
   };
 
   const remove = async () => {
@@ -510,7 +550,6 @@ function AdminSnackSessions() {
                         <Button
                           size="sm"
                           onClick={() => void doPublish(s)}
-                          loading={publishingId === s.id}
                           className="flex-1 h-8 text-xs font-bold rounded-xl"
                         >
                           <Send size={13} className="mr-1" /> Publish
@@ -594,6 +633,7 @@ function AdminSnackSessions() {
         onOpenChange={setShowCreate}
         title="Buat Sesi Snack"
         description="Sesi dibuat sebagai DRAFT. Atur jadwal dan kuota stok, lalu Publish."
+        blockBackdropClose
         footer={
           <div className="flex w-full gap-2 sm:justify-end">
             <Button
@@ -679,6 +719,7 @@ function AdminSnackSessions() {
         }}
         title="Edit Sesi Draft"
         description="Ubah nama, jadwal waktu, dan kuota stok sebelum dipublish."
+        blockBackdropClose
         footer={
           <div className="flex w-full gap-2 sm:justify-end">
             <Button
@@ -757,6 +798,47 @@ function AdminSnackSessions() {
           )}
         </div>
       </ResponsiveDialog>
+
+      {/* Konfirmasi action risk: publish / pause / resume / close */}
+      <AlertDialog
+        open={!!confirmAction}
+        onOpenChange={(o) => {
+          // Jangan tutup manual saat aksi sedang berjalan
+          if (!o && !confirming) setConfirmAction(null);
+        }}
+      >
+        <AlertDialogContent className="rounded-2xl max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction ? CONFIRM_META[confirmAction.type].title : ''}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm text-muted-foreground">
+              {confirmAction ? CONFIRM_META[confirmAction.type].desc(confirmAction.session) : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirming} className="rounded-xl">
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void runConfirmed()}
+              disabled={confirming}
+              className={cn(
+                'rounded-xl font-bold',
+                confirmAction &&
+                  CONFIRM_META[confirmAction.type].destructive &&
+                  'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              )}
+            >
+              {confirming
+                ? 'Memproses...'
+                : confirmAction
+                  ? CONFIRM_META[confirmAction.type].label
+                  : 'Konfirmasi'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete confirm */}
       <AlertDialog

@@ -6,35 +6,50 @@
       "name": "CS & Implementator",
       "icon": "fa-gears",
       "sortOrder": 1,
-      "pic": "Mei Ambarwati"
+      "pic": "Mei Ambarwati",
+      "areaType": "indoor",
+      "recommendedFormId": "office-non-smoking",
+      "areaLabel": "Area Dalam (Non-Smoking)"
     },
     {
       "id": "hardware-finance",
       "name": "Hardware, Finance & Legal",
       "icon": "fa-microchip",
       "sortOrder": 2,
-      "pic": "Ipok Diva Nain"
+      "pic": "Ipok Diva Nain",
+      "areaType": "indoor",
+      "recommendedFormId": "office-non-smoking",
+      "areaLabel": "Area Dalam (Non-Smoking)"
     },
     {
       "id": "sales",
       "name": "Sales Marketing",
       "icon": "fa-handshake",
       "sortOrder": 3,
-      "pic": "Armitha Sekar Prastita"
+      "pic": "Armitha Sekar Prastita",
+      "areaType": "indoor",
+      "recommendedFormId": "office-non-smoking",
+      "areaLabel": "Area Dalam (Non-Smoking)"
     },
     {
       "id": "it-dalam",
       "name": "IT Dalam",
       "icon": "fa-server",
       "sortOrder": 4,
-      "pic": "M. Setiadi Pratama"
+      "pic": "M. Setiadi Pratama",
+      "areaType": "indoor",
+      "recommendedFormId": "office-non-smoking",
+      "areaLabel": "Area Dalam (Non-Smoking)"
     },
     {
       "id": "it-luar",
       "name": "IT Luar",
       "icon": "fa-network-wired",
       "sortOrder": 5,
-      "pic": "Umi Khoiriyah"
+      "pic": "Umi Khoiriyah",
+      "areaType": "outdoor",
+      "recommendedFormId": "office-smoking",
+      "areaLabel": "Area Luar (Smoking)"
     }
   ]
 }

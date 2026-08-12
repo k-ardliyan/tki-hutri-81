@@ -28,6 +28,12 @@ export interface ResponsiveDialogProps {
   children: React.ReactNode
   footer?: React.ReactNode
   className?: string
+  /**
+   * Blok close saat klik backdrop (di luar dialog).
+   * Tetap bisa tutup via: tombol Batal/Close (X), Escape (desktop).
+   * Dipakai utk form input — cegah input hilang karena salah klik luar.
+   */
+  blockBackdropClose?: boolean
 }
 
 export function ResponsiveDialog({
@@ -38,12 +44,13 @@ export function ResponsiveDialog({
   children,
   footer,
   className,
+  blockBackdropClose = false,
 }: ResponsiveDialogProps) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={onOpenChange} dismissible={!blockBackdropClose}>
         <DrawerContent className={cn("mx-auto max-w-lg", className)}>
           <div className="relative flex items-start justify-between border-b border-border p-4">
             <div className="space-y-1 min-w-0 pr-8">
@@ -66,7 +73,10 @@ export function ResponsiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-lg", className)}>
+      <DialogContent
+        className={cn("sm:max-w-lg", className)}
+        onInteractOutside={blockBackdropClose ? (e) => e.preventDefault() : undefined}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

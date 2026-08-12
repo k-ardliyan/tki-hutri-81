@@ -12,7 +12,7 @@ import { AlertTriangle, Check, CheckCircle2, ChevronDown, Loader2, UserCheck } f
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { FiveRSubmission } from '../../data/5r';
-import { getFiveRForm } from '../../data/5r';
+import { getFiveRForm, getFiveRRoom } from '../../data/5r';
 import { qk } from '../../lib/queries';
 import { setFormDirty } from '../../lib/unsavedGuard';
 import { saveSubmission } from '../../server/functions/5r';
@@ -109,6 +109,7 @@ export default function ScoringForm({
 }) {
   const queryClient = useQueryClient();
   const form = useMemo(() => (formId ? getFiveRForm(formId) : undefined), [formId]);
+  const room = useMemo(() => (roomId ? getFiveRRoom(roomId) : undefined), [roomId]);
 
   const draft = useMemo(
     () => (roomId && formId ? loadDraft(roomId, formId, week) : null),
@@ -304,7 +305,8 @@ export default function ScoringForm({
               {form.label}
             </h2>
             <span className="text-[10px] text-muted-foreground hidden sm:inline">
-              · Ruangan: <span className="font-semibold text-foreground">{roomId}</span>
+              · Ruangan:{' '}
+              <span className="font-semibold text-foreground">{room?.name ?? roomId}</span>
             </span>
           </div>
           <Badge
