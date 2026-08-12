@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { AdminTeamsSkeleton, DataTableSkeleton } from '~/components/loading/skeletons';
 import { DataTable, type features } from '../../components/data-table';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import {
@@ -42,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { AdminTeamsSkeleton, DataTableSkeleton } from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { requireRole } from '../../lib/routeGuard';
 import { listEmployees } from '../../server/functions/admin';

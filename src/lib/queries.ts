@@ -5,15 +5,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { getForms, getRooms, getSubmissions } from '../server/functions/5r';
 import { listEmployees, listUsers } from '../server/functions/admin';
-import { getRedemptionSummary, getSessions, getTeamsWithMembers } from '../server/functions/snack';
 
 export const qk = {
   rooms: ['5r', 'rooms'] as const,
   forms: ['5r', 'forms'] as const,
   submissions: ['5r', 'submissions'] as const,
-  sessions: ['snack', 'sessions'] as const,
-  redemption: (sessionId?: number) => ['snack', 'redemption', sessionId ?? 'all'] as const,
-  teams: ['snack', 'teams'] as const,
   employees: (q?: string) => ['admin', 'employees', q ?? ''] as const,
   users: ['admin', 'users'] as const,
 };
@@ -28,21 +24,6 @@ export function useForms() {
 
 export function useSubmissions() {
   return useQuery({ queryKey: qk.submissions, queryFn: () => getSubmissions() });
-}
-
-export function useSessions() {
-  return useQuery({ queryKey: qk.sessions, queryFn: () => getSessions() });
-}
-
-export function useRedemptionSummary(sessionId?: number) {
-  return useQuery({
-    queryKey: qk.redemption(sessionId),
-    queryFn: () => getRedemptionSummary({ data: sessionId ? { sessionId } : {} }),
-  });
-}
-
-export function useTeamsWithMembers() {
-  return useQuery({ queryKey: qk.teams, queryFn: () => getTeamsWithMembers() });
 }
 
 export function useEmployees(q?: string) {

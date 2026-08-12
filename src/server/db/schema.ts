@@ -341,16 +341,56 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
-// ─── Snack Sessions (sesi snack, kuota di-set admin) ───
+// ─── Snack Sessions (sesi snack — lifecycle draft/scheduled/active/paused/closed/archived) ───
 export const snackSessions = pgTable('snack_sessions', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
+  // Legacy — dipertahankan selama transisi, di-deprecate setelah frontend/backend pakai status
   quota: integer('quota').default(0).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+
+  // Lifecycle baru (PRD §5-8): status persisten + jadwal.
+  // Status efektif (scheduled/active/closed) dihitung backend dari starts_at/ends_at.
+  status: text('status').$type<'draft' | 'published' | 'archived'>().default('draft').notNull(),
+  startsAt: timestamp('starts_at', { withTimezone: true }),
+  endsAt: timestamp('ends_at', { withTimezone: true }),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  pausedAt: timestamp('paused_at', { withTimezone: true }),
+  pausedBy: text('paused_by'),
+  closedAt: timestamp('closed_at', { withTimezone: true }),
+  closedBy: text('closed_by'),
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
+  stockQuota: integer('stock_quota'), // nullable = tidak membatasi stok; wajib >= quota jika diisi
+  createdBy: text('created_by'),
+  updatedBy: text('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
-// ─── Redemptions (per-individu, anti-dup UNIQUE(employee_id, session_id)) ───
+// ─── Snack Session Entitlements (snapshot hak snack per sesi — audit-safe) ───
+export const snackSessionEntitlements = pgTable(
+  'snack_session_entitlements',
+  {
+    id: serial('id').primaryKey(),
+    sessionId: integer('session_id')
+      .references(() => snackSessions.id, { onDelete: 'cascade' })
+      .notNull(),
+    employeeId: integer('employee_id')
+      .references(() => employees.id, { onDelete: 'cascade' })
+      .notNull(),
+    entitledQty: integer('entitled_qty').default(1).notNull(),
+    source: text('source')
+      .$type<'default_eligibility' | 'manual_include' | 'manual_exclude' | 'rule' | 'migration'>()
+      .default('default_eligibility')
+      .notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('entitlements_session_employee').on(t.sessionId, t.employeeId)]
+);
+
+// ─── Redemptions (per-individu; anti-dup: 1 karyawan = 1 klaim AKTIF per sesi) ───
+// Partial unique index (voided_at IS NULL) → row voided tidak menghalangi klaim ulang,
+// tapi audit trail tetap tersimpan (soft delete, PRD §31).
 export const redemptions = pgTable(
   'redemptions',
   {
@@ -361,10 +401,35 @@ export const redemptions = pgTable(
     sessionId: integer('session_id')
       .references(() => snackSessions.id, { onDelete: 'cascade' })
       .notNull(),
+
+    // Legacy — dipertahankan (claimed_by = username, PRD §42 bertahap ke user_id)
     claimedBy: text('claimed_by').notNull(),
     claimedAt: timestamp('claimed_at', { withTimezone: true }).defaultNow().notNull(),
+
+    // Baru — audit & idempotency (PRD §30, §35)
+    quantity: integer('quantity').default(1).notNull(),
+    source: text('source')
+      .$type<'QR_TEAM' | 'SEARCH' | 'ADMIN_CORRECTION' | 'MIGRATION'>()
+      .default('MIGRATION')
+      .notNull(),
+    requestId: text('request_id'), // idempotency key dari client (UUID per submit)
+
+    // Void / koreksi (soft delete, PRD §31-33)
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    voidedBy: text('voided_by'),
+    voidReason: text('void_reason'),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [unique('redemptions_employee_session').on(t.employeeId, t.sessionId)]
+  (t) => [
+    // Anti-duplikat inti: 1 klaim AKTIF per (employee, session). Void → row lama tetap ada,
+    // klaim baru boleh dibuat (partial index hanya menutup baris belum-void).
+    uniqueIndex('redemptions_employee_session')
+      .on(t.employeeId, t.sessionId)
+      .where(sql`${t.voidedAt} IS NULL`),
+    // Idempotency: request_id sama tidak boleh membuat redemption kedua.
+    uniqueIndex('redemptions_request_id').on(t.requestId).where(sql`${t.requestId} IS NOT NULL`),
+  ]
 );
 
 // ─── Five R Submissions (5R audit — migrasi dari localStorage) ───

@@ -5,6 +5,7 @@ import { Calendar, Clock3, Eye, HelpCircle, Search, Trash2, Trophy, X } from 'lu
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { HasilPageSkeleton } from '~/components/loading/skeletons';
 import { Petunjuk5RModal } from '../../components/5r/Petunjuk5RModal';
 import { ScoreBoard } from '../../components/5r/ScoreBoard';
 import { DataTable, type features } from '../../components/data-table';
@@ -23,7 +24,6 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { PageHeader } from '../../components/ui/page-header';
 import { ResponsiveDialog } from '../../components/ui/responsive-dialog';
-import { HasilPageSkeleton } from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import type { FiveRForm, FiveRSubmission } from '../../data/5r';
 import { useDebounce } from '../../hooks/use-debounce';

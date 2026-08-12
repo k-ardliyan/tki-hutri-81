@@ -18,15 +18,14 @@ const ROUTE_LABELS: Record<string, string> = {
   '/admin/bagan': 'Bagan Pertandingan',
   '/admin/isi': 'Isi Penilaian',
   '/admin/hasil': 'Hasil Penilaian',
-  '/admin/snack': 'Dashboard Snack',
-  '/admin/snack/scan': 'Scan Gelang',
-  '/admin/snack/gelang': 'Master Gelang',
-  '/admin/snack/sessions': 'Sesi Pengambilan',
   '/admin/employees': 'Data Karyawan',
   '/admin/teams': 'Data Tim',
   '/admin/users': 'Manajemen Akun',
-  '/petugas': 'Scan Gelang',
-  '/petugas/dashboard': 'Dashboard Snack',
+  '/snack/distribution': 'Distribusi Snack',
+  '/snack/dashboard': 'Dashboard Snack',
+  '/snack/history': 'Riwayat Distribusi',
+  '/snack/sessions': 'Sesi Snack',
+  '/snack/gelang': 'Gelang & QR',
 };
 
 export function SiteHeader({ title = 'Dashboard' }: { title?: string }) {

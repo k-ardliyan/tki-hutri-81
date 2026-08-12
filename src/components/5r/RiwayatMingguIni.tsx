@@ -13,9 +13,9 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Input } from '../ui/input';
-import RoomIcon from '../ui/RoomIcon';
 import { ResponsiveDialog } from '../ui/responsive-dialog';
-import ScoreBadge from '../ui/ScoreBadge';
+import RoomIcon from './RoomIcon';
+import ScoreBadge from './ScoreBadge';
 
 export default function RiwayatMingguIni({
   startDate,

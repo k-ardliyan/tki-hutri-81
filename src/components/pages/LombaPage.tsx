@@ -6,8 +6,8 @@ import { useAudience, useAudienceNavigate } from '../../context/AudienceContext'
 
 const lombaAssets: Record<string, string> = assets.lomba as Record<string, string>;
 
+import { LazyImage } from '~/components/common/LazyImage';
 import gsap, { shouldReduceMotion } from '../../lib/gsap';
-import { LazyImage } from '../ui/LazyImage';
 
 const tone = {
   red: {

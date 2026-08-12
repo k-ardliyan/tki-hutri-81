@@ -57,3 +57,8 @@ Thumbs.db
 
 # raw data — sumber Excel, bukan source code
 employee/
+
+# tutorial generated html + screenshots (large assets)
+TUTORIAL_TIM_AUDIT.html
+public/docs/
+docs/

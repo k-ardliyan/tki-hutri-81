@@ -2,17 +2,17 @@ import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-ro
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { LoginSkeleton } from '~/components/loading/skeletons';
 import LogoFtp from '../components/brand/LogoFtp';
 import LogoHutRi81 from '../components/brand/LogoHutRi81';
 import LogoTki from '../components/brand/LogoTki';
 import { LoginForm } from '../components/login-form';
-import { LoginSkeleton } from '../components/ui/skeletons';
 import type { UserRole } from '../lib/auth';
 import { gsap, shouldReduceMotion } from '../lib/gsap';
 import { getSession, login } from '../server/functions/auth';
 
 function homeForRole(role: UserRole): string {
-  if (role === 'petugas') return '/petugas';
+  if (role === 'petugas') return '/snack/distribution';
   if (role === 'audit') return '/audit';
   return '/admin';
 }

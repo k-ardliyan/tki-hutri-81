@@ -5,9 +5,9 @@
 
 import {
   CalendarDays,
-  Cookie,
   Gauge,
   GitFork,
+  History,
   IdCard,
   QrCode,
   SquarePen,
@@ -34,10 +34,11 @@ const BASE_SECTIONS: NavSection[] = [
   {
     title: 'Snack',
     items: [
-      { id: 'snack', label: 'Snack', icon: Cookie, path: '/admin/snack' },
-      { id: 'scan', label: 'Scan', icon: QrCode, path: '/admin/snack/scan' },
-      { id: 'gelang', label: 'Gelang', icon: IdCard, path: '/admin/snack/gelang' },
-      { id: 'sessions', label: 'Sesi Snack', icon: CalendarDays, path: '/admin/snack/sessions' },
+      { id: 'distribution', label: 'Distribusi', icon: QrCode, path: '/snack/distribution' },
+      { id: 'snack-dashboard', label: 'Dashboard Snack', icon: Gauge, path: '/snack/dashboard' },
+      { id: 'snack-history', label: 'Riwayat', icon: History, path: '/snack/history' },
+      { id: 'gelang', label: 'Gelang & QR', icon: IdCard, path: '/snack/gelang' },
+      { id: 'sessions', label: 'Sesi Snack', icon: CalendarDays, path: '/snack/sessions' },
     ],
   },
   {

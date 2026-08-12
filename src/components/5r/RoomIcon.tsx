@@ -1,8 +1,9 @@
 /**
  * RoomIcon — peta ikon ruangan (dari rooms.json, nilai lama fa-*) ke lucide dengan pewarnaan yang kaya.
  */
-import { Cog, Cpu, Handshake, Network, Server } from 'lucide-react';
+
 import type { LucideIcon } from 'lucide-react';
+import { Cog, Cpu, Handshake, Network, Server } from 'lucide-react';
 
 const MAP: Record<string, { icon: LucideIcon; colorCls: string }> = {
   'fa-gears': { icon: Cog, colorCls: 'text-emerald-600 dark:text-emerald-400' },

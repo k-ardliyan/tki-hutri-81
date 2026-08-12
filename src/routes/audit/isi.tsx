@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { RoomListSkeleton } from '~/components/loading/skeletons';
 import RoomFormFlow from '../../components/5r/RoomFormFlow';
-import { RoomListSkeleton } from '../../components/ui/skeletons';
 import { getForms, getRooms, getSettings } from '../../server/functions/5r';
 
 const searchSchema = z.object({

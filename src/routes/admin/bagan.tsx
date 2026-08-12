@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Award, CheckCircle2, Crown, Medal, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { AdminBaganSkeleton } from '~/components/loading/skeletons';
 import { BaganGuide } from '../../components/bagan/BaganGuide';
 import {
   type BracketDetailView,
@@ -31,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { AdminBaganSkeleton } from '../../components/ui/skeletons';
 import { requireRole } from '../../lib/routeGuard';
 import {
   correctMatchResult,

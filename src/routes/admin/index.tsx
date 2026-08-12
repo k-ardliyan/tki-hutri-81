@@ -9,6 +9,16 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
+import RoomIcon from '~/components/5r/RoomIcon';
+import EmptyState from '~/components/common/EmptyState';
+import SectionHeader from '~/components/common/SectionHeader';
+import {
+  ActivityListSkeleton,
+  AdminDashboardSkeleton,
+  ChartSkeleton,
+  RoomListSkeleton,
+  SectionCardsSkeleton,
+} from '~/components/loading/skeletons';
 import { Petunjuk5RModal } from '../../components/5r/Petunjuk5RModal';
 import { ChartAreaInteractive } from '../../components/chart-area-interactive';
 import { ChartBarStrength } from '../../components/chart-bar-strength';
@@ -16,20 +26,10 @@ import { SectionCards } from '../../components/section-cards';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
-import EmptyState from '../../components/ui/EmptyState';
 import { InteractiveCard } from '../../components/ui/interactive-card';
 import { PageHeader } from '../../components/ui/page-header';
 import { Progress } from '../../components/ui/progress';
-import RoomIcon from '../../components/ui/RoomIcon';
-import SectionHeader from '../../components/ui/SectionHeader';
 import { Skeleton } from '../../components/ui/skeleton';
-import {
-  ActivityListSkeleton,
-  AdminDashboardSkeleton,
-  ChartSkeleton,
-  RoomListSkeleton,
-  SectionCardsSkeleton,
-} from '../../components/ui/skeletons';
 import { StatusBadge } from '../../components/ui/status-badge';
 import type { FiveRForm, FiveRSubmission } from '../../data/5r';
 import { isDekorasiSubmission } from '../../data/5r';
