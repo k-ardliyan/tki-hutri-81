@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ROLE_LABELS } from '../../lib/auth';
 import type { NavSection } from '../../lib/nav';
+import { clearSnackRoleCache } from '../../lib/snackRoleCache';
 import { isFormDirty, setFormDirty } from '../../lib/unsavedGuard';
 import { getSession, logout } from '../../server/functions/auth';
 import { AppSidebar } from '../app-sidebar';
@@ -69,6 +70,7 @@ export default function AppShell({
       setShowLeave(true);
       return;
     }
+    clearSnackRoleCache();
     await logout();
     toast.success('Berhasil keluar');
     navigate({ to: '/login' });
@@ -118,6 +120,7 @@ export default function AppShell({
     const pending = pendingRef.current;
     pendingRef.current = null;
     if (pending?.logout) {
+      clearSnackRoleCache();
       void logout().then(() => {
         toast.success('Berhasil keluar');
         navigate({ to: pending.to });

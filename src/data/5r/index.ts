@@ -42,6 +42,9 @@ export interface FiveRRoom {
   icon: string;
   sortOrder: number;
   pic: string;
+  areaType?: 'indoor' | 'outdoor';
+  recommendedFormId?: string;
+  areaLabel?: string;
 }
 
 export interface FiveRSubmission {
@@ -65,7 +68,7 @@ import officeSmoking from './forms/office-smoking.json';
 import produksi from './forms/produksi.json';
 import roomsData from './rooms.json';
 
-export const fiveRRooms: FiveRRoom[] = roomsData.rooms;
+export const fiveRRooms: FiveRRoom[] = roomsData.rooms as FiveRRoom[];
 export const fiveRForms: FiveRForm[] = [dekorasi, officeNonSmoking, officeSmoking, produksi];
 
 /** ID form lomba dekorasi — single source utk semua filter 5R vs dekorasi. */
@@ -82,4 +85,24 @@ export function getFiveRForm(id: string): FiveRForm | undefined {
 
 export function getFiveRRoom(id: string): FiveRRoom | undefined {
   return fiveRRooms.find((r) => r.id === id);
+}
+
+/**
+ * Mendapatkan ID form 5R yang direkomendasikan untuk suatu ruangan.
+ * Aturan: Area Luar (outdoor / it-luar) -> office-smoking, Lainnya (indoor) -> office-non-smoking.
+ */
+export function getRecommendedFormId(room: FiveRRoom | string | undefined): string {
+  if (!room) return 'office-non-smoking';
+  const roomObj = typeof room === 'string' ? getFiveRRoom(room) : room;
+  if (roomObj?.recommendedFormId) return roomObj.recommendedFormId;
+  if (roomObj?.areaType === 'outdoor' || roomObj?.id === 'it-luar') return 'office-smoking';
+  return 'office-non-smoking';
+}
+
+/**
+ * Mengecek apakah form yang dipilih adalah form 5R yang direkomendasikan untuk ruangan tersebut.
+ */
+export function isRecommendedForm(room: FiveRRoom | string | undefined, formId: string): boolean {
+  if (formId === DEKORASI_FORM_ID) return true; // Form dekorasi berlaku untuk semua ruangan
+  return getRecommendedFormId(room) === formId;
 }
