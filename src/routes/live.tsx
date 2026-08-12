@@ -1,6 +1,8 @@
 /**
  * Unified Live Score & Bagan Pertandingan — Halaman Publik Terpadu.
  * Menggabungkan skor penilaian dekorasi/5R dan skema bagan pertandingan lapangan.
+ * Live update: loader utk SSR first-paint + React Query refetchInterval 10s
+ * (useSubmissions/useBracket) — skor berubah tanpa refresh manual.
  */
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -10,6 +12,7 @@ import { z } from 'zod';
 import { UnifiedLiveSkeleton } from '~/components/loading/skeletons';
 import { ScoreBoard } from '../components/5r/ScoreBoard';
 import { BracketTree } from '../components/bagan/BracketTree';
+import { useBracket, useSubmissions } from '../lib/queries';
 import { getDeadline, getForms, getRooms, getSubmissions } from '../server/functions/5r';
 import { getBaganCompetitions, getBracket } from '../server/functions/bracket';
 
@@ -47,12 +50,16 @@ export const Route = createFileRoute('/live')({
 });
 
 function UnifiedLivePage() {
-  const { rooms, forms, submissions, deadline, comps, details } = Route.useLoaderData();
+  const loader = Route.useLoaderData();
   const { tab = '5r', comp: compSearch } = Route.useSearch();
   const navigate = Route.useNavigate();
 
+  // initialData dari loader → first-paint SSR instan, refetchInterval 10s
+  // mengambil alih setelah hydrate (polling aktif selama halaman terbuka).
+  const { data: submissions = [] } = useSubmissions(loader.submissions);
+
   const [activeCompId, setActiveCompId] = useState<number | null>(
-    compSearch ?? comps[0]?.id ?? null
+    compSearch ?? loader.comps[0]?.id ?? null
   );
 
   const handleTabChange = (newTab: '5r' | 'bagan') => {
@@ -65,7 +72,7 @@ function UnifiedLivePage() {
     });
   };
 
-  const selectedComp = comps.find((c) => c.id === activeCompId) ?? comps[0];
+  const selectedComp = loader.comps.find((c) => c.id === activeCompId) ?? loader.comps[0];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -83,7 +90,7 @@ function UnifiedLivePage() {
         </h1>
         <p className="mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-slate-600">
           Pantau akumulasi nilai Budaya 5R &amp; Dekorasi Ruangan secara transparan, serta skema
-          alur gugur pertandingan lapangan.
+          alur gugur pertandingan lapangan. Skor diperbarui otomatis setiap beberapa detik.
         </p>
       </section>
 
@@ -121,9 +128,9 @@ function UnifiedLivePage() {
         <div className="space-y-6">
           <ScoreBoard
             submissions={submissions}
-            rooms={rooms}
-            forms={forms}
-            deadline={deadline}
+            rooms={loader.rooms}
+            forms={loader.forms}
+            deadline={loader.deadline}
             mode="live"
           />
         </div>
@@ -132,7 +139,7 @@ function UnifiedLivePage() {
       {/* Tab 2: Bagan Pertandingan */}
       {tab === 'bagan' && (
         <div className="space-y-6">
-          {!comps.length ? (
+          {!loader.comps.length ? (
             <div className="rounded-3xl border border-dashed border-slate-200 p-12 text-center bg-white shadow-xs">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                 <Trophy size={26} />
@@ -149,7 +156,7 @@ function UnifiedLivePage() {
             <div className="space-y-5">
               {/* Competition Selector Pills */}
               <div className="flex gap-2 overflow-x-auto no-scrollbar rounded-2xl border border-slate-200/90 bg-white p-2 shadow-2xs">
-                {comps.map((c) => (
+                {loader.comps.map((c) => (
                   <button
                     key={c.id}
                     type="button"
@@ -165,57 +172,70 @@ function UnifiedLivePage() {
                 ))}
               </div>
 
-              {/* Putra & Putri Bracket Cards */}
+              {/* Putra & Putri Bracket Cards — polling aktif hanya saat tab bagan terbuka */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {(['putra', 'putri'] as const).map((k) => {
-                  const detail = selectedComp ? details[`${selectedComp.id}:${k}`] : null;
-                  const isPutra = k === 'putra';
-
-                  return (
-                    <section
-                      key={k}
-                      className="rounded-3xl border border-slate-200/90 bg-white shadow-sm overflow-hidden"
-                    >
-                      <header className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-4 bg-slate-50/80">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className={`flex h-7 w-7 items-center justify-center rounded-xl font-black text-xs ${
-                              isPutra ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
-                            }`}
-                          >
-                            {isPutra ? 'P' : 'W'}
-                          </span>
-                          <h3 className="font-heading text-sm font-black uppercase tracking-wider text-slate-900">
-                            Kategori {isPutra ? 'Putra' : 'Putri'}
-                          </h3>
-                        </div>
-                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-slate-200/80 shadow-2xs">
-                          {detail
-                            ? `${detail.bracket.participantCount} peserta`
-                            : 'Belum ada bagan'}
-                        </span>
-                      </header>
-
-                      <div className="p-4 sm:p-5 min-w-0 max-w-full overflow-hidden">
-                        {!detail ? (
-                          <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-slate-200 py-10 text-center">
-                            <Users size={22} className="text-slate-300" />
-                            <p className="text-xs font-semibold text-slate-500">
-                              Bagan belum disusun untuk kategori ini.
-                            </p>
-                          </div>
-                        ) : (
-                          <BracketTree detail={detail} prizes={[]} />
-                        )}
-                      </div>
-                    </section>
-                  );
-                })}
+                {selectedComp &&
+                  (['putra', 'putri'] as const).map((k) => (
+                    <BracketCard
+                      key={`${selectedComp.id}:${k}`}
+                      comp={selectedComp}
+                      kategori={k}
+                      initialDetail={loader.details[`${selectedComp.id}:${k}`]}
+                    />
+                  ))}
               </div>
             </div>
           )}
         </div>
       )}
     </div>
+  );
+}
+
+function BracketCard({
+  comp,
+  kategori,
+  initialDetail,
+}: {
+  comp: { id: number; title: string };
+  kategori: 'putra' | 'putri';
+  initialDetail?: Awaited<ReturnType<typeof getBracket>>;
+}) {
+  const { data: detail } = useBracket(comp.id, kategori, initialDetail);
+  const isPutra = kategori === 'putra';
+
+  return (
+    <section className="rounded-3xl border border-slate-200/90 bg-white shadow-sm overflow-hidden">
+      <header className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-4 bg-slate-50/80">
+        <div className="flex items-center gap-2.5">
+          <span
+            className={`flex h-7 w-7 items-center justify-center rounded-xl font-black text-xs ${
+              isPutra ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
+            }`}
+          >
+            {isPutra ? 'P' : 'W'}
+          </span>
+          <h3 className="font-heading text-sm font-black uppercase tracking-wider text-slate-900">
+            Kategori {isPutra ? 'Putra' : 'Putri'}
+          </h3>
+        </div>
+        <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 border border-slate-200/80 shadow-2xs">
+          {detail ? `${detail.bracket.participantCount} peserta` : 'Belum ada bagan'}
+        </span>
+      </header>
+
+      <div className="p-4 sm:p-5 min-w-0 max-w-full overflow-hidden">
+        {!detail ? (
+          <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-slate-200 py-10 text-center">
+            <Users size={22} className="text-slate-300" />
+            <p className="text-xs font-semibold text-slate-500">
+              Bagan belum disusun untuk kategori ini.
+            </p>
+          </div>
+        ) : (
+          <BracketTree detail={detail} prizes={[]} />
+        )}
+      </div>
+    </section>
   );
 }
