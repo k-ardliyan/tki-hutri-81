@@ -54,6 +54,7 @@ Thumbs.db
 # local planning/artifacts — tidak di-commit
 .hermes/
 .impeccable/
+references/
 
 # raw data — sumber Excel, bukan source code
 employee/

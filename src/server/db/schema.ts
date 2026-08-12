@@ -180,7 +180,7 @@ export const brackets = pgTable(
       .default('DRAFT')
       .notNull(),
     seedingMethod: text('seeding_method')
-      .$type<'RANDOM' | 'MANUAL' | 'REGISTRATION_ORDER'>()
+      .$type<'RANDOM' | 'MANUAL' | 'REGISTRATION_ORDER' | 'SEEDED_SERPENTINE'>()
       .default('RANDOM')
       .notNull(),
     thirdPlaceEnabled: boolean('third_place_enabled').default(true).notNull(),
@@ -301,6 +301,127 @@ export const bracketMatchHistory = pgTable('bracket_match_history', {
   changedBy: integer('changed_by'),
   changedAt: timestamp('changed_at', { withTimezone: true }).defaultNow().notNull(),
   reason: text('reason'),
+});
+
+// ─── Heat Elimination (PRD 2026-08: Stage → Session → Participants → Results) ───
+// Engine terpisah dari single elimination; semua tabel additive.
+// Stage = level eliminasi (bukan pertandingan); Session = 1 pertandingan kelompok 2..N.
+
+export const bracketStages = pgTable(
+  'bracket_stages',
+  {
+    id: serial('id').primaryKey(),
+    bracketId: integer('bracket_id')
+      .references(() => brackets.id, { onDelete: 'cascade' })
+      .notNull(),
+    stageNumber: integer('stage_number').notNull(),
+    name: text('name').notNull(),
+    teamsPerSession: integer('teams_per_session').notNull(),
+    advancementMode: text('advancement_mode')
+      .$type<'TOP_N_PER_SESSION' | 'TOP_N_OVERALL' | 'MANUAL'>()
+      .default('TOP_N_PER_SESSION')
+      .notNull(),
+    qualifiersPerSession: integer('qualifiers_per_session'),
+    qualifiersOverall: integer('qualifiers_overall'),
+    resultMode: text('result_mode')
+      .$type<'MANUAL_POSITION' | 'TIME_ASC' | 'SCORE_DESC'>()
+      .default('MANUAL_POSITION')
+      .notNull(),
+    isFinal: boolean('is_final').default(false).notNull(),
+    status: text('status').$type<'PENDING' | 'ACTIVE' | 'COMPLETED'>().default('PENDING').notNull(),
+    sortOrder: integer('sort_order').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('heat_stages_unique').on(t.bracketId, t.stageNumber)]
+);
+
+export const bracketSessions = pgTable(
+  'bracket_sessions',
+  {
+    id: serial('id').primaryKey(),
+    stageId: integer('stage_id')
+      .references(() => bracketStages.id, { onDelete: 'cascade' })
+      .notNull(),
+    sessionNumber: integer('session_number').notNull(),
+    name: text('name').notNull(),
+    status: text('status')
+      .$type<'WAITING' | 'READY' | 'COMPLETED' | 'CANCELLED'>()
+      .default('WAITING')
+      .notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('heat_sessions_unique').on(t.stageId, t.sessionNumber)]
+);
+
+export const bracketSessionParticipants = pgTable(
+  'bracket_session_participants',
+  {
+    id: serial('id').primaryKey(),
+    sessionId: integer('session_id')
+      .references(() => bracketSessions.id, { onDelete: 'cascade' })
+      .notNull(),
+    participantId: integer('participant_id')
+      .references(() => teams.id, { onDelete: 'cascade' })
+      .notNull(),
+    slotNumber: integer('slot_number').notNull(),
+    seed: integer('seed'),
+    sourceType: text('source_type')
+      .$type<'INITIAL' | 'SESSION_QUALIFIER' | 'STAGE_QUALIFIER' | 'MANUAL'>()
+      .default('INITIAL')
+      .notNull(),
+    sourceStageId: integer('source_stage_id'),
+    sourceSessionId: integer('source_session_id'),
+    sourceRank: integer('source_rank'),
+    status: text('status').$type<'ACTIVE' | 'RESERVE' | 'WITHDRAWN'>().default('ACTIVE').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('heat_session_participants_unique').on(t.sessionId, t.participantId)]
+);
+
+export const bracketSessionResults = pgTable(
+  'bracket_session_results',
+  {
+    id: serial('id').primaryKey(),
+    sessionId: integer('session_id')
+      .references(() => bracketSessions.id, { onDelete: 'cascade' })
+      .notNull(),
+    participantId: integer('participant_id')
+      .references(() => teams.id, { onDelete: 'cascade' })
+      .notNull(),
+    rank: integer('rank'),
+    timeMs: integer('time_ms'),
+    score: integer('score'),
+    resultStatus: text('result_status')
+      .$type<'NORMAL' | 'QUALIFIED' | 'ELIMINATED' | 'WALKOVER' | 'DISQUALIFIED' | 'DNS' | 'DNF'>()
+      .default('NORMAL')
+      .notNull(),
+    notes: text('notes'),
+    enteredBy: text('entered_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique('heat_session_results_unique').on(t.sessionId, t.participantId)]
+);
+
+export const bracketSessionResultHistory = pgTable('bracket_session_result_history', {
+  id: serial('id').primaryKey(),
+  sessionId: integer('session_id')
+    .references(() => bracketSessions.id, { onDelete: 'cascade' })
+    .notNull(),
+  participantId: integer('participant_id')
+    .references(() => teams.id, { onDelete: 'cascade' })
+    .notNull(),
+  oldRank: integer('old_rank'),
+  newRank: integer('new_rank'),
+  oldTime: integer('old_time'),
+  newTime: integer('new_time'),
+  reason: text('reason'),
+  changedBy: text('changed_by'),
+  changedAt: timestamp('changed_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ─── Landing Highlights (4 baris) ───

@@ -816,7 +816,7 @@ export const tournamentService = {
         id: b.id,
         status: b.status,
         format: b.format,
-        seedingMethod: b.seedingMethod,
+        seedingMethod: b.seedingMethod as SeedingMethod,
         thirdPlaceEnabled: b.thirdPlaceEnabled,
         participantCount: b.participantCount,
         bracketSize: b.bracketSize,
