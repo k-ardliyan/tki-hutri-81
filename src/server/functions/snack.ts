@@ -786,7 +786,6 @@ export const redeemSnack = createServerFn({ method: 'POST' })
     const db = assertDb();
     const { sessionId, employeeIds } = data;
     const source = data.source ?? 'QR_TEAM';
-    const requestId = data.requestId?.trim() || undefined;
 
     const auth = await getAuth();
     const claimedBy = auth.username ?? null;
@@ -801,6 +800,14 @@ export const redeemSnack = createServerFn({ method: 'POST' })
     if (employeeIds.length === 0) {
       return { ok: false, inserted: 0, skipped: [], error: 'Tidak ada karyawan dipilih' };
     }
+
+    // Idempotency per-employee (bukan per-batch). requestId client = id batch;
+    // tiap baris dapat key unik `${requestId}:${employeeId}` supaya batch N karyawan
+    // TIDAK saling tabrakan di unique index redemptions_request_id (bug: 1 scan hanya
+    // menyimpan 1 orang karena semua baris berbagi request_id sama).
+    const requestId = data.requestId?.trim() || undefined;
+    const requestKeys =
+      requestId !== undefined ? employeeIds.map((id) => `${requestId}:${id}`) : null;
 
     const result = await db.transaction(async (tx) => {
       // Lock session row → serialisasi batch per sesi (stok atomic, PRD §34)
@@ -831,12 +838,12 @@ export const redeemSnack = createServerFn({ method: 'POST' })
         return { ok: false, inserted: 0, skipped: [], error: msg } as RedeemResult;
       }
 
-      // Idempotency (PRD §35): request sama → sudah diproses
-      if (requestId) {
+      // Idempotency (PRD §35): cek per-employee key, bukan batch id.
+      if (requestKeys) {
         const existingReq = await tx
           .select({ id: redemptions.id })
           .from(redemptions)
-          .where(eq(redemptions.requestId, requestId))
+          .where(inArray(redemptions.requestId, requestKeys))
           .limit(1);
         if (existingReq.length > 0) {
           return { ok: true, inserted: 0, skipped: [], idempotent: true } as RedeemResult;
@@ -929,12 +936,12 @@ export const redeemSnack = createServerFn({ method: 'POST' })
       }));
 
       // Insert batch — onConflictDoNothing menangani anti-dup (employee, session) + request_id
-      const values = employeeIds.map((employeeId) => ({
+      const values = employeeIds.map((employeeId, i) => ({
         employeeId,
         sessionId,
         claimedBy,
         source,
-        requestId: requestId ?? null,
+        requestId: requestKeys ? requestKeys[i] : null,
       }));
       const inserted = await tx
         .insert(redemptions)
