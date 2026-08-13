@@ -164,19 +164,22 @@ export function BaganPrintModal({
         open={isOpen}
         onOpenChange={setIsOpen}
         title={
-          <div className="flex items-center gap-2 text-foreground font-black text-base sm:text-lg">
-            <span className="flex size-7 items-center justify-center rounded-lg bg-red-600 text-white">
-              <Printer size={15} />
+          <div className="flex items-center gap-2.5 text-foreground font-black text-base sm:text-lg">
+            <span className="flex size-8 items-center justify-center rounded-xl bg-red-600 text-white shadow-xs">
+              <Printer size={16} />
             </span>
-            <span>Pratinjau & Cetak PDF Bagan Resmi</span>
+            <div>
+              <span>Pratinjau & Cetak PDF Bagan Resmi</span>
+            </div>
           </div>
         }
         description={`Format dokumen resmi turnamen HUT RI ke-81: ${title} (${kategori === 'putra' ? 'Putra' : 'Putri'}).`}
-        className="max-w-[1240px]! w-[96vw]! max-h-[95vh]! p-0 flex flex-col overflow-hidden bg-background"
+        className="sm:max-w-[1280px]! w-[96vw]! h-[92vh]! max-h-[92vh]! p-0 flex flex-col overflow-hidden bg-background rounded-2xl border border-border shadow-2xl"
+        contentClassName="flex-1 flex flex-col min-h-0 overflow-hidden py-0 max-h-none"
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* ─── Control Bar & Customization Toolbar ─── */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 p-4 shrink-0">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3 sm:px-6 sm:py-3.5 shrink-0">
             {/* Options Toggle */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
               {/* Orientation Switcher */}
