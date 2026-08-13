@@ -260,63 +260,77 @@ export interface PublicTeam {
   anggota: PublicTeamMember[];
 }
 
+// Fallback statis — dipakai saat DB belum dikonfigurasi (!db) ATAU query gagal
+// (timeout/quota). Data non-kritis, boleh basi; lebih baik render daripada 500.
+function staticTeams(): PublicTeam[] {
+  return (
+    dataKelompok as Array<{
+      id: string;
+      kategori: string;
+      nomor: number;
+      nama: string;
+      anggota: string[];
+    }>
+  ).map((t) => ({
+    id: String(t.id),
+    kategori: t.kategori,
+    nomor: t.nomor,
+    nama: t.nama,
+    anggota: t.anggota.map((nama) => ({ nama, isLeader: false })),
+  }));
+}
+
 export const getTeams = createServerFn({ method: 'GET' }).handler(
   async (): Promise<PublicTeam[]> => {
-    if (!db) {
-      return (
-        dataKelompok as Array<{
-          id: string;
-          kategori: string;
-          nomor: number;
-          nama: string;
-          anggota: string[];
-        }>
-      ).map((t) => ({
+    if (!db) return staticTeams();
+    try {
+      const teamRows = await db
+        .select()
+        .from(teams)
+        .where(inArray(teams.kategori, ['putra', 'putri']))
+        .orderBy(sql`case when ${teams.kategori} = 'putra' then 1 else 2 end`, teams.nomor);
+      const memberRows = await db
+        .select({
+          teamId: teamMembers.teamId,
+          nama: employees.nama,
+          isLeader: teamMembers.isLeader,
+        })
+        .from(teamMembers)
+        .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
+        .orderBy(sql`case when ${teamMembers.isLeader} then 0 else 1 end`, teamMembers.sortOrder);
+      const byTeam = new Map<number, PublicTeamMember[]>();
+      for (const m of memberRows) {
+        const list = byTeam.get(m.teamId) ?? [];
+        list.push({ nama: m.nama, isLeader: Boolean(m.isLeader) });
+        byTeam.set(m.teamId, list);
+      }
+      return teamRows.map((t) => ({
         id: String(t.id),
         kategori: t.kategori,
         nomor: t.nomor,
         nama: t.nama,
-        anggota: t.anggota.map((nama) => ({ nama, isLeader: false })),
+        anggota: byTeam.get(t.id) ?? [],
       }));
+    } catch {
+      // ponytail: DB timeout/quota → fallback statis. /tim tetap render.
+      return staticTeams();
     }
-    const teamRows = await db
-      .select()
-      .from(teams)
-      .where(inArray(teams.kategori, ['putra', 'putri']))
-      .orderBy(sql`case when ${teams.kategori} = 'putra' then 1 else 2 end`, teams.nomor);
-    const memberRows = await db
-      .select({
-        teamId: teamMembers.teamId,
-        nama: employees.nama,
-        isLeader: teamMembers.isLeader,
-      })
-      .from(teamMembers)
-      .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
-      .orderBy(sql`case when ${teamMembers.isLeader} then 0 else 1 end`, teamMembers.sortOrder);
-    const byTeam = new Map<number, PublicTeamMember[]>();
-    for (const m of memberRows) {
-      const list = byTeam.get(m.teamId) ?? [];
-      list.push({ nama: m.nama, isLeader: Boolean(m.isLeader) });
-      byTeam.set(m.teamId, list);
-    }
-    return teamRows.map((t) => ({
-      id: String(t.id),
-      kategori: t.kategori,
-      nomor: t.nomor,
-      nama: t.nama,
-      anggota: byTeam.get(t.id) ?? [],
-    }));
   }
 );
 
 export const getTeamSummary = createServerFn({ method: 'GET' }).handler(async () => {
   if (!db) return summaryKelompok;
-  const rows = await db
-    .select({ kategori: teams.kategori, count: sql<number>`count(*)::int` })
-    .from(teams)
-    .where(inArray(teams.kategori, ['putra', 'putri']))
-    .groupBy(teams.kategori);
-  const putra = rows.find((r) => r.kategori === 'putra')?.count ?? 0;
-  const putri = rows.find((r) => r.kategori === 'putri')?.count ?? 0;
-  return { total: putra + putri, putra, putri };
+  try {
+    const rows = await db
+      .select({ kategori: teams.kategori, count: sql<number>`count(*)::int` })
+      .from(teams)
+      .where(inArray(teams.kategori, ['putra', 'putri']))
+      .groupBy(teams.kategori);
+    const putra = rows.find((r) => r.kategori === 'putra')?.count ?? 0;
+    const putri = rows.find((r) => r.kategori === 'putri')?.count ?? 0;
+    return { total: putra + putri, putra, putri };
+  } catch {
+    // ponytail: DB timeout/quota → fallback statis. Landing tetap render.
+    return summaryKelompok;
+  }
 });

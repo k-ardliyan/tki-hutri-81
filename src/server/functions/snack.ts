@@ -691,20 +691,12 @@ export const searchEmployees = createServerFn({ method: 'GET' })
       .orderBy(employees.nama)
       .limit(Math.min(limit, 20));
 
-    // Status session-aware
-    let entitledIds = new Set<number>();
+    // Status session-aware — eligibility live (is_snack_eligible), klaim per sesi.
     const claimed = new Map<
       number,
       { claimedAt: Date; claimedBy: string; source: string; voided: boolean }
     >();
-    let hasEntitlements = false;
     if (data.sessionId) {
-      const ents = await db
-        .select({ employeeId: snackSessionEntitlements.employeeId })
-        .from(snackSessionEntitlements)
-        .where(eq(snackSessionEntitlements.sessionId, data.sessionId));
-      hasEntitlements = ents.length > 0;
-      entitledIds = new Set(ents.map((e) => e.employeeId));
       const reds = await db
         .select({
           employeeId: redemptions.employeeId,
@@ -735,9 +727,9 @@ export const searchEmployees = createServerFn({ method: 'GET' })
 
     return rows.map((r): SearchEmployeeResult => {
       const c = claimed.get(r.id);
-      if (data.sessionId && hasEntitlements) {
-        const entitled = entitledIds.has(r.id);
-        if (!entitled)
+      // Eligibility live (is_snack_eligible) — konsisten dgn redeemSnack.
+      if (data.sessionId) {
+        if (!r.isSnackEligible)
           return { id: r.id, nama: r.nama, nip: r.nip, divisi: r.divisi, status: 'NOT_ENTITLED' };
         const active = c && !c.voided;
         return {
@@ -851,14 +843,10 @@ export const redeemSnack = createServerFn({ method: 'POST' })
         }
       }
 
-      // Entitlement + eligibility
-      const ents = await tx
-        .select({ employeeId: snackSessionEntitlements.employeeId })
-        .from(snackSessionEntitlements)
-        .where(eq(snackSessionEntitlements.sessionId, sessionId));
-      const hasEntitlements = ents.length > 0;
-      const entitledIds = new Set(ents.map((e) => e.employeeId));
-
+      // Eligibility — live source of truth (is_snack_eligible), bukan snapshot entitlement.
+      // Snapshot entitlements hanya artefak audit/seed saat publish; toggle kelayakan
+      // mid-session harus langsung berlaku (issue: karyawan di-toggle eligible/ineligible
+      // saat sesi berjalan tidak berdampak karena gate membaca snapshot beku).
       const empRows = await tx
         .select({
           id: employees.id,
@@ -877,8 +865,7 @@ export const redeemSnack = createServerFn({ method: 'POST' })
       }
       const rejected: string[] = [];
       for (const e of empRows) {
-        const ok = hasEntitlements ? entitledIds.has(e.id) : e.isSnackEligible;
-        if (!ok) rejected.push(e.nama);
+        if (!e.isSnackEligible) rejected.push(e.nama);
       }
       if (rejected.length) {
         return {
@@ -1030,11 +1017,11 @@ export const getRedemptionSummary = createServerFn({ method: 'GET' })
       };
     }
 
-    // Entitlement
+    // Eligibility live (is_snack_eligible) — konsisten dgn redeemSnack & search.
     const ents = await db
-      .select({ employeeId: snackSessionEntitlements.employeeId })
-      .from(snackSessionEntitlements)
-      .where(eq(snackSessionEntitlements.sessionId, session.id));
+      .select({ employeeId: employees.id })
+      .from(employees)
+      .where(eq(employees.isSnackEligible, true));
     const entitledIds = new Set(ents.map((e) => e.employeeId));
     const entitled = ents.length;
 

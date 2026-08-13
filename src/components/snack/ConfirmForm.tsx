@@ -160,10 +160,11 @@ export default function ConfirmForm({
             const claim = claimedMap.get(m.employeeId);
             const isClaimed = claimedIds.has(m.employeeId);
             const checked = selected.has(m.employeeId);
+            const inputId = `member-${m.employeeId}`;
             return (
               <label
                 key={m.employeeId}
-                onClick={() => !isClaimed && toggle(m.employeeId)}
+                htmlFor={inputId}
                 className={cn(
                   'flex cursor-pointer items-center gap-3.5 p-3.5 transition-colors select-none',
                   isClaimed
@@ -174,6 +175,7 @@ export default function ConfirmForm({
                 )}
               >
                 <Checkbox
+                  id={inputId}
                   checked={checked}
                   disabled={isClaimed}
                   onCheckedChange={() => toggle(m.employeeId)}
