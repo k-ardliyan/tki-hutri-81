@@ -11,16 +11,7 @@
  * - Lembar Pengesahan (Tanda Tangan Panitia & Wasit/Juri).
  */
 
-import {
-  Award,
-  Crown,
-  Flame,
-  Gift,
-  Layers,
-  Medal,
-  Trophy,
-  Users,
-} from 'lucide-react';
+import { Award, Crown, Flame, Gift, Layers, Medal, Trophy, Users } from 'lucide-react';
 import React, { useMemo } from 'react';
 import type { BracketDetailView } from '~/components/bagan/BracketTree';
 import { getStagePlaceholderDistribution } from '~/components/bagan/HeatPipelineTree';
@@ -185,27 +176,35 @@ export function BaganPrintDocument({
         {/* Info Strip Perlombaan */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs">
           <div>
-            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">Cabang Lomba</span>
+            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">
+              Cabang Lomba
+            </span>
             <strong className="text-slate-900 text-xs font-black">{title}</strong>
           </div>
           <div>
-            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">Kategori</span>
+            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">
+              Kategori
+            </span>
             <strong className="text-slate-900 font-bold uppercase text-xs flex items-center gap-1">
               <Users size={11} className="text-slate-600" />
               {kategori === 'putra' ? 'Kategori Putra' : 'Kategori Putri'}
             </strong>
           </div>
           <div>
-            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">Sistem Bagan</span>
+            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">
+              Sistem Bagan
+            </span>
             <strong className="text-slate-900 font-bold text-xs">
-              {format === 'HEAT_ELIMINATION' ? 'Mode Heat (Multi-Stage)' : 'Sistem Gugur (Single Elimination)'}
+              {format === 'HEAT_ELIMINATION'
+                ? 'Mode Heat (Multi-Stage)'
+                : 'Sistem Gugur (Single Elimination)'}
             </strong>
           </div>
           <div>
-            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">Total Tim Terdaftar</span>
-            <strong className="text-slate-900 font-bold text-xs">
-              {combinedTeams.length} Tim
-            </strong>
+            <span className="text-[9.5px] text-slate-500 font-semibold block uppercase">
+              Total Tim Terdaftar
+            </span>
+            <strong className="text-slate-900 font-bold text-xs">{combinedTeams.length} Tim</strong>
           </div>
         </div>
       </header>
@@ -250,9 +249,7 @@ export function BaganPrintDocument({
                   <Crown size={13} className="text-amber-500" />
                 </div>
                 {winner1 && winner1 !== '—' ? (
-                  <p className="text-xs font-black text-slate-900 truncate">
-                    {winner1}
-                  </p>
+                  <p className="text-xs font-black text-slate-900 truncate">{winner1}</p>
                 ) : (
                   <div className="border-b-2 border-dotted border-amber-400/80 h-4 my-1 w-full" />
                 )}
@@ -273,9 +270,7 @@ export function BaganPrintDocument({
                   <Medal size={13} className="text-slate-400" />
                 </div>
                 {winner2 && winner2 !== '—' ? (
-                  <p className="text-xs font-bold text-slate-900 truncate">
-                    {winner2}
-                  </p>
+                  <p className="text-xs font-bold text-slate-900 truncate">{winner2}</p>
                 ) : (
                   <div className="border-b-2 border-dotted border-slate-400/80 h-4 my-1 w-full" />
                 )}
@@ -296,9 +291,7 @@ export function BaganPrintDocument({
                   <Award size={13} className="text-amber-700" />
                 </div>
                 {winner3 && winner3 !== '—' ? (
-                  <p className="text-xs font-bold text-slate-900 truncate">
-                    {winner3}
-                  </p>
+                  <p className="text-xs font-bold text-slate-900 truncate">{winner3}</p>
                 ) : (
                   <div className="border-b-2 border-dotted border-amber-800/60 h-4 my-1 w-full" />
                 )}
@@ -337,8 +330,10 @@ export function BaganPrintDocument({
                   <tbody>
                     {singleBracket.rounds.flatMap((r) =>
                       r.matches.map((m) => {
-                        const t1 = m.participant1Nama || getTeamName(combinedTeams, m.participant1Id);
-                        const t2 = m.participant2Nama || getTeamName(combinedTeams, m.participant2Id);
+                        const t1 =
+                          m.participant1Nama || getTeamName(combinedTeams, m.participant1Id);
+                        const t2 =
+                          m.participant2Nama || getTeamName(combinedTeams, m.participant2Id);
                         const win = getTeamName(combinedTeams, m.winnerId);
                         const isDone = m.status === 'COMPLETED' || m.status === 'AUTO_ADVANCED';
 
@@ -350,7 +345,9 @@ export function BaganPrintDocument({
                             <td className="p-1.5 border-r border-slate-200 text-center font-mono font-bold">
                               #{m.matchNumber}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 font-semibold">{r.name}</td>
+                            <td className="p-1.5 border-r border-slate-200 font-semibold">
+                              {r.name}
+                            </td>
                             <td
                               className={cn(
                                 'p-1.5 border-r border-slate-200',
@@ -410,7 +407,9 @@ export function BaganPrintDocument({
                     <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
                       <th className="p-1.5 border-r border-slate-300">Babak</th>
                       <th className="p-1.5 border-r border-slate-300 w-20 text-center">Sesi</th>
-                      <th className="p-1.5 border-r border-slate-300">Daftar Peserta &amp; Peringkat</th>
+                      <th className="p-1.5 border-r border-slate-300">
+                        Daftar Peserta &amp; Peringkat
+                      </th>
                       <th className="p-1.5 border-r border-slate-300">Tim Lolos Kualifikasi</th>
                       <th className="p-1.5 text-center w-20">Status Sesi</th>
                     </tr>
@@ -546,7 +545,8 @@ export function BaganPrintDocument({
           </div>
 
           <p className="text-center text-[8.5px] text-slate-400 mt-4 select-none font-mono">
-            Dokumen ini sah dan diterbitkan secara resmi oleh Panitia HUT RI ke-81 (PT TKI × PT FTP).
+            Dokumen ini sah dan diterbitkan secara resmi oleh Panitia HUT RI ke-81 (PT TKI × PT
+            FTP).
           </p>
         </footer>
       )}
@@ -719,7 +719,9 @@ function HeatEliminationPrintTree({
             <div key={stage.id} className="space-y-2 min-w-0">
               {/* Stage Header */}
               <div className="rounded-lg bg-slate-200 border border-slate-300 p-1.5 text-center">
-                <p className="font-black text-slate-900 text-[11px] uppercase truncate">{stage.name}</p>
+                <p className="font-black text-slate-900 text-[11px] uppercase truncate">
+                  {stage.name}
+                </p>
                 <p className="text-[8.5px] text-slate-600 font-medium truncate flex items-center justify-center gap-0.5">
                   {stage.isFinal ? (
                     <span className="inline-flex items-center gap-1">
@@ -763,7 +765,9 @@ function HeatEliminationPrintTree({
 
                       {/* Real Participants */}
                       {session.participants.map((p) => {
-                        const res = session.results.find((r) => r.participantId === p.participantId);
+                        const res = session.results.find(
+                          (r) => r.participantId === p.participantId
+                        );
                         const isQual = res?.resultStatus === 'QUALIFIED';
                         const rank = res?.rank;
 
