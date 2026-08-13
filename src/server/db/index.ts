@@ -26,7 +26,7 @@ const client = connectionString
   ? postgres(connectionString, {
       ssl: 'require',
       max: 2,
-      idle_timeout: 10,
+      idle_timeout: 30,
       connect_timeout: 10,
     })
   : null;

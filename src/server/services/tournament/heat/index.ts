@@ -158,6 +158,36 @@ async function loadResults(database: Database, sessionId: number) {
     .orderBy(bracketSessionResults.rank);
 }
 
+/** Batch loadSessions utk banyak stage (1 query, urut stage→session). */
+async function loadSessionsForStages(database: Database, stageIds: number[]) {
+  if (stageIds.length === 0) return [];
+  return database
+    .select()
+    .from(bracketSessions)
+    .where(inArray(bracketSessions.stageId, stageIds))
+    .orderBy(bracketSessions.stageId, bracketSessions.sessionNumber);
+}
+
+/** Batch loadParticipants utk banyak session (1 query, urut session→slot). */
+async function loadParticipantsForSessions(database: Database, sessionIds: number[]) {
+  if (sessionIds.length === 0) return [];
+  return database
+    .select()
+    .from(bracketSessionParticipants)
+    .where(inArray(bracketSessionParticipants.sessionId, sessionIds))
+    .orderBy(bracketSessionParticipants.sessionId, bracketSessionParticipants.slotNumber);
+}
+
+/** Batch loadResults utk banyak session (1 query, urut session→rank). */
+async function loadResultsForSessions(database: Database, sessionIds: number[]) {
+  if (sessionIds.length === 0) return [];
+  return database
+    .select()
+    .from(bracketSessionResults)
+    .where(inArray(bracketSessionResults.sessionId, sessionIds))
+    .orderBy(bracketSessionResults.sessionId, bracketSessionResults.rank);
+}
+
 /** Siapkan session + participant assignment untuk satu stage. */
 async function createStageSessions(
   database: Database,
@@ -733,26 +763,39 @@ export const heatService = {
       .limit(1);
     if (!b || b.format !== 'HEAT_ELIMINATION') return null;
 
+    const stages = await loadStages(database, b.id);
+
+    // Batch load semua session/participant/result dalam 3 query (bukan N+1).
+    const stageIds = stages.map((s) => s.id);
+    const allSessions = await loadSessionsForStages(database, stageIds);
+    const sessionIds = allSessions.map((s) => s.id);
+    const allParticipants = await loadParticipantsForSessions(database, sessionIds);
+    const allResults = await loadResultsForSessions(database, sessionIds);
+
+    // Group by sessionId — array sudah urut session→…, cukup linear scan.
+    const participantsBySession = new Map<number, typeof allParticipants>();
+    for (const p of allParticipants) {
+      const list = participantsBySession.get(p.sessionId) ?? [];
+      list.push(p);
+      participantsBySession.set(p.sessionId, list);
+    }
+    const resultsBySession = new Map<number, typeof allResults>();
+    for (const r of allResults) {
+      const list = resultsBySession.get(r.sessionId) ?? [];
+      list.push(r);
+      resultsBySession.set(r.sessionId, list);
+    }
+    const sessionsByStage = new Map<number, typeof allSessions>();
+    for (const s of allSessions) {
+      const list = sessionsByStage.get(s.stageId) ?? [];
+      list.push(s);
+      sessionsByStage.set(s.stageId, list);
+    }
+
+    // teamNama: nama tim peserta bracket (bukan seluruh tabel teams).
     const teamNama = new Map<number, string>();
     if (b.participantCount > 0) {
-      // Hanya load tim peserta bracket (bukan seluruh tabel teams).
-      const stageRows = await database
-        .select({ id: bracketStages.id })
-        .from(bracketStages)
-        .where(eq(bracketStages.bracketId, b.id));
-      const sessionIds: number[] = [];
-      for (const st of stageRows) {
-        const sess = await loadSessions(database, st.id);
-        for (const s of sess) sessionIds.push(s.id);
-      }
-      let teamIds: number[] = [];
-      if (sessionIds.length > 0) {
-        const rows = await database
-          .select({ participantId: bracketSessionParticipants.participantId })
-          .from(bracketSessionParticipants)
-          .where(inArray(bracketSessionParticipants.sessionId, sessionIds));
-        teamIds = [...new Set(rows.map((r) => r.participantId))];
-      }
+      const teamIds = [...new Set(allParticipants.map((p) => p.participantId))];
       if (teamIds.length > 0) {
         const rows = await database
           .select({ id: teams.id, nama: teams.nama })
@@ -762,14 +805,13 @@ export const heatService = {
       }
     }
 
-    const stages = await loadStages(database, b.id);
     const stageViews = [];
     for (const stage of stages) {
-      const sessions = await loadSessions(database, stage.id);
+      const sessions = sessionsByStage.get(stage.id) ?? [];
       const sessionViews = [];
       for (const s of sessions) {
-        const parts = await loadParticipants(database, s.id);
-        const results = await loadResults(database, s.id);
+        const parts = participantsBySession.get(s.id) ?? [];
+        const results = resultsBySession.get(s.id) ?? [];
         sessionViews.push({
           id: s.id,
           sessionNumber: s.sessionNumber,
