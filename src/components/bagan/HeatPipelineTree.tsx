@@ -669,13 +669,13 @@ export function HeatPipelineTree({ detail, teams, prizes = [], admin }: HeatPipe
                   <p className="mt-1 text-[10px] text-muted-foreground flex items-center justify-between font-medium">
                     <span>{stageSessions.length} Sesi Pertandingan</span>
                     <span>
-                      {stage.isFinal
-                        ? (
-                            <span className="inline-flex items-center gap-1">
-                              <Trophy size={11} className="text-amber-500" /> Penentuan Juara
-                            </span>
-                          )
-                        : `Top ${stage.qualifiersPerSession}/sesi lolos`}
+                      {stage.isFinal ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Trophy size={11} className="text-amber-500" /> Penentuan Juara
+                        </span>
+                      ) : (
+                        `Top ${stage.qualifiersPerSession}/sesi lolos`
+                      )}
                     </span>
                   </p>
                 </div>

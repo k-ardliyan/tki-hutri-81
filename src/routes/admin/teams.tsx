@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
+  Crown,
   Edit2,
   Layers,
   LayoutGrid,
@@ -53,6 +54,7 @@ import {
   deleteTeam,
   listTeams,
   removeTeamMember,
+  setTeamLeader,
   updateTeam,
 } from '../../server/functions/teams';
 
@@ -70,6 +72,7 @@ interface TeamMemberRow {
   id: number;
   employeeId: number;
   sortOrder: number;
+  isLeader: boolean;
   nama: string;
   nip: string | null;
   divisi: string | null;
@@ -141,6 +144,7 @@ function AdminTeams() {
   const [selectedEmp, setSelectedEmp] = useState<string>('');
   const [submittingTeam, setSubmittingTeam] = useState(false);
   const [submittingMember, setSubmittingMember] = useState(false);
+  const [settingLeaderId, setSettingLeaderId] = useState<number | null>(null);
 
   // Delete confirms
   const [deleteTarget, setDeleteTarget] = useState<TeamRow | null>(null);
@@ -314,6 +318,32 @@ function AdminTeams() {
     }
   };
 
+  const submitSetLeader = async (member: TeamMemberRow) => {
+    if (!memberTeam) return;
+    const newLeaderState = !member.isLeader;
+    setSettingLeaderId(member.id);
+    try {
+      await setTeamLeader({
+        data: {
+          teamId: memberTeam.id,
+          memberId: newLeaderState ? member.id : null,
+        },
+      });
+      toast.success(
+        newLeaderState
+          ? `${member.nama} ditetapkan sebagai Ketua Tim!`
+          : `Status ketua tim untuk ${member.nama} dicopot.`
+      );
+      const freshList = await load();
+      const fresh = freshList.find((r) => r.id === memberTeam.id);
+      if (fresh) setMemberTeam(fresh);
+    } catch (e) {
+      toast.error(errMsg(e, 'Gagal mengubah ketua tim'));
+    } finally {
+      setSettingLeaderId(null);
+    }
+  };
+
   const kodeHint = useMemo(() => {
     if (editId !== null) return 'Kosongkan untuk memakai kode lama';
     return kategori === 'panitia'
@@ -344,6 +374,22 @@ function AdminTeams() {
           {row.original.nama}
         </div>
       ),
+    }),
+    columnHelper.display({
+      id: 'leader',
+      header: 'Ketua Tim',
+      cell: ({ row }) => {
+        const leader = row.original.members.find((m) => m.isLeader);
+        if (!leader) {
+          return <span className="text-xs text-muted-foreground/50 italic">—</span>;
+        }
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+            <Crown size={12} className="text-amber-500 fill-amber-500 shrink-0" />
+            <span className="truncate max-w-[140px]">{leader.nama}</span>
+          </span>
+        );
+      },
     }),
     columnHelper.accessor('kode', {
       header: 'Kode QR',
@@ -577,98 +623,123 @@ function AdminTeams() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredRows.map((r) => (
-              <div
-                key={r.id}
-                className="flex flex-col justify-between rounded-3xl border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:border-brand-red/30"
-              >
-                <div>
-                  {/* Card Header: Category badge & Number */}
-                  <div className="flex items-center justify-between pb-3">
-                    {kategoriBadge(r.kategori)}
-                    {r.nomor && (
-                      <span className="font-mono text-xs font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        #{r.nomor}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Team Title & Kode QR */}
-                  <h4 className="font-heading text-base font-black text-foreground">{r.nama}</h4>
-                  {r.kode && (
-                    <p className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
-                      <QrCode size={12} />
-                      {r.kode}
-                    </p>
-                  )}
-
-                  {/* Member Stack Avatars */}
-                  <div className="mt-4 pt-3 border-t border-border/60">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-muted-foreground">
-                        Anggota Tim ({r.members.length})
-                      </span>
+            {filteredRows.map((r) => {
+              const leader = r.members.find((m) => m.isLeader);
+              return (
+                <div
+                  key={r.id}
+                  className="flex flex-col justify-between rounded-3xl border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:border-brand-red/30"
+                >
+                  <div>
+                    {/* Card Header: Category badge & Number */}
+                    <div className="flex items-center justify-between pb-3">
+                      {kategoriBadge(r.kategori)}
+                      {r.nomor && (
+                        <span className="font-mono text-xs font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                          #{r.nomor}
+                        </span>
+                      )}
                     </div>
 
-                    {r.members.length === 0 ? (
-                      <p className="text-xs text-muted-foreground/80 italic py-1">
-                        Belum ada anggota dimasukkan
+                    {/* Team Title & Kode QR */}
+                    <h4 className="font-heading text-base font-black text-foreground">{r.nama}</h4>
+                    {r.kode && (
+                      <p className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                        <QrCode size={12} />
+                        {r.kode}
                       </p>
-                    ) : (
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        <div className="flex -space-x-2">
-                          {r.members.slice(0, 4).map((m) => (
-                            <div
-                              key={m.id}
-                              title={`${m.nama} (${m.nip || 'Karyawan'})`}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-red/10 border-2 border-card text-[11px] font-black text-brand-red"
-                            >
-                              {getInitials(m.nama)}
-                            </div>
-                          ))}
-                        </div>
-                        {r.members.length > 4 && (
-                          <span className="text-xs font-bold text-muted-foreground pl-1">
-                            +{r.members.length - 4} lagi
-                          </span>
-                        )}
-                      </div>
                     )}
-                  </div>
-                </div>
 
-                {/* Card Actions Footer */}
-                <div className="mt-5 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void openMembers(r)}
-                    className="flex-1 rounded-xl text-xs font-bold h-8 border-brand-red/20 text-brand-red hover:bg-brand-red/10"
-                  >
-                    <UserPlus size={13} className="mr-1.5" />
-                    Kelola Anggota ({r.members.length})
-                  </Button>
-                  <div className="flex items-center gap-1">
+                    {/* Leader Highlight Pill */}
+                    {leader ? (
+                      <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 text-xs font-extrabold text-amber-700 dark:text-amber-400 shadow-2xs">
+                        <Crown size={13} className="text-amber-500 fill-amber-500 shrink-0" />
+                        <span className="truncate">Ketua: {leader.nama}</span>
+                      </div>
+                    ) : (
+                      <p className="mt-2.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground/60 italic">
+                        <Crown size={12} className="opacity-40" />
+                        Belum ada ketua
+                      </p>
+                    )}
+
+                    {/* Member Stack Avatars */}
+                    <div className="mt-4 pt-3 border-t border-border/60">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-muted-foreground">
+                          Anggota Tim ({r.members.length})
+                        </span>
+                      </div>
+
+                      {r.members.length === 0 ? (
+                        <p className="text-xs text-muted-foreground/80 italic py-1">
+                          Belum ada anggota dimasukkan
+                        </p>
+                      ) : (
+                        <div className="flex items-center pt-2">
+                          <div className="flex -space-x-2">
+                            {r.members.slice(0, 4).map((m) => (
+                              <div
+                                key={m.id}
+                                title={`${m.isLeader ? '[KETUA TIM] ' : ''}${m.nama} (${m.nip || 'Karyawan'})`}
+                                className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 text-[11px] font-black ${
+                                  m.isLeader
+                                    ? 'bg-amber-100 text-amber-900 border-amber-400 ring-2 ring-amber-400/40 z-10'
+                                    : 'bg-brand-red/10 border-card text-brand-red'
+                                }`}
+                              >
+                                {getInitials(m.nama)}
+                                {m.isLeader && (
+                                  <span className="absolute -top-1.5 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] text-white">
+                                    <Crown size={8} className="fill-white" />
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {r.members.length > 4 && (
+                            <span className="text-xs font-bold text-muted-foreground pl-1">
+                              +{r.members.length - 4} lagi
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Actions Footer */}
+                  <div className="mt-5 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEdit(r)}
-                      className="h-8 w-8 rounded-xl text-muted-foreground hover:text-foreground"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void openMembers(r)}
+                      className="flex-1 rounded-xl text-xs font-bold h-8 border-brand-red/20 text-brand-red hover:bg-brand-red/10"
                     >
-                      <Edit2 size={14} />
+                      <UserPlus size={13} className="mr-1.5" />
+                      Kelola Anggota ({r.members.length})
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteTarget(r)}
-                      className="h-8 w-8 rounded-xl text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEdit(r)}
+                        className="h-8 w-8 rounded-xl text-muted-foreground hover:text-foreground"
+                      >
+                        <Edit2 size={14} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteTarget(r)}
+                        className="h-8 w-8 rounded-xl text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )
       ) : (
@@ -835,27 +906,75 @@ function AdminTeams() {
                 {memberTeam?.members.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-2xs"
+                    className={`flex items-center gap-3 rounded-2xl border p-3 shadow-2xs transition ${
+                      m.isLeader
+                        ? 'border-amber-400/60 bg-amber-50/40 dark:bg-amber-950/20 ring-1 ring-amber-400/30'
+                        : 'border-border bg-card'
+                    }`}
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-red/10 text-xs font-black text-brand-red">
+                    <div
+                      className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black ${
+                        m.isLeader
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : 'bg-brand-red/10 text-brand-red'
+                      }`}
+                    >
                       {getInitials(m.nama)}
+                      {m.isLeader && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] text-white shadow-xs">
+                          <Crown size={9} className="fill-white" />
+                        </span>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-foreground">{m.nama}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-sm font-bold text-foreground">{m.nama}</p>
+                        {m.isLeader && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.2 text-[10px] font-black text-amber-700 dark:text-amber-300">
+                            <Crown size={10} className="fill-amber-500 text-amber-500" />
+                            Ketua
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-muted-foreground">
                         {[m.nip && `NIP: ${m.nip}`, m.divisi && `Divisi: ${m.divisi}`]
                           .filter(Boolean)
                           .join(' · ') || '—'}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteMemberTarget(m)}
-                      className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 rounded-xl"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant={m.isLeader ? 'default' : 'outline'}
+                        size="sm"
+                        disabled={settingLeaderId !== null}
+                        loading={settingLeaderId === m.id}
+                        onClick={() => void submitSetLeader(m)}
+                        title={
+                          m.isLeader ? 'Klik untuk mencopot status Ketua Tim' : 'Jadikan Ketua Tim'
+                        }
+                        className={`h-8 rounded-xl px-2.5 text-xs font-bold transition ${
+                          m.isLeader
+                            ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs'
+                            : 'border-amber-400/40 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/50'
+                        }`}
+                      >
+                        <Crown
+                          size={13}
+                          className={`mr-1 ${m.isLeader ? 'fill-white' : 'text-amber-500'}`}
+                        />
+                        {m.isLeader ? 'Ketua' : 'Set Ketua'}
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteMemberTarget(m)}
+                        className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 rounded-xl"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

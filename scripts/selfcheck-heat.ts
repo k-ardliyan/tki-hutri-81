@@ -506,7 +506,10 @@ eq(
   const fin = mkStage({ isFinal: true, name: 'Final' });
   eq('getSessions-final-count', getSessionsForStage(fin, prev2).length, 1);
   // qualifier=1: qualifiersFromPrev = 2*1 = 2 → ceil(2/4) = 1.
-  const prevQual1 = mkStage({ qualifiersPerSession: 1, sessions: [sess1, { ...sess1, id: 12, sessionNumber: 2 }] });
+  const prevQual1 = mkStage({
+    qualifiersPerSession: 1,
+    sessions: [sess1, { ...sess1, id: 12, sessionNumber: 2 }],
+  });
   eq('getSessions-qualifier-1', getSessionsForStage(semi, prevQual1).length, 1);
 }
 

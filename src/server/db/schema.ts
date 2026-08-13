@@ -132,6 +132,7 @@ export const teams = pgTable('teams', {
 });
 
 // ─── Team Members (93 baris — junction: 1 employee → 1 tim) ───
+// is_leader: ketua tim (1 per tim — partial unique index di bawah, race-safe di DB).
 export const teamMembers = pgTable(
   'team_members',
   {
@@ -143,8 +144,13 @@ export const teamMembers = pgTable(
       .references(() => employees.id, { onDelete: 'cascade' })
       .notNull(),
     sortOrder: integer('sort_order').notNull(),
+    isLeader: boolean('is_leader').default(false).notNull(),
   },
-  (t) => [unique('team_members_team_employee').on(t.teamId, t.employeeId)]
+  (t) => [
+    unique('team_members_team_employee').on(t.teamId, t.employeeId),
+    // 1 ketua per tim: baris kedua dengan is_leader=true di tim sama → 23505.
+    uniqueIndex('team_members_one_leader').on(t.teamId).where(sql`${t.isLeader} = true`),
+  ]
 );
 
 // ─── Lomba Prizes (juara & hadiah per lomba+kategori — jumlah juara = jumlah baris place 1..N) ───

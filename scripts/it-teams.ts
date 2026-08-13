@@ -108,6 +108,26 @@ const afterEmpDelete = await db!
 check('hapus employee → membership cascade terhapus', afterEmpDelete.length === 0);
 empId = 0; // sudah dihapus
 
+// ── 5) 1 ketua per tim (partial unique index) → 23505 ──
+const [e2] = await db!
+  .insert(employees)
+  .values({ nama: 'IT Test Karyawan 2', nip: 'IT-NIP-082' })
+  .returning();
+const [e3] = await db!
+  .insert(employees)
+  .values({ nama: 'IT Test Karyawan 3', nip: 'IT-NIP-083' })
+  .returning();
+await db!.insert(teamMembers).values({ teamId: teamBId, employeeId: e2.id, sortOrder: 1, isLeader: true });
+let dupLeader = false;
+try {
+  await db!.insert(teamMembers).values({ teamId: teamBId, employeeId: e3.id, sortOrder: 2, isLeader: true });
+} catch (e) {
+  dupLeader = isUniqueViolation(e);
+}
+check('ketua kedua di tim sama → 23505', dupLeader);
+await db!.delete(employees).where(eq(employees.id, e2.id)).catch(() => {});
+await db!.delete(employees).where(eq(employees.id, e3.id)).catch(() => {});
+
 await cleanup();
 console.log(failed > 0 ? `✗ ${failed} check gagal` : '✓ Semua check lulus');
 process.exit(failed > 0 ? 1 : 0);

@@ -24,10 +24,11 @@ function labelKategori(k: string): string {
 
 // ─── Admin: Teams ───
 
-interface TeamMemberShape {
+export interface TeamMemberShape {
   id: number;
   employeeId: number;
   sortOrder: number;
+  isLeader: boolean;
   nama: string;
   nip: string | null;
   divisi: string | null;
@@ -50,13 +51,14 @@ export const listTeams = createServerFn({ method: 'GET' })
         teamId: teamMembers.teamId,
         employeeId: teamMembers.employeeId,
         sortOrder: teamMembers.sortOrder,
+        isLeader: teamMembers.isLeader,
         nama: employees.nama,
         nip: employees.nip,
         divisi: employees.divisi,
       })
       .from(teamMembers)
       .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
-      .orderBy(teamMembers.sortOrder);
+      .orderBy(sql`case when ${teamMembers.isLeader} then 0 else 1 end`, teamMembers.sortOrder);
     const byTeam = new Map<number, TeamMemberShape[]>();
     for (const m of memberRows) {
       const list = byTeam.get(m.teamId) ?? [];
@@ -64,6 +66,7 @@ export const listTeams = createServerFn({ method: 'GET' })
         id: m.id,
         employeeId: m.employeeId,
         sortOrder: m.sortOrder,
+        isLeader: Boolean(m.isLeader),
         nama: m.nama,
         nip: m.nip,
         divisi: m.divisi,
@@ -208,34 +211,103 @@ export const removeTeamMember = createServerFn({ method: 'POST' })
     return { ok: true };
   });
 
+export const setTeamLeader = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
+  .validator((d: { teamId: number; memberId: number | null }) => d)
+  .handler(async ({ data }) => {
+    const database = assertDb();
+    return await database.transaction(async (tx) => {
+      // Row lock pada team → serialisasi: 2 admin set ketua tim sama tidak race (23505).
+      const [teamRow] = await tx
+        .select({ id: teams.id })
+        .from(teams)
+        .where(eq(teams.id, data.teamId))
+        .for('update');
+      if (!teamRow) throw new Error('Tim tidak ditemukan');
+
+      // 1. Reset all leader flags for this team
+      await tx
+        .update(teamMembers)
+        .set({ isLeader: false })
+        .where(eq(teamMembers.teamId, data.teamId));
+
+      // 2. Set new leader if memberId specified
+      if (data.memberId !== null) {
+        const [updated] = await tx
+          .update(teamMembers)
+          .set({ isLeader: true })
+          .where(and(eq(teamMembers.id, data.memberId), eq(teamMembers.teamId, data.teamId)))
+          .returning();
+        if (!updated) throw new Error('Anggota tidak ditemukan di tim ini');
+        return updated;
+      }
+      return { ok: true };
+    });
+  });
+
 // ─── Publik (/tim) — DB-backed, fallback statis ───
 
-export const getTeams = createServerFn({ method: 'GET' }).handler(async () => {
-  if (!db) return dataKelompok;
-  const teamRows = await db
-    .select()
-    .from(teams)
-    .where(inArray(teams.kategori, ['putra', 'putri']))
-    .orderBy(sql`case when ${teams.kategori} = 'putra' then 1 else 2 end`, teams.nomor);
-  const memberRows = await db
-    .select({ teamId: teamMembers.teamId, nama: employees.nama })
-    .from(teamMembers)
-    .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
-    .orderBy(teamMembers.sortOrder);
-  const byTeam = new Map<number, string[]>();
-  for (const m of memberRows) {
-    const list = byTeam.get(m.teamId) ?? [];
-    list.push(m.nama);
-    byTeam.set(m.teamId, list);
+export interface PublicTeamMember {
+  nama: string;
+  isLeader: boolean;
+}
+
+export interface PublicTeam {
+  id: string;
+  kategori: string;
+  nomor: number | null;
+  nama: string;
+  anggota: PublicTeamMember[];
+}
+
+export const getTeams = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<PublicTeam[]> => {
+    if (!db) {
+      return (
+        dataKelompok as Array<{
+          id: string;
+          kategori: string;
+          nomor: number;
+          nama: string;
+          anggota: string[];
+        }>
+      ).map((t) => ({
+        id: String(t.id),
+        kategori: t.kategori,
+        nomor: t.nomor,
+        nama: t.nama,
+        anggota: t.anggota.map((nama) => ({ nama, isLeader: false })),
+      }));
+    }
+    const teamRows = await db
+      .select()
+      .from(teams)
+      .where(inArray(teams.kategori, ['putra', 'putri']))
+      .orderBy(sql`case when ${teams.kategori} = 'putra' then 1 else 2 end`, teams.nomor);
+    const memberRows = await db
+      .select({
+        teamId: teamMembers.teamId,
+        nama: employees.nama,
+        isLeader: teamMembers.isLeader,
+      })
+      .from(teamMembers)
+      .innerJoin(employees, eq(teamMembers.employeeId, employees.id))
+      .orderBy(sql`case when ${teamMembers.isLeader} then 0 else 1 end`, teamMembers.sortOrder);
+    const byTeam = new Map<number, PublicTeamMember[]>();
+    for (const m of memberRows) {
+      const list = byTeam.get(m.teamId) ?? [];
+      list.push({ nama: m.nama, isLeader: Boolean(m.isLeader) });
+      byTeam.set(m.teamId, list);
+    }
+    return teamRows.map((t) => ({
+      id: String(t.id),
+      kategori: t.kategori,
+      nomor: t.nomor,
+      nama: t.nama,
+      anggota: byTeam.get(t.id) ?? [],
+    }));
   }
-  return teamRows.map((t) => ({
-    id: String(t.id),
-    kategori: t.kategori,
-    nomor: t.nomor,
-    nama: t.nama,
-    anggota: byTeam.get(t.id) ?? [],
-  }));
-});
+);
 
 export const getTeamSummary = createServerFn({ method: 'GET' }).handler(async () => {
   if (!db) return summaryKelompok;

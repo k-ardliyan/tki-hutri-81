@@ -3,12 +3,24 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { motionTransition } from '~/lib/motion';
 
+interface KelompokMember {
+  nama: string;
+  isLeader?: boolean;
+}
+
 interface KelompokGroup {
   id: string;
   kategori: string;
-  nomor: number;
+  nomor: number | null;
   nama: string;
-  anggota: string[];
+  anggota: (string | KelompokMember)[];
+}
+
+function normalizeMember(m: string | KelompokMember): KelompokMember {
+  if (typeof m === 'string') {
+    return { nama: m, isLeader: false };
+  }
+  return { nama: m.nama, isLeader: Boolean(m.isLeader) };
 }
 
 function highlightParts(text: string, term: string): (string | React.JSX.Element)[] {
@@ -37,6 +49,9 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
   const isPutra = group.kategori === 'putra';
   const termLower = term.toLowerCase();
 
+  const members = useMemo(() => group.anggota.map(normalizeMember), [group.anggota]);
+  const leader = useMemo(() => members.find((m) => m.isLeader), [members]);
+
   // Auto-open when search matches group name or any member
   useEffect(() => {
     if (!termLower) {
@@ -44,9 +59,9 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
       return;
     }
     const nameHit = group.nama.toLowerCase().includes(termLower);
-    const memberHit = group.anggota.some((a: string) => a.toLowerCase().includes(termLower));
+    const memberHit = members.some((m) => m.nama.toLowerCase().includes(termLower));
     if (nameHit || memberHit) setOpen(true);
-  }, [termLower, group.nama, group.anggota]);
+  }, [termLower, group.nama, members]);
 
   return (
     <motion.article
@@ -60,23 +75,38 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left cursor-pointer active:scale-[0.99] transition-transform"
       >
-        <div className="min-w-0">
-          <span
-            className={`mb-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-              isPutra ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
-            }`}
-          >
-            {isPutra ? 'Putra' : 'Putri'}
-          </span>
-          <h3 className="font-heading text-base font-bold text-slate-900">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                isPutra ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
+              }`}
+            >
+              {isPutra ? 'Putra' : 'Putri'}
+            </span>
+            {group.nomor && (
+              <span className="text-[11px] font-mono font-bold text-slate-400">#{group.nomor}</span>
+            )}
+          </div>
+          <h3 className="mt-0.5 font-heading text-base font-bold text-slate-900">
             {highlightParts(group.nama, term)}
           </h3>
-          <p className="text-xs text-slate-500">{group.anggota.length} anggota</p>
+
+          {/* Leader pill & Member count */}
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            {leader && (
+              <span className="inline-flex items-center gap-1 font-bold text-amber-700 bg-amber-50 border border-amber-200/90 rounded-md px-1.5 py-0.5 text-[11px] shadow-2xs">
+                <i className="fa-solid fa-crown text-[10px] text-amber-500" />
+                <span>Ketua: {highlightParts(leader.nama, term)}</span>
+              </span>
+            )}
+            <span className="text-slate-500 font-medium">{members.length} anggota</span>
+          </div>
         </div>
         <motion.i
           animate={{ rotate: open ? 180 : 0 }}
           transition={motionTransition.fast}
-          className="fa-solid fa-chevron-down text-slate-500"
+          className="fa-solid fa-chevron-down text-slate-500 shrink-0"
         />
       </button>
 
@@ -91,19 +121,33 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
           >
             <div className="px-4 py-3">
               <ul className="space-y-1.5">
-                {group.anggota.map((nama: string) => {
-                  const isMatch = termLower && nama.toLowerCase().includes(termLower);
+                {members.map((m) => {
+                  const isMatch = termLower && m.nama.toLowerCase().includes(termLower);
                   return (
                     <li
-                      key={`${group.id}-${nama}`}
-                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${
-                        isMatch
-                          ? 'bg-amber-50 text-slate-900 ring-amber-200'
-                          : 'bg-white text-slate-700 ring-slate-100'
+                      key={`${group.id}-${m.nama}`}
+                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ring-1 transition ${
+                        m.isLeader
+                          ? isMatch
+                            ? 'bg-amber-100/90 text-slate-900 ring-amber-400 border border-amber-300 font-medium'
+                            : 'bg-amber-50/90 text-amber-950 ring-amber-200/80 border border-amber-200 font-medium'
+                          : isMatch
+                            ? 'bg-amber-50 text-slate-900 ring-amber-200'
+                            : 'bg-white text-slate-700 ring-slate-100'
                       }`}
                     >
-                      <span className="min-w-0 flex-1">{highlightParts(nama, term)}</span>
-                      {isMatch && (
+                      <span className="min-w-0 flex-1 flex items-center gap-1.5">
+                        {m.isLeader && (
+                          <i className="fa-solid fa-crown text-amber-500 text-xs shrink-0" />
+                        )}
+                        <span>{highlightParts(m.nama, term)}</span>
+                      </span>
+                      {m.isLeader && (
+                        <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-amber-200/90 px-2 py-0.5 text-[9px] font-black text-amber-900">
+                          KETUA
+                        </span>
+                      )}
+                      {isMatch && !m.isLeader && (
                         <span className="shrink-0 rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-bold text-amber-900">
                           cocok
                         </span>
@@ -174,15 +218,18 @@ export default function TimPage() {
   const termLower = term.toLowerCase();
 
   const filtered = useMemo(() => {
-    return teams.filter((g) => {
+    return (teams as KelompokGroup[]).filter((g) => {
       const byCat = filter === 'all' || g.kategori === filter;
       const byQuery =
         !termLower ||
         g.nama.toLowerCase().includes(termLower) ||
-        g.anggota.some((a: string) => a.toLowerCase().includes(termLower));
+        g.anggota.some((a) => {
+          const name = typeof a === 'string' ? a : a.nama;
+          return name.toLowerCase().includes(termLower);
+        });
       return byCat && byQuery;
     });
-  }, [filter, termLower]);
+  }, [teams, filter, termLower]);
 
   const putraGroups = filtered.filter((g) => g.kategori === 'putra');
   const putriGroups = filtered.filter((g) => g.kategori === 'putri');
