@@ -1,83 +1,100 @@
 import { Link } from '@tanstack/react-router';
 import { Lock } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { motion, type Variants } from 'motion/react';
+import type { CSSProperties } from 'react';
+import { motionDuration, motionEase } from '~/lib/motion';
 import { assets } from '../../assets';
-import { gsap, shouldReduceMotion } from '../../lib/gsap';
 import LogoFtp from '../brand/LogoFtp';
 import LogoHutRi81 from '../brand/LogoHutRi81';
 import LogoTki from '../brand/LogoTki';
 
 const PARTICLES = [
-  { top: '15%', left: '7%', size: 'w-2 h-2', bg: 'bg-amber-300/45', blur: 'blur-[0.5px]' },
-  { top: '30%', left: '20%', size: 'w-1.5 h-1.5', bg: 'bg-rose-300/60', blur: '' },
-  { top: '68%', left: '12%', size: 'w-2.5 h-2.5', bg: 'bg-white/40', blur: 'blur-[1px]' },
-  { top: '20%', left: '46%', size: 'w-2 h-2', bg: 'bg-amber-200/50', blur: 'blur-[0.5px]' },
-  { top: '78%', left: '82%', size: 'w-1.5 h-1.5', bg: 'bg-amber-400/55', blur: '' },
+  {
+    top: '15%',
+    left: '7%',
+    size: 'w-2 h-2',
+    bg: 'bg-amber-300/45',
+    blur: 'blur-[0.5px]',
+    dx: '8px',
+    dy: '-12px',
+    dur: '2.2s',
+    delay: '0s',
+  },
+  {
+    top: '30%',
+    left: '20%',
+    size: 'w-1.5 h-1.5',
+    bg: 'bg-rose-300/60',
+    blur: '',
+    dx: '-13px',
+    dy: '-18px',
+    dur: '2.8s',
+    delay: '0.15s',
+  },
+  {
+    top: '68%',
+    left: '12%',
+    size: 'w-2.5 h-2.5',
+    bg: 'bg-white/40',
+    blur: 'blur-[1px]',
+    dx: '18px',
+    dy: '-12px',
+    dur: '3.4s',
+    delay: '0.3s',
+  },
 ];
 
+const containerVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.04 } },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: motionDuration.normal, ease: motionEase.entrance },
+  },
+};
+
 export default function SiteFooter() {
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!rootRef.current || shouldReduceMotion()) return undefined;
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        rootRef.current!.querySelectorAll('.ft-item'),
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: 'power2.out',
-          clearProps: 'all',
-        }
-      );
-
-      // Floating ambient particles animation
-      const particles = rootRef.current!.querySelectorAll('.ft-particle');
-      particles.forEach((p: Element, i: number) => {
-        gsap.to(p, {
-          y: `-=${12 + (i % 4) * 6}`,
-          x: `+=${(i % 2 === 0 ? 1 : -1) * (8 + (i % 3) * 5)}`,
-          opacity: 0.3 + (i % 3) * 0.25,
-          scale: 0.85 + (i % 3) * 0.3,
-          duration: 2.2 + (i % 4) * 0.6,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-          delay: (i * 0.15) % 1.2,
-        });
-      });
-    }, rootRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <footer
-      ref={rootRef}
-      className="relative overflow-hidden bg-gradient-to-br from-footer-from via-footer-via to-footer-to text-white"
-    >
+    <footer className="relative overflow-hidden bg-gradient-to-br from-footer-from via-footer-via to-footer-to text-white">
       {/* Background Radial Glow */}
       <div className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 -bottom-20 h-96 w-96 rounded-full bg-amber-400/15 blur-3xl" />
 
-      {/* Floating Animated Particles */}
+      {/* Floating Animated Particles — CSS keyframes (zero JS) */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         {PARTICLES.map((pt, idx) => (
           <span
             key={idx}
             className={`ft-particle absolute rounded-full ${pt.size} ${pt.bg} ${pt.blur}`}
-            style={{ top: pt.top, left: pt.left }}
+            style={
+              {
+                top: pt.top,
+                left: pt.left,
+                '--dx': pt.dx,
+                '--dy': pt.dy,
+                '--dur': pt.dur,
+                '--delay': pt.delay,
+              } as CSSProperties
+            }
           />
         ))}
 
         {/* Decorative Sparkle Star */}
         <span
           className="ft-particle absolute top-8 left-[18%] text-[10px] text-amber-300/40 select-none"
-          style={{ transform: 'rotate(12deg)' }}
+          style={
+            {
+              '--dx': '-8px',
+              '--dy': '-24px',
+              '--dur': '2.2s',
+              '--delay': '0.45s',
+            } as CSSProperties
+          }
         >
           ✦
         </span>
@@ -95,9 +112,17 @@ export default function SiteFooter() {
       </div>
 
       <div className="shell relative z-10 pt-8 pb-24 sm:pt-10 lg:pb-10">
-        <div className="flex flex-col items-center text-center space-y-4">
+        <motion.div
+          className="flex flex-col items-center text-center space-y-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Dual White Logos Header — HUT RI 81 + TKI x FTP */}
-          <div className="ft-item flex items-center justify-center gap-3 sm:gap-4">
+          <motion.div
+            variants={itemVariants}
+            className="ft-item flex items-center justify-center gap-3 sm:gap-4"
+          >
             <LogoHutRi81 variant="white" className="h-12 sm:h-14 w-auto drop-shadow-md" animate />
             <div className="h-7 sm:h-9 w-px bg-white/25 shrink-0" />
             <div className="flex items-center gap-2 sm:gap-2.5">
@@ -114,20 +139,23 @@ export default function SiteFooter() {
               </svg>
               <LogoFtp variant="white" className="h-4.5 sm:h-5.5 w-auto drop-shadow-md" animate />
             </div>
-          </div>
+          </motion.div>
 
           {/* Slogan & Subhead */}
-          <div className="ft-item max-w-xl space-y-1.5">
+          <motion.div variants={itemVariants} className="ft-item max-w-xl space-y-1.5">
             <h3 className="font-heading text-xl font-black tracking-tight sm:text-2xl text-white">
               Semarak Kemerdekaan, Eratkan Kebersamaan.
             </h3>
             <p className="text-xs font-semibold text-white/80">
               Dirgahayu Republik Indonesia ke-81
             </p>
-          </div>
+          </motion.div>
 
           {/* Clean Copyright Footer Divider with Discrete Login Link */}
-          <div className="ft-item w-full border-t border-white/15 pt-5 mt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <motion.div
+            variants={itemVariants}
+            className="ft-item w-full border-t border-white/15 pt-5 mt-2 flex flex-col sm:flex-row items-center justify-between gap-3"
+          >
             <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-[11px] sm:text-xs text-white/60 text-center sm:text-left font-medium leading-relaxed">
               <span>© 2026</span>
               <span className="hidden sm:inline text-white/30">•</span>
@@ -145,8 +173,8 @@ export default function SiteFooter() {
               <Lock size={11} className="opacity-70" />
               <span>Panel Panitia & Auditor</span>
             </Link>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </footer>
   );

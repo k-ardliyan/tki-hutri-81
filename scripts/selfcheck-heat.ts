@@ -2,6 +2,12 @@
  * Selfcheck — heat elimination pure logic.
  * Jalankan: bun scripts/selfcheck-heat.ts (exit 1 kalau ada assert gagal).
  */
+
+import {
+  getSessionsForStage,
+  getStagePlaceholderDistribution,
+} from '../src/components/bagan/HeatPipelineTree';
+import type { HeatStageView } from '../src/lib/tournament/heat-elimination';
 import {
   assignToSessions,
   autoGenerateStages,
@@ -311,6 +317,33 @@ eq(
   [1, 2, 5, 6]
 );
 
+// ─── qualify (TOP_N_OVERALL & MANUAL) ───
+eq(
+  'qual-overall',
+  qualify({
+    mode: 'TOP_N_OVERALL',
+    qualifiersPerSession: 3,
+    bySession: [
+      {
+        sessionId: 1,
+        ranks: [
+          { participantId: 1, rank: 1 },
+          { participantId: 2, rank: 2 },
+        ],
+      },
+      {
+        sessionId: 2,
+        ranks: [
+          { participantId: 3, rank: 1 },
+          { participantId: 4, rank: 3 },
+        ],
+      },
+    ],
+  }).map((q) => q.participantId),
+  [1, 3, 2]
+);
+eq('qual-manual-kosong', qualify({ mode: 'MANUAL', qualifiersPerSession: 2, bySession: [] }), []);
+
 // ─── serpentineOrder ───
 eq('serpentine-8/4', serpentineOrder([1, 2, 3, 4, 5, 6, 7, 8], 4), [1, 8, 2, 7, 3, 6, 4, 5]);
 
@@ -372,6 +405,110 @@ eq(
   ]),
   { rank1: 10, rank2: 20, rank3: 30 }
 );
+
+// ─── getStagePlaceholderDistribution (HeatPipelineTree) ───
+{
+  const mkStage = (over: Partial<HeatStageView>): HeatStageView => ({
+    id: 1,
+    stageNumber: 1,
+    name: 'Penyisihan',
+    teamsPerSession: 4,
+    advancementMode: 'TOP_N_PER_SESSION',
+    qualifiersPerSession: 2,
+    resultMode: 'MANUAL_POSITION',
+    isFinal: false,
+    status: 'COMPLETED',
+    sessions: [],
+    ...over,
+  });
+  const prev = mkStage({
+    sessions: [
+      {
+        id: 1,
+        sessionNumber: 1,
+        name: 'Sesi 1',
+        status: 'COMPLETED',
+        version: 1,
+        participants: [],
+        results: [],
+      },
+      {
+        id: 2,
+        sessionNumber: 2,
+        name: 'Sesi 2',
+        status: 'COMPLETED',
+        version: 1,
+        participants: [],
+        results: [],
+      },
+    ],
+  });
+  const cur = mkStage({ stageNumber: 2, name: 'Semifinal', status: 'ACTIVE' });
+  const dist = getStagePlaceholderDistribution(cur, prev, 2);
+  eq(
+    'placeholder-bucket0',
+    dist[0].map((q) => q.label),
+    ['Juara 1 Sesi 1 (Penyisihan)', 'Juara 2 Sesi 2 (Penyisihan)']
+  );
+  eq(
+    'placeholder-bucket1',
+    dist[1].map((q) => q.label),
+    ['Juara 1 Sesi 2 (Penyisihan)', 'Juara 2 Sesi 1 (Penyisihan)']
+  );
+  eq('placeholder-total-tiket', dist.flat().length, 4);
+  eq('placeholder-tanpa-prev', getStagePlaceholderDistribution(cur, null, 2).flat().length, 0);
+}
+
+// ─── getSessionsForStage (HeatPipelineTree) ───
+{
+  const mkStage = (over: Partial<HeatStageView>): HeatStageView => ({
+    id: 1,
+    stageNumber: 1,
+    name: 'Penyisihan',
+    teamsPerSession: 4,
+    advancementMode: 'TOP_N_PER_SESSION',
+    qualifiersPerSession: 2,
+    resultMode: 'MANUAL_POSITION',
+    isFinal: false,
+    status: 'COMPLETED',
+    sessions: [],
+    ...over,
+  });
+  const sess1 = {
+    id: 10,
+    sessionNumber: 1,
+    name: 'Sesi 1',
+    status: 'COMPLETED' as const,
+    version: 1,
+    participants: [],
+    results: [],
+  };
+  // Stage dengan sesi asli → return asli.
+  const withSessions = mkStage({ sessions: [sess1] });
+  eq('getSessions-asli-count', getSessionsForStage(withSessions, null).length, 1);
+  eq(
+    'getSessions-asli-bukan-placeholder',
+    getSessionsForStage(withSessions, null)[0].isPlaceholder,
+    false
+  );
+  // Tanpa prevStage → kosong (babak pertama tak punya qualifier).
+  eq('getSessions-tanpa-prev', getSessionsForStage(mkStage({}), null).length, 0);
+  // prevStage punya 2 sesi, qualifier 2, teamsPerSession 4, non-final:
+  // qualifiersFromPrev = 2*2 = 4 → ceil(4/4) = 1 placeholder sesi.
+  const prev2 = mkStage({
+    sessions: [sess1, { ...sess1, id: 11, sessionNumber: 2, name: 'Sesi 2' }],
+  });
+  const semi = mkStage({ stageNumber: 2, name: 'Semifinal', status: 'ACTIVE' });
+  const semiSessions = getSessionsForStage(semi, prev2);
+  eq('getSessions-semi-count', semiSessions.length, 1);
+  eq('getSessions-semi-placeholder', semiSessions[0].isPlaceholder, true);
+  // Stage final → selalu 1 placeholder.
+  const fin = mkStage({ isFinal: true, name: 'Final' });
+  eq('getSessions-final-count', getSessionsForStage(fin, prev2).length, 1);
+  // qualifier=1: qualifiersFromPrev = 2*1 = 2 → ceil(2/4) = 1.
+  const prevQual1 = mkStage({ qualifiersPerSession: 1, sessions: [sess1, { ...sess1, id: 12, sessionNumber: 2 }] });
+  eq('getSessions-qualifier-1', getSessionsForStage(semi, prevQual1).length, 1);
+}
 
 if (failures > 0) {
   console.error(`\n${failures} check(s) FAILED`);

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { SearchInput } from '~/components/common/SearchInput';
 import { AdminTeamsSkeleton, DataTableSkeleton } from '~/components/loading/skeletons';
 import { DataTable, type features } from '../../components/data-table';
 import { Alert, AlertDescription } from '../../components/ui/alert';
@@ -526,17 +527,13 @@ function AdminTeams() {
 
         {/* Right side: Live Search & Grid/Table Toggle */}
         <div className="flex flex-1 items-center justify-end gap-2.5 min-w-[240px]">
-          <div className="relative flex-1 max-w-xs">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={14}
-            />
-            <Input
-              type="text"
+          <div className="flex-1 max-w-xs">
+            <SearchInput
               placeholder="Cari tim, kode, atau anggota..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs rounded-xl"
+              onClear={() => setSearchQuery('')}
+              className="h-9 text-xs rounded-xl"
             />
           </div>
 
@@ -681,6 +678,7 @@ function AdminTeams() {
           columns={columns}
           getRowId={(r) => String(r.id)}
           pageSize={15}
+          loading={rowsLoading}
           toolbar={
             <span className="text-xs font-bold text-muted-foreground">
               {filteredRows.length} tim ditampilkan

@@ -135,6 +135,7 @@ export const correctMatchResult = createServerFn({ method: 'POST' })
       winnerId: number;
       reason?: string | null;
       invalidateDownstream: boolean;
+      expectedVersion: number;
     }) => d
   )
   .handler(async ({ data }) => {
@@ -143,6 +144,7 @@ export const correctMatchResult = createServerFn({ method: 'POST' })
       winnerId: data.winnerId,
       reason: data.reason ?? null,
       invalidateDownstream: data.invalidateDownstream,
+      expectedVersion: data.expectedVersion,
     });
   });
 

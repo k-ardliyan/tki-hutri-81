@@ -1,14 +1,15 @@
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { LoginSkeleton } from '~/components/loading/skeletons';
+import { motionDuration, motionEase } from '~/lib/motion';
 import LogoFtp from '../components/brand/LogoFtp';
 import LogoHutRi81 from '../components/brand/LogoHutRi81';
 import LogoTki from '../components/brand/LogoTki';
 import { LoginForm } from '../components/login-form';
 import type { UserRole } from '../lib/auth';
-import { gsap, shouldReduceMotion } from '../lib/gsap';
 import { getSession, login } from '../server/functions/auth';
 
 function homeForRole(role: UserRole): string {
@@ -27,35 +28,18 @@ export const Route = createFileRoute('/login')({
   pendingComponent: LoginSkeleton,
 });
 
+const entrance = (delay: number) => ({
+  initial: { opacity: 0, y: 16, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  transition: { duration: motionDuration.normal, ease: motionEase.entrance, delay },
+});
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current || shouldReduceMotion()) return undefined;
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        containerRef.current!.querySelectorAll('.anim-login'),
-        { opacity: 0, y: 18, scale: 0.98 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.45,
-          stagger: 0.08,
-          ease: 'power3.out',
-          clearProps: 'all',
-        }
-      );
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
 
   const handleSubmit = async () => {
     setError('');
@@ -76,17 +60,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100/70 to-rose-50/40 p-4 sm:p-6 md:p-10 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
-    >
+    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100/70 to-rose-50/40 p-4 sm:p-6 md:p-10 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Decorative ambient background glows */}
       <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-rose-500/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
 
       <div className="relative z-10 flex w-full max-w-sm flex-col gap-5">
         {/* Logos & Brand Heading */}
-        <div className="anim-login flex flex-col items-center text-center space-y-3">
+        <motion.div
+          {...entrance(0)}
+          className="anim-login flex flex-col items-center text-center space-y-3"
+        >
           <Link
             to="/"
             className="flex items-center gap-2.5 transition hover:opacity-85 active:scale-98 cursor-pointer"
@@ -108,10 +92,10 @@ export default function LoginPage() {
               Masuk untuk mengelola lomba & penilaian 5R
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Login Form Card */}
-        <div className="anim-login">
+        <motion.div {...entrance(0.08)} className="anim-login">
           <LoginForm
             username={username}
             password={password}
@@ -121,10 +105,10 @@ export default function LoginPage() {
             onPasswordChange={setPassword}
             onSubmit={() => void handleSubmit()}
           />
-        </div>
+        </motion.div>
 
         {/* Back to Home Link */}
-        <div className="anim-login text-center">
+        <motion.div {...entrance(0.16)} className="anim-login text-center">
           <Link
             to="/"
             className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground hover:underline cursor-pointer"
@@ -132,7 +116,7 @@ export default function LoginPage() {
             <ArrowLeft size={13} />
             Kembali ke Beranda Utama
           </Link>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -13,8 +13,8 @@
 import { eq } from 'drizzle-orm';
 import type { HeatDetailView } from '../src/lib/tournament/heat-elimination';
 import { db } from '../src/server/db';
-import { brackets, competitions, teams } from '../src/server/db/schema';
-import type { TournamentDb } from '../src/server/services/tournament';
+import { bracketSessions, brackets, competitions, teams } from '../src/server/db/schema';
+import { type TournamentDb, tournamentService } from '../src/server/services/tournament';
 import { heatService } from '../src/server/services/tournament/heat';
 
 const td = db as unknown as TournamentDb;
@@ -68,6 +68,11 @@ await heatService.generate(td, {
 let detail = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
 check('bracket format HEAT', detail.bracket.format === 'HEAT_ELIMINATION');
 check('bracket DRAFT', detail.bracket.status === 'DRAFT');
+// SE detail harus null saat bracket adalah HEAT (guard format simetris).
+check(
+  'SE detail null utk bracket HEAT',
+  (await tournamentService.detail(td, competitionId, 'putra')) === null
+);
 check('2 stages', detail.stages.length === 2, String(detail.stages.length));
 check('stage1 = Penyisihan', detail.stages[0].name === 'Penyisihan');
 check('stage1 ACTIVE', detail.stages[0].status === 'ACTIVE');
@@ -167,7 +172,8 @@ check(
 );
 
 // ─── 6. Input hasil final: A(1) B(2) E(3) F(4) → podium A,B,E ───
-await heatService.submitSessionResult(td, {
+// Submit sesi final → AUTO-finalize (tanpa finalizeStage manual).
+const finSubmit = await heatService.submitSessionResult(td, {
   sessionId: finalSession.id,
   expectedVersion: finalSession.version,
   results: [
@@ -177,11 +183,14 @@ await heatService.submitSessionResult(td, {
     { participantId: F, rank: 4 },
   ],
 });
-await heatService.finalizeStage(td, detail.stages[1].id);
+check('submit final → finalCompleted true', finSubmit.finalCompleted === true);
+check('submit final → podium A', finSubmit.podium?.rank1 === A);
+check('submit final → podium B', finSubmit.podium?.rank2 === B);
+check('submit final → podium E', finSubmit.podium?.rank3 === E);
 
 detail = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
-check('bracket COMPLETED', detail.bracket.status === 'COMPLETED');
-check('stage2 COMPLETED', detail.stages[1].status === 'COMPLETED');
+check('bracket COMPLETED (auto)', detail.bracket.status === 'COMPLETED');
+check('stage2 COMPLETED (auto)', detail.stages[1].status === 'COMPLETED');
 check('podium rank1 = A', detail.podium.rank1 === A);
 check('podium rank2 = B', detail.podium.rank2 === B);
 check('podium rank3 = E', detail.podium.rank3 === E);
@@ -194,6 +203,7 @@ const correctRes = await heatService.correctSessionResult(td, {
   sessionId: s1Again.id,
   reason: 'Salah input urutan',
   invalidateDownstream: true,
+  expectedVersion: s1Again.version,
   results: [
     { participantId: A, rank: 1 },
     { participantId: C, rank: 2 },
@@ -401,7 +411,7 @@ check(
     expectedVersion: fSess.version,
     results: fSess.participants.map((p, i) => ({ participantId: p.participantId, rank: i + 1 })),
   });
-  await heatService.finalizeStage(td, dF2.stages[1].id);
+  // (auto-finalize: stage final COMPLETED + bracket COMPLETED tanpa finalizeStage manual)
   let dF3 = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
   check('bracket COMPLETED sebelum koreksi', dF3.bracket.status === 'COMPLETED');
   // Koreksi sesi final (rank dibalik) → bracket harus IN_PROGRESS.
@@ -410,6 +420,7 @@ check(
   await heatService.correctSessionResult(td, {
     sessionId: finSess.id,
     invalidateDownstream: false,
+    expectedVersion: finSess.version,
     results: parts.map((p, i) => ({ participantId: p, rank: parts.length - i })),
   });
   dF3 = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
@@ -477,7 +488,7 @@ check(
       expectedVersion: f16.version,
       results: f16.participants.map((p, i) => ({ participantId: p.participantId, rank: i + 1 })),
     });
-    await heatService.finalizeStage(td, d16.stages[2].id);
+    // (auto-finalize stage final)
     d16 = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
     check('16 tim: COMPLETED', d16.bracket.status === 'COMPLETED');
     check('16 tim: podium rank1 terisi', d16.podium.rank1 !== null);
@@ -486,6 +497,93 @@ check(
   } else {
     console.log('  - skip 16-tim (DB < 16 tim putra)');
   }
+}
+
+// ─── 14. Submit sesi CANCELLED → ditolak ───
+{
+  const [bK] = await db!.select().from(brackets).where(eq(brackets.kategori, 'putra')).limit(1);
+  if (bK) await db!.delete(brackets).where(eq(brackets.id, bK.id));
+  await heatService.generate(td, {
+    competitionId,
+    kategori: 'putra',
+    teamIds: ids,
+    config,
+    seedingMethod: 'REGISTRATION_ORDER',
+  });
+  const dK = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
+  await heatService.publish(td, dK.bracket.id);
+  const sK = dK.stages[0].sessions[0];
+  await db!
+    .update(bracketSessions)
+    .set({ status: 'CANCELLED' })
+    .where(eq(bracketSessions.id, sK.id));
+  const cancelRej = await heatService
+    .submitSessionResult(td, {
+      sessionId: sK.id,
+      expectedVersion: sK.version,
+      results: sK.participants.map((p, i) => ({ participantId: p.participantId, rank: i + 1 })),
+    })
+    .then(() => false)
+    .catch((e) => String(e?.message ?? e).includes('sudah selesai'));
+  check('submit sesi CANCELLED ditolak', cancelRej);
+  const [bK2] = await db!.select().from(brackets).where(eq(brackets.kategori, 'putra')).limit(1);
+  if (bK2) await db!.delete(brackets).where(eq(brackets.id, bK2.id));
+}
+
+// ─── 15. Regenerate heat DRAFT → struktur + peserta utuh ───
+{
+  const [bR] = await db!.select().from(brackets).where(eq(brackets.kategori, 'putra')).limit(1);
+  if (bR) await db!.delete(brackets).where(eq(brackets.id, bR.id));
+  await heatService.generate(td, {
+    competitionId,
+    kategori: 'putra',
+    teamIds: ids,
+    config,
+    seedingMethod: 'REGISTRATION_ORDER',
+  });
+  await heatService.regenerate(td, competitionId, 'putra');
+  const dR = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
+  check('heat regenerate format HEAT', dR.bracket.format === 'HEAT_ELIMINATION');
+  check('heat regenerate DRAFT', dR.bracket.status === 'DRAFT');
+  check(
+    'heat regenerate peserta utuh',
+    dR.stages[0].sessions.reduce((a, s) => a + s.participants.length, 0) === 8
+  );
+  const [bR2] = await db!.select().from(brackets).where(eq(brackets.kategori, 'putra')).limit(1);
+  if (bR2) await db!.delete(brackets).where(eq(brackets.id, bR2.id));
+}
+
+// ─── 16. Koreksi session version salah → tolak ───
+{
+  const [bV] = await db!.select().from(brackets).where(eq(brackets.kategori, 'putra')).limit(1);
+  if (bV) await db!.delete(brackets).where(eq(brackets.id, bV.id));
+  await heatService.generate(td, {
+    competitionId,
+    kategori: 'putra',
+    teamIds: ids,
+    config,
+    seedingMethod: 'REGISTRATION_ORDER',
+  });
+  const dV = (await heatService.detail(td, competitionId, 'putra')) as HeatDetailView;
+  await heatService.publish(td, dV.bracket.id);
+  const sV = dV.stages[0].sessions[0];
+  await heatService.submitSessionResult(td, {
+    sessionId: sV.id,
+    expectedVersion: sV.version,
+    results: sV.participants.map((p, i) => ({ participantId: p.participantId, rank: i + 1 })),
+  });
+  const wrongV = await heatService
+    .correctSessionResult(td, {
+      sessionId: sV.id,
+      invalidateDownstream: false,
+      expectedVersion: 0,
+      results: sV.participants.map((p, i) => ({ participantId: p.participantId, rank: i + 1 })),
+    })
+    .then(() => false)
+    .catch((e) => String(e?.message ?? e).includes('diperbarui admin lain'));
+  check('koreksi session version salah → tolak', wrongV);
+  const [bV2] = await db!.select().from(brackets).where(eq(brackets.kategori, 'putra')).limit(1);
+  if (bV2) await db!.delete(brackets).where(eq(brackets.id, bV2.id));
 }
 
 // ─── Cleanup ───

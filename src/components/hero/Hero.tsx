@@ -1,75 +1,61 @@
-import { useEffect, useRef } from 'react';
+import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 'react';
+import { motionDuration, motionEase } from '~/lib/motion';
 import { useAudienceNavigate } from '../../context/AudienceContext';
-import { gsap, shouldReduceMotion } from '../../lib/gsap';
 import LogoFtp from '../brand/LogoFtp';
 import LogoHutRi81 from '../brand/LogoHutRi81';
 import LogoTki from '../brand/LogoTki';
 import SalatigaRibbonSvg from '../brand/SalatigaRibbonSvg';
 import EventStatusReminder from './EventStatusReminder';
 
-export default function Hero() {
-  const navigate = useAudienceNavigate();
-  const rootRef = useRef<HTMLElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+function useParallaxTilt() {
+  const reduce = useReducedMotion();
+  const rotateX = useSpring(useMotionValue(0), { stiffness: 150, damping: 20 });
+  const rotateY = useSpring(useMotionValue(0), { stiffness: 150, damping: 20 });
+  const rafRef = useRef(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!rootRef.current || shouldReduceMotion()) return undefined;
-
-    const ctx = gsap.context(() => {
-      // Stagger entrance reveal — fromTo with clearProps:'all' prevents stuck invisible elements
-      gsap.fromTo(
-        '.hero-animate',
-        { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.65, stagger: 0.08, ease: 'power3.out', clearProps: 'all' }
-      );
-
-      // Mouse Parallax 3D Tilt Effect on Countdown Card
-      if (cardRef.current) {
-        const card = cardRef.current;
-        const xTo = gsap.quickTo(card, 'rotationY', { duration: 0.4, ease: 'power2.out' });
-        const yTo = gsap.quickTo(card, 'rotationX', { duration: 0.4, ease: 'power2.out' });
-
-        // Throttled parallax — max once per frame (requestAnimationFrame)
-        let rafId = 0;
-        const handleMouseMove = (e: MouseEvent) => {
-          if (rafId) return;
-          rafId = requestAnimationFrame(() => {
-            rafId = 0;
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-            xTo(x * 0.03);
-            yTo(-y * 0.03);
-          });
-        };
-
-        const handleMouseLeave = () => {
-          if (rafId) cancelAnimationFrame(rafId);
-          rafId = 0;
-          xTo(0);
-          yTo(0);
-        };
-
-        card.addEventListener('mousemove', handleMouseMove);
-        card.addEventListener('mouseleave', handleMouseLeave);
-
-        return () => {
-          if (rafId) cancelAnimationFrame(rafId);
-          rafId = 0;
-          card.removeEventListener('mousemove', handleMouseMove);
-          card.removeEventListener('mouseleave', handleMouseLeave);
-        };
-      }
-    }, rootRef);
-
-    return () => ctx.revert();
+    setMounted(true);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
+  const onMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (reduce || !mounted) return;
+    const currentTarget = e.currentTarget;
+    if (!currentTarget) return;
+    const rect = currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      rotateY.set(x * 0.03);
+      rotateX.set(-y * 0.03);
+    });
+  };
+
+  const onMouseLeave = () => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
+    rotateX.set(0);
+    rotateY.set(0);
+  };
+
+  return { rotateX, rotateY, onMouseMove, onMouseLeave, reduce, mounted };
+}
+
+export default function Hero() {
+  const navigate = useAudienceNavigate();
+  const { rotateX, rotateY, onMouseMove, onMouseLeave, reduce, mounted } = useParallaxTilt();
+
   return (
-    <section
-      ref={rootRef}
-      className="relative overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to text-white"
-    >
+    <section className="relative overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to text-white">
       {/* Decorative Vector Ribbon & Salatiga Tugu Jam SVG Accent */}
       <div className="pointer-events-none absolute inset-0 z-0 opacity-80">
         <SalatigaRibbonSvg />
@@ -83,7 +69,12 @@ export default function Hero() {
         {/* Left Column Content */}
         <div className="space-y-3.5 sm:space-y-5 w-full max-w-full overflow-hidden">
           {/* Animated Dual White Logos Header — Prominent HUT RI 81 + Sleek TKI x FTP Logos */}
-          <div className="hero-animate flex flex-wrap items-center gap-2 sm:gap-4 max-w-full">
+          <motion.div
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.65, ease: 'easeOut' }}
+            className="hero-animate flex flex-wrap items-center gap-2 sm:gap-4 max-w-full"
+          >
             <LogoHutRi81
               variant="white"
               animate
@@ -104,9 +95,14 @@ export default function Hero() {
               </svg>
               <LogoFtp variant="white" animate className="h-3.5 sm:h-6 w-auto drop-shadow-md" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="hero-animate space-y-1.5 sm:space-y-2">
+          <motion.div
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.65, ease: 'easeOut', delay: 0.08 }}
+            className="hero-animate space-y-1.5 sm:space-y-2"
+          >
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">
               Peringatan Kemerdekaan
             </p>
@@ -118,10 +114,15 @@ export default function Hero() {
             <p className="max-w-xl text-[11px] leading-relaxed text-white/90 sm:text-base">
               Lomba, dekor, dan kebersamaan. Semuanya demi satu semangat yang sama.
             </p>
-          </div>
+          </motion.div>
 
           {/* Action Buttons — High Contrast Primary CTA */}
-          <div className="hero-animate flex flex-col sm:flex-row gap-2 sm:gap-3.5 pt-1 w-full max-w-full">
+          <motion.div
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.65, ease: 'easeOut', delay: 0.16 }}
+            className="hero-animate flex flex-col sm:flex-row gap-2 sm:gap-3.5 pt-1 w-full max-w-full"
+          >
             <button
               type="button"
               onClick={() => navigate('/lomba')}
@@ -140,19 +141,25 @@ export default function Hero() {
               <span>Daftar tim</span>
               <i className="fa-solid fa-arrow-right text-xs" />
             </button>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Column: Vertically Centered Event Status & Reminder Card */}
-        <div className="hero-animate w-full max-w-full overflow-hidden [perspective:1000px] lg:self-center">
-          <div
-            ref={cardRef}
-            className="transition-transform duration-200 w-full max-w-full"
-            style={shouldReduceMotion() ? undefined : { willChange: 'transform' }}
+        <motion.div
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.65, ease: 'easeOut', delay: 0.24 }}
+          className="hero-animate w-full max-w-full overflow-hidden [perspective:1000px] lg:self-center"
+        >
+          <motion.div
+            onMouseMove={reduce || !mounted ? undefined : onMouseMove}
+            onMouseLeave={reduce || !mounted ? undefined : onMouseLeave}
+            style={mounted && !reduce ? { rotateX, rotateY, willChange: 'transform' } : undefined}
+            className="w-full max-w-full"
           >
             <EventStatusReminder />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

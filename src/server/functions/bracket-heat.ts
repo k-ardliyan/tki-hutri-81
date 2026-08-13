@@ -112,6 +112,7 @@ export const correctSessionResult = createServerFn({ method: 'POST' })
       sessionId: number;
       reason?: string | null;
       invalidateDownstream: boolean;
+      expectedVersion: number;
       results: SessionResultPayload[];
     }) => d
   )
@@ -120,6 +121,7 @@ export const correctSessionResult = createServerFn({ method: 'POST' })
       sessionId: data.sessionId,
       reason: data.reason ?? null,
       invalidateDownstream: data.invalidateDownstream,
+      expectedVersion: data.expectedVersion,
       results: data.results,
     });
   });

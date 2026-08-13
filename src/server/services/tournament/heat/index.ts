@@ -115,6 +115,7 @@ export interface CorrectSessionInput {
   sessionId: number;
   reason?: string | null;
   invalidateDownstream: boolean;
+  expectedVersion: number;
   results: SessionResultSubmit[];
   enteredBy?: string | null;
 }
@@ -307,7 +308,7 @@ export const heatService = {
         .limit(1);
       if (!stage) throw new Error('Stage tidak ditemukan');
       if (stage.status !== 'ACTIVE') throw new Error('Stage belum aktif');
-      if (session.status === 'COMPLETED')
+      if (session.status === 'COMPLETED' || session.status === 'CANCELLED')
         throw new Error('Sesi sudah selesai. Gunakan koreksi hasil.');
       if (input.expectedVersion !== session.version)
         throw new Error('Data sesi telah diperbarui admin lain. Silakan muat ulang.');
@@ -380,7 +381,38 @@ export const heatService = {
           .set({ status: 'IN_PROGRESS', updatedAt: new Date() })
           .where(eq(brackets.id, b.id));
       }
-      return { ok: true };
+
+      // Auto-finalize stage FINAL saat sesi terakhir selesai → podium + COMPLETED
+      // langsung keluar tanpa perlu klik "Selesaikan Final" manual.
+      if (stage.isFinal) {
+        const allSessions = await loadSessions(tx, stage.id);
+        const allDone = allSessions.every(
+          (s) => s.status === 'COMPLETED' || s.status === 'CANCELLED'
+        );
+        if (allDone) {
+          const bySession: Array<{ sessionId: number | null; ranks: ResolvedRank[] }> = [];
+          for (const s of allSessions) {
+            const results = await loadResults(tx, s.id);
+            bySession.push({
+              sessionId: s.id,
+              ranks: results
+                .filter((r) => r.rank !== null)
+                .map((r) => ({ participantId: r.participantId, rank: r.rank as number })),
+            });
+          }
+          const podium = calculateHeatPodium(bySession.flatMap((s) => s.ranks));
+          await tx
+            .update(bracketStages)
+            .set({ status: 'COMPLETED', updatedAt: new Date() })
+            .where(eq(bracketStages.id, stage.id));
+          await tx
+            .update(brackets)
+            .set({ status: 'COMPLETED', updatedAt: new Date() })
+            .where(eq(brackets.id, stage.bracketId));
+          return { ok: true, finalCompleted: true, podium };
+        }
+      }
+      return { ok: true, finalCompleted: false };
     });
   },
 
@@ -530,6 +562,8 @@ export const heatService = {
       if (!stage) throw new Error('Stage tidak ditemukan');
       if (session.status !== 'COMPLETED')
         throw new Error('Sesi belum selesai. Gunakan submit biasa.');
+      if (input.expectedVersion !== session.version)
+        throw new Error('Data sesi telah diperbarui admin lain. Silakan muat ulang.');
 
       const participants = await loadParticipants(tx, session.id);
       const resolved = resolveSessionResults(
@@ -701,8 +735,31 @@ export const heatService = {
 
     const teamNama = new Map<number, string>();
     if (b.participantCount > 0) {
-      const rows = await database.select().from(teams);
-      for (const t of rows) teamNama.set(t.id, t.nama);
+      // Hanya load tim peserta bracket (bukan seluruh tabel teams).
+      const stageRows = await database
+        .select({ id: bracketStages.id })
+        .from(bracketStages)
+        .where(eq(bracketStages.bracketId, b.id));
+      const sessionIds: number[] = [];
+      for (const st of stageRows) {
+        const sess = await loadSessions(database, st.id);
+        for (const s of sess) sessionIds.push(s.id);
+      }
+      let teamIds: number[] = [];
+      if (sessionIds.length > 0) {
+        const rows = await database
+          .select({ participantId: bracketSessionParticipants.participantId })
+          .from(bracketSessionParticipants)
+          .where(inArray(bracketSessionParticipants.sessionId, sessionIds));
+        teamIds = [...new Set(rows.map((r) => r.participantId))];
+      }
+      if (teamIds.length > 0) {
+        const rows = await database
+          .select({ id: teams.id, nama: teams.nama })
+          .from(teams)
+          .where(inArray(teams.id, teamIds));
+        for (const t of rows) teamNama.set(t.id, t.nama);
+      }
     }
 
     const stages = await loadStages(database, b.id);

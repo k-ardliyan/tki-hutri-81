@@ -1,36 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { motionDuration, motionEase } from '~/lib/motion';
 import { useCountdown } from '../../hooks/useCountdown';
-import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 function Cell({ label, value }: { label: string; value: string | number }) {
-  const numRef = useRef(null);
-
-  useEffect(() => {
-    if (!numRef.current || shouldReduceMotion()) return;
-
-    // Kill any existing tweens on this element before creating a new one
-    gsap.killTweensOf(numRef.current);
-
-    gsap.fromTo(
-      numRef.current,
-      { scale: 1.15, opacity: 0.7 },
-      { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out' }
-    );
-
-    const el = numRef.current;
-    return () => {
-      gsap.killTweensOf(el);
-    };
-  }, [value]);
-
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/70 bg-slate-50/80 px-2 py-3.5 shadow-inner transition hover:border-red-200 hover:bg-red-50/30">
-      <div
-        ref={numRef}
+      <motion.span
+        key={String(value)}
+        initial={{ scale: 1.12, opacity: 0.8 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: motionDuration.fast, ease: motionEase.standard }}
         className="font-heading text-2xl font-black tracking-tight text-brand-red sm:text-3xl"
       >
         {value}
-      </div>
+      </motion.span>
       <div className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
         {label}
       </div>
@@ -44,12 +28,18 @@ export default function Countdown({
   awardTarget = '2026-08-28T13:00:00',
   awardEndTarget = '2026-08-28T17:00:00',
 }) {
-  const [now, setNow] = useState(() => Date.now());
+  // SSR/hydration sentinel: null renders the same PRE_EVENT structure on
+  // server and client so React hydration matches (Date.now() differs
+  // between server and client and would flip phases → hydration mismatch).
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
+    setNow(Date.now());
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const current = now ?? 0;
 
   const peakTime = new Date(peakTarget).getTime();
   const eventEndTime = new Date(eventEndTarget).getTime();
@@ -65,15 +55,15 @@ export default function Countdown({
   let activeTarget = peakTarget;
   let phase = 'PRE_EVENT';
 
-  if (now < peakTime) {
+  if (current < peakTime) {
     phase = 'PRE_EVENT';
     activeTarget = peakTarget;
-  } else if (now >= peakTime && now < eventEndTime) {
+  } else if (current >= peakTime && current < eventEndTime) {
     phase = 'EVENT_IN_PROGRESS';
-  } else if (now >= eventEndTime && now < awardTime) {
+  } else if (current >= eventEndTime && current < awardTime) {
     phase = 'COUNTDOWN_AWARD';
     activeTarget = awardTarget;
-  } else if (now >= awardEndTime) {
+  } else if (current >= awardEndTime) {
     phase = 'FINISHED';
   } else {
     phase = 'COUNTDOWN_AWARD';

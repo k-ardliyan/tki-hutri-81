@@ -7,7 +7,7 @@ import {
   SquarePen,
   TriangleAlert,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import RoomIcon from '~/components/5r/RoomIcon';
 import EmptyState from '~/components/common/EmptyState';
@@ -37,6 +37,7 @@ import { buildWeeklySeries, currentWeekNumber } from '../../lib/dateUtils';
 import { useSubmissions } from '../../lib/queries';
 import type { SubmissionScore } from '../../lib/scoring';
 import { aggregateRoom, round1, scoreSubmission } from '../../lib/scoring';
+import { useTodayLabel } from '../../lib/useTodayLabel';
 import { getForms, getRooms, getSettings } from '../../server/functions/5r';
 
 const searchSchema = z.object({
@@ -58,9 +59,19 @@ function AdminDashboardPage() {
   const navigate = useNavigate();
   const { data: submissions = [], isLoading } = useSubmissions();
   const [showGuide, setShowGuide] = useState(false);
+  // Hydration-safe clock untuk timeAgo: null saat SSR/first-paint (deterministik),
+  // diisi post-hydration + refresh tiap menit. new Date() saat render server ≠ client.
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
   const currentWeek = startDate ? currentWeekNumber(new Date(startDate)) : 0;
+  // Hydration-safe: new Date() server ≠ client (timezone) → label diisi post-hydration.
+  const todayLabel = useTodayLabel(formatLongDate);
   const isCurrentWeek = (s: FiveRSubmission): boolean =>
     currentWeek > 0 && (s.weekNumber ?? 1) === currentWeek;
 
@@ -225,7 +236,7 @@ function AdminDashboardPage() {
       <div className="space-y-6">
         <PageHeader
           title="Dashboard Audit 5R"
-          subtitle={`${formatLongDate(new Date())} · ${periodLabel(startDate, endDate)}`}
+          subtitle={`${todayLabel} · ${periodLabel(startDate, endDate)}`}
           action={
             <div className="flex items-center gap-2">
               <Button
@@ -266,7 +277,7 @@ function AdminDashboardPage() {
       {/* Header */}
       <PageHeader
         title="Dashboard Audit 5R"
-        subtitle={`${formatLongDate(new Date())} · ${periodLabel(startDate, endDate)}`}
+        subtitle={`${todayLabel} · ${periodLabel(startDate, endDate)}`}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <Button
@@ -352,7 +363,7 @@ function AdminDashboardPage() {
                     <p className="truncate font-bold text-foreground text-sm">{room.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {room.pic}
-                      {done && last ? ` / ${timeAgo(last.createdAt)}` : ' / Belum dinilai'}
+                      {done && last ? ` / ${timeAgo(last.createdAt, now)}` : ' / Belum dinilai'}
                     </p>
                   </div>
                   <StatusBadge score={done ? round1(final) : null} />
@@ -378,7 +389,7 @@ function AdminDashboardPage() {
                       <span className="text-muted-foreground">{form?.label}</span>
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {sub.auditor} / {timeAgo(sub.createdAt)}
+                      {sub.auditor} / {timeAgo(sub.createdAt, now)}
                     </p>
                   </div>
                   {score && <StatusBadge score={round1(score.final)} showScoreMax />}
@@ -436,8 +447,9 @@ function periodLabel(startDate: string | null, endDate: string | null): string {
   return 'Periode penilaian belum diatur';
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
+function timeAgo(iso: string, now: number | null): string {
+  if (now === null) return '';
+  const diff = now - new Date(iso).getTime();
   const min = Math.floor(diff / 60_000);
   if (min < 1) return 'Baru saja';
   if (min < 60) return `${min} menit lalu`;

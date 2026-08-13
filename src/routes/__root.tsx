@@ -10,21 +10,28 @@ import {
 import type { ReactNode } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import '../styles.css';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import PageFallback from '~/components/common/PageFallback';
+import { pageTransitionVariants } from '~/lib/motion';
 import Hero from '../components/hero/Hero';
 import BottomNav from '../components/layout/BottomNav';
 import SiteHeader from '../components/layout/Header';
 import SiteFooter from '../components/layout/SiteFooter';
 import { Toaster } from '../components/ui/sonner';
 import { AudienceProvider } from '../context/AudienceContext';
-import { gsap, shouldReduceMotion } from '../lib/gsap';
 
 function NavigationProgressBar() {
   const isPending = useRouterState({ select: (s) => s.status === 'pending' || s.isLoading });
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return undefined;
     let timer: NodeJS.Timeout;
     if (isPending) {
       setVisible(true);
@@ -40,9 +47,9 @@ function NavigationProgressBar() {
       }, 200);
     }
     return () => clearTimeout(timer);
-  }, [isPending]);
+  }, [isPending, mounted]);
 
-  if (!visible && !isPending) return null;
+  if (!mounted || (!visible && !isPending)) return null;
 
   return (
     <div
@@ -136,8 +143,10 @@ function RootComponent() {
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <AudienceProvider>
-          <NavigationProgressBar />
-          <AppLayout />
+          <MotionConfig reducedMotion="user">
+            <NavigationProgressBar />
+            <AppLayout />
+          </MotionConfig>
         </AudienceProvider>
       </QueryClientProvider>
     </RootDocument>
@@ -151,7 +160,6 @@ function AppLayout() {
         ? s.location.pathname
         : (s.resolvedLocation?.pathname ?? s.location.pathname),
   });
-  const panelRef = useRef<HTMLDivElement>(null);
   const didMountRef = useRef(false);
 
   const isHome = routerPath === '/';
@@ -160,26 +168,6 @@ function AppLayout() {
     routerPath.startsWith('/audit') ||
     routerPath.startsWith('/snack') ||
     routerPath === '/login';
-
-  // GSAP page transition — animate on route change.
-  useEffect(() => {
-    if (isAdminArea) return;
-    if (!panelRef.current || shouldReduceMotion()) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        panelRef.current!,
-        { opacity: 0.2, y: 8 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.25,
-          ease: 'power2.out',
-          clearProps: 'all',
-        }
-      );
-    });
-    return () => ctx.revert();
-  }, [routerPath, isAdminArea]);
 
   // Scroll to top instantly on route change
   useEffect(() => {
@@ -206,11 +194,19 @@ function AppLayout() {
         <main className={`mb-auto ${'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
           {isHome && <Hero />}
           <div className="shell py-6 sm:py-8">
-            <div ref={panelRef}>
-              <Suspense fallback={<PageFallback />}>
-                <Outlet />
-              </Suspense>
-            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={routerPath}
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="enter"
+                exit="exit"
+              >
+                <Suspense fallback={<PageFallback />}>
+                  <Outlet />
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       )}
@@ -223,28 +219,26 @@ function AppLayout() {
 
 function NotFoundComponent() {
   return (
-    <RootDocument>
-      <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
-        <h1 className="font-heading text-4xl font-bold text-brand-deep sm:text-5xl">404</h1>
-        <p className="mt-3 text-slate-600">Halaman tidak ditemukan.</p>
-        <a
-          href="/"
-          className="mt-6 rounded-full bg-brand-red px-6 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 active:scale-95"
-        >
-          Kembali ke Beranda
-        </a>
-      </div>
-    </RootDocument>
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
+      <h1 className="font-heading text-4xl font-bold text-brand-deep sm:text-5xl">404</h1>
+      <p className="mt-3 text-slate-600">Halaman tidak ditemukan.</p>
+      <a
+        href="/"
+        className="mt-6 rounded-full bg-brand-red px-6 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 active:scale-95"
+      >
+        Kembali ke Beranda
+      </a>
+    </div>
   );
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Toaster position="top-center" richColors />
         <Scripts />

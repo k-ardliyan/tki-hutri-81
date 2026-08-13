@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { SearchInput } from '~/components/common/SearchInput';
 import { SnackDistributionSkeleton } from '~/components/loading/skeletons';
 import ConfirmForm from '../../components/snack/ConfirmForm';
 import DuplicateWarning from '../../components/snack/DuplicateWarning';
@@ -41,7 +42,6 @@ import {
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
-import { Input } from '../../components/ui/input';
 import { useDebounce } from '../../hooks/use-debounce';
 import { cn } from '../../lib/utils';
 import {
@@ -587,30 +587,16 @@ function SnackDistributionPage() {
                       </p>
                     </div>
 
-                    <div className="relative">
-                      <Search
-                        size={16}
-                        className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground"
-                      />
-                      <Input
-                        type="text"
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        placeholder="Ketik nama atau NIP..."
-                        disabled={!operational}
-                        className="pl-10 pr-9 h-11 text-sm rounded-xl bg-background"
-                        autoFocus
-                      />
-                      {q && (
-                        <button
-                          type="button"
-                          onClick={() => setQ('')}
-                          className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                        >
-                          <X size={15} />
-                        </button>
-                      )}
-                    </div>
+                    <SearchInput
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      onClear={() => setQ('')}
+                      loading={searching}
+                      placeholder="Ketik nama atau NIP..."
+                      disabled={!operational}
+                      className="h-11 text-sm rounded-xl bg-background"
+                      autoFocus
+                    />
 
                     {searching && (
                       <div className="flex items-center justify-center gap-2 py-6 text-xs text-muted-foreground">

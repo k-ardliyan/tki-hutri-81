@@ -63,18 +63,23 @@ export type DataTableColumn<T extends Record<string, any> | Array<any> = any> = 
   any
 >;
 
+import { Skeleton } from '~/components/ui/skeleton';
+import { Spinner } from '~/components/ui/spinner';
+
 export function DataTable<TData extends Record<string, any> | Array<any> = any>({
   data,
   columns,
   toolbar,
   getRowId,
   pageSize = 10,
+  loading = false,
 }: {
   data: TData[];
   columns: DataTableColumn<TData>[];
   toolbar?: React.ReactNode;
   getRowId?: (row: TData, index: number) => string;
   pageSize?: number;
+  loading?: boolean;
 }) {
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -134,7 +139,14 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
       </div>
 
       {/* Table Surface with Background & Card styling */}
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+      <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+        {/* Subtle Animated Top Loading Bar */}
+        {loading && (
+          <div className="absolute top-0 left-0 right-0 z-20 h-[2.5px] overflow-hidden bg-primary/20">
+            <div className="h-full w-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-400 animate-shimmer" />
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/60">
@@ -170,7 +182,17 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {loading && !table.getRowModel().rows?.length ? (
+                Array.from({ length: 5 }).map((_, rIdx) => (
+                  <TableRow key={`skeleton-row-${rIdx}`} className="hover:bg-transparent">
+                    {columns.map((_, cIdx) => (
+                      <TableCell key={`skeleton-cell-${cIdx}`} className="py-3">
+                        <Skeleton className="h-4 w-full rounded" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-muted/50 transition-colors">
                     {row.getVisibleCells().map((cell) => (
@@ -193,6 +215,16 @@ export function DataTable<TData extends Record<string, any> | Array<any> = any>(
             </TableBody>
           </Table>
         </div>
+
+        {/* Semi-transparent live refresh indicator if data exists & loading */}
+        {loading && table.getRowModel().rows?.length > 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/30 backdrop-blur-[1px] pointer-events-none transition-opacity">
+            <div className="flex items-center gap-2 rounded-full bg-card/95 px-3 py-1.5 shadow-md border border-border text-xs font-bold text-foreground">
+              <Spinner className="size-3.5 text-primary animate-spin" />
+              <span>Memperbarui data...</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Pagination Footer — Spread Out (Kanan Kiri) with Proper Margin */}

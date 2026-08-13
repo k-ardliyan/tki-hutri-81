@@ -93,10 +93,12 @@ console.log('koreksi tanpa invalidate (downstream WAITING)');
   const fin = d!.rounds[2].matches[0];
   check('final slot1 = A (pemenang SF1 asli)', fin.participant1Id === A);
   // Koreksi SF1 → pemenang C, TANPA invalidate (final WAITING, affected=0).
+  const sf1Now = d!.rounds[1].matches[0]; // version fresh setelah submit SF1
   await tournamentService.correctResult(td, {
     matchId: sf1.id,
     winnerId: C,
     invalidateDownstream: false,
+    expectedVersion: sf1Now.version,
   });
   d = await tournamentService.detail(td, competitionId, 'putra');
   const fin2 = d!.rounds[2].matches[0];

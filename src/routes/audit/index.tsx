@@ -28,6 +28,7 @@ import type { FiveRForm } from '../../data/5r';
 import { currentWeekNumber } from '../../lib/dateUtils';
 import { useSubmissions } from '../../lib/queries';
 import { aggregateRoom, round1, scoreSubmission } from '../../lib/scoring';
+import { useTodayLabel } from '../../lib/useTodayLabel';
 import { getForms, getRooms, getSettings } from '../../server/functions/5r';
 import { getSession } from '../../server/functions/auth';
 
@@ -57,6 +58,8 @@ function AuditDashboardPage() {
 
   const formMap = useMemo(() => new Map<string, FiveRForm>(forms.map((f) => [f.id, f])), [forms]);
   const currentWeek = startDate ? currentWeekNumber(new Date(startDate)) : 0;
+  // Hydration-safe: new Date() server ≠ client (timezone) → label diisi post-hydration.
+  const todayLabel = useTodayLabel(formatLongDate);
 
   const isCurrentWeek = useCallback(
     (s: { weekNumber?: number }): boolean => currentWeek > 0 && (s.weekNumber ?? 1) === currentWeek,
@@ -190,7 +193,7 @@ function AuditDashboardPage() {
     <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-0">
       <PageHeader
         title="Dashboard Auditor 5R"
-        subtitle={formatLongDate(new Date())}
+        subtitle={todayLabel}
         action={
           <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
             <RiwayatMingguIni startDate={startDate} variant="button" />

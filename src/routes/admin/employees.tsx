@@ -48,9 +48,12 @@ interface EmployeeRow {
   isSnackEligible: boolean;
 }
 
+import { SearchInput } from '~/components/common/SearchInput';
+
 function AdminEmployees() {
   const [rows, setRows] = useState<EmployeeRow[]>([]);
   const [rowsLoading, setRowsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
   const debouncedQ = useDebounce(q, 300);
   const [err, setErr] = useState<string | null>(null);
@@ -69,10 +72,12 @@ function AdminEmployees() {
   const [deleteTarget, setDeleteTarget] = useState<EmployeeRow | null>(null);
 
   const load = async (query?: string) => {
+    setIsSearching(true);
     try {
       setRows(await listEmployees({ data: { q: query, limit: 500 } }));
     } finally {
       setRowsLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -245,18 +250,16 @@ function AdminEmployees() {
         columns={columns}
         getRowId={(r) => String(r.id)}
         pageSize={15}
+        loading={isSearching}
         toolbar={
-          <div className="relative w-full max-w-xs">
-            <Search
-              size={14}
-              className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60"
-            />
-            <Input
-              type="text"
+          <div className="w-full max-w-xs">
+            <SearchInput
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              onClear={() => setQ('')}
+              loading={q !== debouncedQ || isSearching}
               placeholder="Cari nama / NIP..."
-              className="h-8 pl-9"
+              className="h-8"
             />
           </div>
         }

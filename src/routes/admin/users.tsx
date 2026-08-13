@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { SearchInput } from '~/components/common/SearchInput';
 import { DataTableSkeleton } from '~/components/loading/skeletons';
 import { DataTable, type features } from '../../components/data-table';
 import { Alert, AlertDescription } from '../../components/ui/alert';
@@ -362,6 +363,7 @@ function SuperadminUsers() {
         data={users}
         columns={columns}
         getRowId={(u) => String(u.id)}
+        loading={usersLoading}
         toolbar={
           <span className="text-sm font-medium text-muted-foreground">
             {users.length} user terdaftar
@@ -374,7 +376,7 @@ function SuperadminUsers() {
         open={showCreate}
         onOpenChange={setShowCreate}
         title="Buat User Baru"
-        description="Set kredensial awal dan role."
+        description="Buat akun untuk panitia atau auditor 5R."
         footer={
           <div className="flex w-full gap-2 sm:justify-end">
             <Button
@@ -425,19 +427,17 @@ function SuperadminUsers() {
           </div>
           <div className="space-y-1.5">
             <Label>Karyawan (opsional)</Label>
-            <div className="relative">
-              <Search
-                size={14}
-                className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60"
-              />
-              <Input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama, minimal 2 huruf"
-                className="pl-9"
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClear={() => {
+                setSearch('');
+                setEmployeeId('');
+                setEmployees([]);
+              }}
+              loading={search.trim().length >= 2 && search !== debouncedSearch}
+              placeholder="Cari nama, minimal 2 huruf"
+            />
             {employees.length > 0 && (
               <div className="mt-1.5 max-h-40 overflow-auto divide-y divide-border rounded-md border border-border">
                 {employees.map((e) => (

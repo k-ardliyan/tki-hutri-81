@@ -20,10 +20,12 @@ import {
   HelpCircle,
   Info,
   Layers,
+  LayoutList,
   ListOrdered,
   Medal,
   Pencil,
   Plus,
+  Printer,
   RefreshCw,
   RotateCcw,
   Sparkles,
@@ -37,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { cn } from '~/lib/utils';
 import type {
   HeatDetailView,
   HeatResultMode,
@@ -72,7 +75,9 @@ import { Card, CardContent } from '../ui/card';
 import { Input } from '../ui/input';
 import { ResponsiveDialog } from '../ui/responsive-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { BaganPrintModal } from './BaganPrintModal';
 import { HeatGuide } from './HeatGuide';
+import { getStagePlaceholderDistribution, HeatPipelineTree } from './HeatPipelineTree';
 
 interface Comp {
   id: number;
@@ -182,6 +187,7 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
   };
 
   // ─── Runtime state ───
+  const [viewMode, setViewMode] = useState<'tree' | 'stages'>('tree');
   const [activeStageIdx, setActiveStageIdx] = useState(0);
   const [resultTarget, setResultTarget] = useState<HeatSessionView | null>(null);
   const [resultRanks, setResultRanks] = useState<Record<number, string>>({});
@@ -376,14 +382,18 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
 
     setBusy('result');
     try {
-      await submitSessionResult({
+      const res = await submitSessionResult({
         data: {
           sessionId: resultTarget.id,
           expectedVersion: resultTarget.version,
           results,
         },
       });
-      toast.success('Hasil sesi berhasil disimpan');
+      if (res.finalCompleted) {
+        toast.success('Babak Final selesai! Podium juara telah ditentukan.');
+      } else {
+        toast.success('Hasil sesi berhasil disimpan');
+      }
       setResultTarget(null);
       await reload();
     } catch (e) {
@@ -447,6 +457,7 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
           sessionId: correctTarget.id,
           reason: correctReason || null,
           invalidateDownstream: correctInvalidate,
+          expectedVersion: correctTarget.version,
           results,
         },
       });
@@ -816,7 +827,10 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
 
             <Button
               onClick={() => void run('generate', doGenerate)}
-              disabled={busy !== null || !validation.ok || participantCount < 2}
+              loading={busy === 'generate'}
+              disabled={
+                !validation.ok || participantCount < 2 || (busy !== null && busy !== 'generate')
+              }
               className="rounded-xl font-black shadow-md"
             >
               <Plus size={16} className="mr-1.5" />
@@ -888,7 +902,8 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
                   size="sm"
                   className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                   onClick={() => void run('publish', doPublish)}
-                  disabled={busy !== null}
+                  loading={busy === 'publish'}
+                  disabled={busy !== null && busy !== 'publish'}
                 >
                   <CheckCircle2 size={14} className="mr-1.5" />
                   Publish Bagan
@@ -901,12 +916,32 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
                   variant="outline"
                   className="rounded-xl font-bold"
                   onClick={() => void run('regenerate', doRegenerate)}
-                  disabled={busy !== null}
+                  loading={busy === 'regenerate'}
+                  disabled={busy !== null && busy !== 'regenerate'}
                 >
-                  <RefreshCw size={14} className="mr-1.5" />
+                  <RefreshCw
+                    size={14}
+                    className={cn('mr-1.5', busy === 'regenerate' && 'animate-spin')}
+                  />
                   Acak Ulang
                 </Button>
               )}
+
+              <BaganPrintModal
+                title={comp.title}
+                kategori={kategori}
+                format="HEAT_ELIMINATION"
+                status={detail.bracket.status}
+                heatBracket={detail}
+                teams={teams}
+                prizes={prizes}
+                trigger={
+                  <Button size="sm" variant="outline" className="rounded-xl font-bold shadow-2xs">
+                    <Printer size={14} className="mr-1.5" />
+                    Cetak / PDF
+                  </Button>
+                }
+              />
 
               <Button
                 size="sm"
@@ -920,7 +955,8 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
                     run: doDelete,
                   })
                 }
-                disabled={busy !== null}
+                loading={busy === 'delete'}
+                disabled={busy !== null && busy !== 'delete'}
               >
                 <Trash2 size={14} className="mr-1.5" />
                 Hapus Bagan
@@ -928,245 +964,89 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
             </div>
           </div>
 
-          {/* Stage Navigation Tabs with Progress Indicators */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1">
-            {detail.stages.map((s, i) => {
-              const completedSessionsCount = s.sessions.filter(
-                (sess) => sess.status === 'COMPLETED'
-              ).length;
-              const totalSessions = s.sessions.length;
-              const isStageCompleted = s.status === 'COMPLETED';
-              const isStageActive = s.status === 'ACTIVE';
-
-              return (
+          {/* View Mode Toggle Switcher */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-muted-foreground">Mode Tampilan:</span>
+              <div className="flex items-center gap-1 rounded-xl bg-muted p-1 border border-border/60 shadow-2xs">
                 <button
-                  key={s.id}
                   type="button"
-                  onClick={() => setActiveStageIdx(i)}
-                  className={`flex shrink-0 items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
-                    activeStageIdx === i
-                      ? 'bg-brand-red text-white shadow-md shadow-red-600/25 ring-1 ring-brand-red/50'
-                      : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <span>{s.name}</span>
-                  {totalSessions > 0 ? (
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[9px] font-black ${
-                        activeStageIdx === i
-                          ? 'bg-white/20 text-white'
-                          : isStageCompleted
-                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                            : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {completedSessionsCount}/{totalSessions} Selesai
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold text-muted-foreground">
-                      Menunggu
-                    </span>
+                  onClick={() => setViewMode('tree')}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer',
+                    viewMode === 'tree'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ─── Active Stage View ─── */}
-      <Card className="rounded-3xl border border-border bg-card shadow-xs">
-        <CardContent className="space-y-4 p-5 sm:p-6">
-          {/* Stage Title & Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-heading text-base font-black text-foreground">
-                  {activeStage.name}
-                </h3>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
-                    activeStage.status === 'COMPLETED'
-                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                      : activeStage.status === 'ACTIVE'
-                        ? 'bg-brand-red/10 text-brand-red border border-brand-red/30'
-                        : 'bg-muted text-muted-foreground border border-border'
-                  }`}
                 >
-                  {STAGE_STATUS_LABEL[activeStage.status]}
-                </span>
+                  <GitMerge size={13} />
+                  Bagan Horizontal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('stages')}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer',
+                    viewMode === 'stages'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <LayoutList size={13} />
+                  Kelola per Babak
+                </button>
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {activeStage.sessions.reduce((a, s) => a + s.participants.length, 0)} peserta
-                terdaftar · {activeStage.sessions.length} sesi
-                {!activeStage.isFinal && activeStage.qualifiersPerSession > 0 && (
-                  <> · Top {activeStage.qualifiersPerSession} tim lolos per sesi</>
-                )}
-                {activeStage.isFinal && <> · Babak Penentuan Juara</>}
-              </p>
             </div>
 
-            {/* Finalization / Reset Stage Actions */}
-            {activeStage.status === 'ACTIVE' && activeStage.sessions.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
-                {allSessionsDone ? (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-xl font-bold"
-                      onClick={() =>
-                        setConfirmAction({
-                          key: `reset-${activeStage.id}`,
-                          title: 'Reset hasil babak ini?',
-                          desc: 'Semua hasil peringkat sesi pada babak ini akan dikosongkan kembali.',
-                          run: () => doResetStage(activeStage),
-                        })
-                      }
-                      disabled={busy !== null}
-                    >
-                      <RotateCcw size={13} className="mr-1.5" />
-                      Reset Hasil
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="rounded-xl font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-                      onClick={() =>
-                        void run(`finalize-${activeStage.id}`, () => doFinalize(activeStage))
-                      }
-                      disabled={busy !== null}
-                    >
-                      <CheckCircle2 size={14} className="mr-1.5" />
-                      {activeStage.isFinal ? 'Selesaikan Final & Kunci Podium' : 'Finalisasi Babak'}
-                    </Button>
-                  </>
-                ) : (
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
-                    <Info size={13} />
-                    Selesaikan semua sesi untuk finalisasi babak
-                  </span>
-                )}
+            {viewMode === 'stages' && (
+              <div className="text-xs text-muted-foreground font-medium">
+                {detail.stages.length} Babak · Aktif:{' '}
+                <strong className="text-foreground">{activeStage.name}</strong>
               </div>
             )}
           </div>
 
-          {/* Sessions List */}
-          {activeStage.sessions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/10 py-10 text-center">
-              <Clock size={24} className="text-muted-foreground/60" />
-              <p className="text-xs font-bold text-muted-foreground">
-                {activeStage.status === 'PENDING'
-                  ? 'Menunggu finalisasi babak sebelumnya untuk mengundi peserta ke babak ini.'
-                  : 'Belum ada sesi pertandingan di babak ini.'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-3.5 sm:grid-cols-2">
-              {activeStage.sessions.map((s) => {
-                const allDone = s.status === 'COMPLETED';
-                const sortedParts = [...s.participants].sort((a, b) => {
-                  const ra = s.results.find((r) => r.participantId === a.participantId)?.rank;
-                  const rb = s.results.find((r) => r.participantId === b.participantId)?.rank;
-                  return (ra ?? 99) - (rb ?? 99);
-                });
+          {/* Stage Navigation Tabs with Progress Indicators (only shown in 'stages' mode) */}
+          {viewMode === 'stages' && (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1">
+              {detail.stages.map((s, i) => {
+                const completedSessionsCount = s.sessions.filter(
+                  (sess) => sess.status === 'COMPLETED'
+                ).length;
+                const totalSessions = s.sessions.length;
+                const isStageCompleted = s.status === 'COMPLETED';
+                const isStageActive = s.status === 'ACTIVE';
 
                 return (
-                  <div
+                  <button
                     key={s.id}
-                    className={`rounded-2xl border p-4 transition-all ${
-                      allDone
-                        ? 'border-border bg-card shadow-2xs'
-                        : 'border-brand-red/30 bg-card shadow-xs ring-1 ring-brand-red/10'
+                    type="button"
+                    onClick={() => setActiveStageIdx(i)}
+                    className={`flex shrink-0 items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
+                      activeStageIdx === i
+                        ? 'bg-brand-red text-white shadow-md shadow-red-600/25 ring-1 ring-brand-red/50'
+                        : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 mb-3 border-b border-border/60 pb-2">
-                      <div className="flex items-center gap-1.5">
-                        <Flame
-                          size={14}
-                          className={allDone ? 'text-muted-foreground' : 'text-brand-red'}
-                        />
-                        <p className="text-xs font-black uppercase tracking-wider text-foreground">
-                          {s.name}
-                        </p>
-                      </div>
+                    <span>{s.name}</span>
+                    {totalSessions > 0 ? (
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
-                          allDone
-                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                            : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                        className={`rounded-full px-2 py-0.5 text-[9px] font-black ${
+                          activeStageIdx === i
+                            ? 'bg-white/20 text-white'
+                            : isStageCompleted
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                              : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {allDone ? 'Selesai' : 'Belum Selesai'}
+                        {completedSessionsCount}/{totalSessions} Selesai
                       </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {sortedParts.map((p) => {
-                        const res = s.results.find((r) => r.participantId === p.participantId);
-                        const hasRank = res?.rank != null;
-                        const rank = res?.rank;
-                        const isQualified = res?.resultStatus === 'QUALIFIED';
-                        const isEliminated = res?.resultStatus === 'ELIMINATED';
-
-                        return (
-                          <div
-                            key={p.participantId}
-                            className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs ${
-                              isQualified
-                                ? 'bg-emerald-500/10 border border-emerald-500/20'
-                                : hasRank
-                                  ? 'bg-muted/40 border border-border/50'
-                                  : 'bg-muted/20'
-                            }`}
-                          >
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-black text-foreground">
-                              {hasRank ? rank : '—'}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate font-bold text-foreground">
-                              {nama(teams, p.participantId)}
-                            </span>
-                            {p.sourceRank != null && p.sourceType !== 'INITIAL' && (
-                              <span className="text-[9px] text-muted-foreground">
-                                (Rank {p.sourceRank} babak lalu)
-                              </span>
-                            )}
-                            {isQualified && (
-                              <Badge className="bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 text-[9px] font-black uppercase">
-                                Lolos
-                              </Badge>
-                            )}
-                            {isEliminated && (
-                              <span className="text-[9px] font-bold text-muted-foreground">
-                                Gugur
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-3 flex justify-end gap-2 border-t border-border/60 pt-2.5">
-                      {allDone ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 px-3 text-xs font-bold"
-                          onClick={() => openCorrect(s)}
-                        >
-                          Koreksi Hasil
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="h-8 px-3 text-xs font-black shadow-xs"
-                          onClick={() => openResult(s)}
-                          disabled={detail.bracket.status === 'DRAFT'}
-                        >
-                          Input Hasil Sesi
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                    ) : (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold text-muted-foreground">
+                        Menunggu
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </div>
@@ -1174,66 +1054,363 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
         </CardContent>
       </Card>
 
-      {/* ─── Celebratory Podium Section (Final Selesai) ─── */}
-      {detail.podium.rank1 !== null && (
-        <Card className="rounded-3xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-card to-card shadow-sm">
-          <CardContent className="space-y-4 p-5 sm:p-7">
-            <div className="flex items-center gap-2 border-b border-amber-500/20 pb-3">
-              <Trophy size={18} className="text-amber-500" />
-              <h3 className="font-heading text-base font-black text-foreground">
-                Podium Juara Turnamen
-              </h3>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                {
-                  rank: 1,
-                  id: detail.podium.rank1,
-                  label: 'Juara 1 (Emas)',
-                  cls: 'from-amber-400 to-amber-600',
-                  icon: <Crown size={18} />,
-                  border: 'border-amber-400 bg-amber-500/10',
-                },
-                {
-                  rank: 2,
-                  id: detail.podium.rank2,
-                  label: 'Juara 2 (Perak)',
-                  cls: 'from-slate-300 to-slate-500',
-                  icon: <Medal size={16} />,
-                  border: 'border-slate-300/40 bg-muted/20',
-                },
-                {
-                  rank: 3,
-                  id: detail.podium.rank3,
-                  label: 'Juara 3 (Perunggu)',
-                  cls: 'from-amber-700 to-amber-900',
-                  icon: <Award size={16} />,
-                  border: 'border-amber-700/40 bg-muted/20',
-                },
-              ].map((p) => (
-                <div
-                  key={p.rank}
-                  className={`flex items-center gap-3 rounded-2xl border p-3.5 shadow-2xs ${p.border}`}
-                >
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${p.cls} text-white shadow-sm`}
-                  >
-                    {p.icon}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                      {p.label}
-                    </p>
-                    <p className="truncate text-sm font-black text-foreground">
-                      {nama(teams, p.id)}
-                    </p>
-                  </div>
+      {/* ─── Main Content: Tree vs Stage List ─── */}
+      {viewMode === 'tree' ? (
+        <div className="space-y-4">
+          {/* Quick Stage Advancement Alert Banner */}
+          {activeStage && activeStage.status === 'ACTIVE' && allSessionsDone && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-emerald-500/40 bg-emerald-500/10 p-4 sm:p-5 shadow-xs">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-xs">
+                  <CheckCircle2 size={18} />
+                </span>
+                <div>
+                  <p className="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-200">
+                    Semua sesi pada {activeStage.name} telah selesai!
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {activeStage.isFinal
+                      ? 'Babak Final tuntas. Peringkat juara podium telah tersimpan.'
+                      : 'Lanjutkan untuk mengundi & membuka babak kualifikasi berikutnya.'}
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              <Button
+                size="sm"
+                className="rounded-xl font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                onClick={() => void doFinalize(activeStage)}
+                loading={busy === `advance-${activeStageIdx}`}
+                disabled={busy !== null && busy !== `advance-${activeStageIdx}`}
+              >
+                <Sparkles size={14} className="mr-1.5" />
+                {activeStage.isFinal ? 'Selesaikan Turnamen' : 'Buka & Undi Babak Berikutnya'}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
+
+          <HeatPipelineTree
+            detail={detail}
+            teams={teams}
+            prizes={prizes}
+            admin={{
+              onInputResult: (session) => openResult(session),
+              onCorrectResult: (session) => openCorrect(session),
+            }}
+          />
+        </div>
+      ) : (
+        <>
+          {/* ─── Active Stage View ─── */}
+          <Card className="rounded-3xl border border-border bg-card shadow-xs">
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              {/* Stage Title & Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-heading text-base font-black text-foreground">
+                      {activeStage.name}
+                    </h3>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
+                        activeStage.status === 'COMPLETED'
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                          : activeStage.status === 'ACTIVE'
+                            ? 'bg-brand-red/10 text-brand-red border border-brand-red/30'
+                            : 'bg-muted text-muted-foreground border border-border'
+                      }`}
+                    >
+                      {STAGE_STATUS_LABEL[activeStage.status]}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {activeStage.sessions.reduce((a, s) => a + s.participants.length, 0)} peserta
+                    terdaftar · {activeStage.sessions.length} sesi
+                    {!activeStage.isFinal && activeStage.qualifiersPerSession > 0 && (
+                      <> · Top {activeStage.qualifiersPerSession} tim lolos per sesi</>
+                    )}
+                    {activeStage.isFinal && <> · Babak Penentuan Juara</>}
+                  </p>
+                </div>
+
+                {/* Finalization / Reset Stage Actions */}
+                {activeStage.status === 'ACTIVE' && activeStage.sessions.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {allSessionsDone ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl font-bold"
+                          onClick={() =>
+                            setConfirmAction({
+                              key: `reset-${activeStage.id}`,
+                              title: 'Reset hasil babak ini?',
+                              desc: 'Semua hasil peringkat sesi pada babak ini akan dikosongkan kembali.',
+                              run: () => doResetStage(activeStage),
+                            })
+                          }
+                          disabled={busy !== null}
+                        >
+                          <RotateCcw size={13} className="mr-1.5" />
+                          Reset Hasil
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="rounded-xl font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                          onClick={() =>
+                            void run(`finalize-${activeStage.id}`, () => doFinalize(activeStage))
+                          }
+                          disabled={busy !== null}
+                        >
+                          <CheckCircle2 size={14} className="mr-1.5" />
+                          {activeStage.isFinal
+                            ? 'Selesaikan Final & Kunci Podium'
+                            : 'Finalisasi Babak'}
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
+                        <Info size={13} />
+                        Selesaikan semua sesi untuk finalisasi babak
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Sessions List */}
+              {activeStage.sessions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/10 py-10 text-center">
+                  <Clock size={24} className="text-muted-foreground/60" />
+                  <p className="text-xs font-bold text-muted-foreground">
+                    {activeStage.status === 'PENDING'
+                      ? 'Menunggu finalisasi babak sebelumnya untuk mengundi peserta ke babak ini.'
+                      : 'Belum ada sesi pertandingan di babak ini.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-3.5 sm:grid-cols-2">
+                  {activeStage.sessions.map((s, sessIdx) => {
+                    const allDone = s.status === 'COMPLETED';
+                    const sortedParts = [...s.participants].sort((a, b) => {
+                      const ra = s.results.find((r) => r.participantId === a.participantId)?.rank;
+                      const rb = s.results.find((r) => r.participantId === b.participantId)?.rank;
+                      return (ra ?? 99) - (rb ?? 99);
+                    });
+
+                    return (
+                      <div
+                        key={s.id}
+                        className={`rounded-2xl border p-4 transition-all ${
+                          allDone
+                            ? 'border-border bg-card shadow-2xs'
+                            : 'border-brand-red/30 bg-card shadow-xs ring-1 ring-brand-red/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-3 border-b border-border/60 pb-2">
+                          <div className="flex items-center gap-1.5">
+                            <Flame
+                              size={14}
+                              className={allDone ? 'text-muted-foreground' : 'text-brand-red'}
+                            />
+                            <p className="text-xs font-black uppercase tracking-wider text-foreground">
+                              {s.name}
+                            </p>
+                          </div>
+                          <span
+                            className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
+                              allDone
+                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {allDone ? 'Selesai' : 'Belum Selesai'}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          {sortedParts.map((p) => {
+                            const res = s.results.find((r) => r.participantId === p.participantId);
+                            const hasRank = res?.rank != null;
+                            const rank = res?.rank;
+                            const isQualified = res?.resultStatus === 'QUALIFIED';
+                            const isEliminated = res?.resultStatus === 'ELIMINATED';
+
+                            return (
+                              <div
+                                key={p.participantId}
+                                className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs ${
+                                  isQualified
+                                    ? 'bg-emerald-500/10 border border-emerald-500/20'
+                                    : hasRank
+                                      ? 'bg-muted/40 border border-border/50'
+                                      : 'bg-muted/20'
+                                }`}
+                              >
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-black text-foreground">
+                                  {hasRank ? rank : '—'}
+                                </span>
+                                <span className="min-w-0 flex-1 truncate font-bold text-foreground">
+                                  {nama(teams, p.participantId)}
+                                </span>
+                                {p.sourceRank != null && p.sourceType !== 'INITIAL' && (
+                                  <span className="text-[9px] text-muted-foreground">
+                                    (Rank {p.sourceRank} babak lalu)
+                                  </span>
+                                )}
+                                {isQualified && (
+                                  <Badge className="bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 text-[9px] font-black uppercase">
+                                    Lolos
+                                  </Badge>
+                                )}
+                                {isEliminated && (
+                                  <span className="text-[9px] font-bold text-muted-foreground">
+                                    Gugur
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Placeholder slots for empty participant seats (Hanya saat sesi belum diundi) */}
+                          {s.participants.length === 0 &&
+                            (() => {
+                              const stageDistribution = getStagePlaceholderDistribution(
+                                activeStage,
+                                activeStageIdx > 0 ? detail.stages[activeStageIdx - 1] : null,
+                                activeStage.sessions.length
+                              );
+                              const sessionPlaceholderList = stageDistribution[sessIdx] ?? [];
+
+                              return Array.from({
+                                length: activeStage.isFinal
+                                  ? Math.max(
+                                      2,
+                                      Math.min(
+                                        activeStage.teamsPerSession || 4,
+                                        (detail.stages[activeStageIdx - 1]?.sessions.length || 2) *
+                                          (detail.stages[activeStageIdx - 1]
+                                            ?.qualifiersPerSession || 1)
+                                      )
+                                    )
+                                  : activeStage.teamsPerSession || 4,
+                              }).map((_, phIdx) => {
+                                const slotOrigin = sessionPlaceholderList[phIdx];
+                                const label =
+                                  slotOrigin?.label ??
+                                  (activeStageIdx > 0
+                                    ? `Menunggu Pemenang ${detail.stages[activeStageIdx - 1].name}`
+                                    : `Slot Peserta #${phIdx + 1}`);
+
+                                return (
+                                  <div
+                                    key={`admin-ph-${s.id}-${phIdx}`}
+                                    className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs border border-dashed border-border/80 bg-muted/20 text-muted-foreground/70"
+                                  >
+                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-dashed border-border/80 bg-background text-[10px] font-bold text-muted-foreground/60">
+                                      #{phIdx + 1}
+                                    </span>
+                                    <span className="min-w-0 flex-1 truncate text-[11px] font-medium italic text-muted-foreground/80">
+                                      {label}
+                                    </span>
+                                  </div>
+                                );
+                              });
+                            })()}
+                        </div>
+
+                        <div className="mt-3 flex justify-end gap-2 border-t border-border/60 pt-2.5">
+                          {allDone ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-3 text-xs font-bold"
+                              onClick={() => openCorrect(s)}
+                            >
+                              Koreksi Hasil
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="h-8 px-3 text-xs font-black shadow-xs"
+                              onClick={() => openResult(s)}
+                              disabled={detail.bracket.status === 'DRAFT'}
+                            >
+                              Input Hasil Sesi
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* ─── Celebratory Podium Section (Final Selesai) ─── */}
+          {detail.podium.rank1 !== null && (
+            <Card className="rounded-3xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-card to-card shadow-sm">
+              <CardContent className="space-y-4 p-5 sm:p-7">
+                <div className="flex items-center gap-2 border-b border-amber-500/20 pb-3">
+                  <Trophy size={18} className="text-amber-500" />
+                  <h3 className="font-heading text-base font-black text-foreground">
+                    Podium Juara Turnamen
+                  </h3>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    {
+                      rank: 1,
+                      id: detail.podium.rank1,
+                      label: 'Juara 1 (Emas)',
+                      cls: 'from-amber-400 to-amber-600',
+                      icon: <Crown size={18} />,
+                      border: 'border-amber-400 bg-amber-500/10',
+                    },
+                    {
+                      rank: 2,
+                      id: detail.podium.rank2,
+                      label: 'Juara 2 (Perak)',
+                      cls: 'from-slate-300 to-slate-500',
+                      icon: <Medal size={16} />,
+                      border: 'border-slate-300/40 bg-muted/20',
+                    },
+                    {
+                      rank: 3,
+                      id: detail.podium.rank3,
+                      label: 'Juara 3 (Perunggu)',
+                      cls: 'from-amber-700 to-amber-900',
+                      icon: <Award size={16} />,
+                      border: 'border-amber-700/40 bg-muted/20',
+                    },
+                  ].map((p) => (
+                    <div
+                      key={p.rank}
+                      className={`flex items-center gap-3 rounded-2xl border p-3.5 shadow-2xs ${p.border}`}
+                    >
+                      <span
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${p.cls} text-white shadow-sm`}
+                      >
+                        {p.icon}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                          {p.label}
+                        </p>
+                        <p className="truncate text-sm font-black text-foreground">
+                          {nama(teams, p.id)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       {/* ─── Hadiah Juara Management ─── */}

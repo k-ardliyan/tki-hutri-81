@@ -3,7 +3,7 @@
  * Enhancements:
  * 1. Auditor Name auto-populated from active session (getSession)
  * 2. Category Section Cards (bulletproof, zero Accordion overlap bugs)
- * 3. GSAP full-bleed morphing animation on scroll for sticky header
+ * 3. Sticky header with scroll sentinel (CSS sticky + transition, no GSAP)
  * 4. Full-width 5-column grid for category jump pills (A, B, C, D, E)
  */
 
@@ -500,18 +500,13 @@ export default function ScoringForm({
           )}
           <Button
             onClick={handleSubmit}
-            disabled={saving}
+            loading={saving}
             size="lg"
             className="w-full text-sm font-bold shadow-md shadow-primary/20"
           >
-            {saving ? (
-              <>
-                <Loader2 size={16} className="mr-2 animate-spin" />
-                Menyimpan...
-              </>
-            ) : (
-              `Submit Penilaian (${answeredCount}/${totalCriteria})`
-            )}
+            {saving
+              ? 'Menyimpan Penilaian...'
+              : `Submit Penilaian (${answeredCount}/${totalCriteria})`}
           </Button>
         </div>
       </div>

@@ -28,7 +28,7 @@ export const SIMULATED_DATES = [
   { label: '28 Ags (Pengumuman)', value: '2026-08-28T13:30:00' },
 ];
 
-export function getEventPhase(customDate = null) {
+export function getEventPhase(customDate: string | null = null) {
   const now = customDate ? new Date(customDate).getTime() : Date.now();
 
   const tSosialisasiStart = new Date('2026-08-03T00:00:00').getTime();
