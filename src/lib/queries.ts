@@ -29,24 +29,22 @@ export function useForms() {
 }
 
 /**
- * Submission 5R/dekorasi — live polling 10s.
- * QueryKey sama utk semua halaman → cache React Query dibagi, invalidate
- * setelah submit langsung menyegarkan halaman lain, interval jadi safety net.
- * initialData opsional: dipakai /live utk SSR first-paint (loader), polling
- * tetap jalan setelah hydrate.
+ * Submission 5R/dekorasi — data loader (SSR first-paint) + refetch manual.
+ * Polling otomatis dimatikan (2026-08): tiap client polling 10s = beban besar
+ * pada pool Aiven (max_connections=20) saat banyak panitia buka /live;
+ * refresh manual via tombol Segarkan di /live (useQuery.refetch).
  */
 export function useSubmissions(initialData?: Awaited<ReturnType<typeof getSubmissions>>) {
   return useQuery({
     queryKey: qk.submissions,
     queryFn: () => getSubmissions(),
     initialData,
-    refetchInterval: 10_000,
   });
 }
 
 /**
- * Detail bagan — live polling 10s. Hanya aktif saat komponen mount
- * (halaman /live tab bagan), otomatis pause saat unmount.
+ * Detail bagan — refetch manual (polling otomatis dimatikan, lihat
+ * useSubmissions). Hanya aktif saat komponen mount (halaman /live tab bagan).
  */
 export function useBracket(
   competitionId: number,
@@ -57,11 +55,10 @@ export function useBracket(
     queryKey: qk.bracket(competitionId, kategori),
     queryFn: () => getBracket({ data: { competitionId, kategori } }),
     initialData,
-    refetchInterval: 10_000,
   });
 }
 
-/** Detail bagan HEAT — live polling 10s (sama pola dgn useBracket). */
+/** Detail bagan HEAT — refetch manual (sama pola dgn useBracket). */
 export function useHeatBracket(
   competitionId: number,
   kategori: 'putra' | 'putri',
@@ -71,7 +68,6 @@ export function useHeatBracket(
     queryKey: qk.heatBracket(competitionId, kategori),
     queryFn: () => getHeatBracket({ data: { competitionId, kategori } }),
     initialData,
-    refetchInterval: 10_000,
   });
 }
 
