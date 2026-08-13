@@ -19,11 +19,15 @@ if (!connectionString) {
 // Aiven kecil: max_connections=20. Pool 10/proses + dev/test = gampang penuh
 // ("remaining connection slots are reserved"). Pakai pool kecil + idle timeout
 // supaya koneksi tidak menumpuk idle.
+// max:2 — Vercel serverless spin banyak instance; tiap instance bikin pool
+// sendiri. Pool 3/instance × N instance = cepat habis slot Aiven.
+// connect_timeout rendah — kalau slot penuh, gagal cepat, bukan nunggu 60s.
 const client = connectionString
   ? postgres(connectionString, {
       ssl: 'require',
-      max: 3,
-      idle_timeout: 20,
+      max: 2,
+      idle_timeout: 10,
+      connect_timeout: 10,
     })
   : null;
 

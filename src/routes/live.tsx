@@ -6,6 +6,7 @@
  * Sepenuhnya responsif & mendukung tema gelap/terang.
  */
 
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   CircleDot,
@@ -13,12 +14,9 @@ import {
   Droplets,
   Flame,
   Layers,
-  Radio,
   Sparkles,
   Trophy,
-  Users,
   Utensils,
-  Wind,
   Workflow,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -30,9 +28,9 @@ import { ScoreBoard } from '../components/5r/ScoreBoard';
 import { BracketTree } from '../components/bagan/BracketTree';
 import { HeatPipelineTree } from '../components/bagan/HeatPipelineTree';
 import { useBracket, useHeatBracket, useSubmissions } from '../lib/queries';
-import { getDeadline, getForms, getRooms, getSubmissions } from '../server/functions/5r';
-import { getBaganCompetitions, getBracket, getPrizes } from '../server/functions/bracket';
-import { getHeatBracket } from '../server/functions/bracket-heat';
+import { getLivePageData } from '../server/functions/live';
+
+type LivePageData = Awaited<ReturnType<typeof getLivePageData>>;
 
 function getCompIcon(title: string, slug?: string) {
   const t = `${title} ${slug || ''}`.toLowerCase();
@@ -59,38 +57,42 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/live')({
   validateSearch: searchSchema,
   loader: async () => {
-    const [rooms, forms, submissions, dl, comps] = await Promise.all([
-      getRooms(),
-      getForms(),
-      getSubmissions(),
-      getDeadline(),
-      getBaganCompetitions(),
-    ]);
-
-    const entries = await Promise.all(
-      comps.flatMap((c) =>
-        (['putra', 'putri'] as const).map(async (k) => ({
-          key: `${c.id}:${k}`,
-          detail: await getBracket({ data: { competitionId: c.id, kategori: k } }),
-          heatDetail: await getHeatBracket({ data: { competitionId: c.id, kategori: k } }),
-          prizes: await getPrizes({ data: { competitionId: c.id, kategori: k } }),
-        }))
-      )
-    );
-    const details: Record<string, Awaited<ReturnType<typeof getBracket>>> = {};
-    const heatDetails: Record<string, Awaited<ReturnType<typeof getHeatBracket>>> = {};
-    const prizes: Record<string, Awaited<ReturnType<typeof getPrizes>>> = {};
-    for (const e of entries) {
-      details[e.key] = e.detail;
-      heatDetails[e.key] = e.heatDetail;
-      prizes[e.key] = e.prizes;
-    }
-
-    return { rooms, forms, submissions, deadline: dl.deadline, comps, details, heatDetails, prizes };
+    const data = await getLivePageData();
+    return {
+      rooms: data.rooms,
+      forms: data.forms,
+      submissions: data.submissions,
+      deadline: data.deadline,
+      comps: data.comps,
+      details: data.details,
+      heatDetails: data.heatDetails,
+      prizes: data.prizes,
+    };
   },
   component: UnifiedLivePage,
   pendingComponent: UnifiedLiveSkeleton,
+  errorComponent: LiveErrorFallback,
 });
+
+function LiveErrorFallback({ reset }: { reset: () => void }) {
+  return (
+    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 text-center">
+      <span className="text-3xl">📡</span>
+      <h2 className="font-heading text-lg font-black text-foreground">Gagal Memuat Data Live</h2>
+      <p className="max-w-sm text-xs sm:text-sm text-muted-foreground leading-relaxed">
+        Koneksi database sedang padat atau bermasalah. Silakan coba lagi — data lama tidak hilang.
+      </p>
+      <button
+        type="button"
+        onClick={reset}
+        className="inline-flex items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 text-xs font-bold text-white transition hover:bg-red-700 cursor-pointer"
+      >
+        <i className="fa-solid fa-rotate-right" />
+        Coba Lagi
+      </button>
+    </div>
+  );
+}
 
 function UnifiedLivePage() {
   const loader = Route.useLoaderData();
@@ -111,7 +113,11 @@ function UnifiedLivePage() {
 
   // initialData dari loader ➔ first-paint SSR instan, refetchInterval 10s
   // mengambil alih setelah hydrate (polling aktif selama halaman terbuka).
-  const { data: submissions = [] } = useSubmissions(loader.submissions);
+  const {
+    data: submissions = [],
+    refetch: refetchSubmissions,
+    isFetching: submissionsRefetching,
+  } = useSubmissions(loader.submissions);
 
   const [activeCompId, setActiveCompId] = useState<number | null>(
     search.comp ?? loader.comps[0]?.id ?? null
@@ -125,6 +131,15 @@ function UnifiedLivePage() {
       }),
       replace: true,
     });
+  };
+
+  // Segarkan manual — polling otomatis dimatikan (hemat slot DB pool Aiven).
+  // Refetch skor 5R + invalidate semua bagan → seluruh card di-refetch.
+  const queryClient = useQueryClient();
+  const handleRefresh = () => {
+    void refetchSubmissions();
+    void queryClient.invalidateQueries({ queryKey: ['bracket'] });
+    void queryClient.invalidateQueries({ queryKey: ['heat-bracket'] });
   };
 
   const selectedComp = loader.comps.find((c) => c.id === activeCompId) ?? loader.comps[0];
@@ -144,8 +159,20 @@ function UnifiedLivePage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            LIVE AUTO-REFRESH
+            LIVE
           </span>
+
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={submissionsRefetching}
+            className="inline-flex items-center gap-1.5 rounded-full bg-brand-red/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-brand-red border border-brand-red/20 cursor-pointer transition hover:bg-brand-red/20 disabled:opacity-50"
+          >
+            <i
+              className={`fa-solid ${submissionsRefetching ? 'fa-spinner fa-spin' : 'fa-rotate-right'}`}
+            />
+            {submissionsRefetching ? 'Memuat...' : 'Segarkan'}
+          </button>
         </div>
 
         <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
@@ -330,7 +357,8 @@ function BracketDraftOrEmptyState({
             : 'Bagan Pertandingan Sedang Disusun'}
         </h4>
         <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-          Panitia sedang melakukan pengundian sesi dan verifikasi peserta. Bagan resmi akan segera diumumkan.
+          Panitia sedang melakukan pengundian sesi dan verifikasi peserta. Bagan resmi akan segera
+          diumumkan.
         </p>
       </div>
     );
@@ -371,18 +399,34 @@ function BracketCard({
 }: {
   comp: { id: number; title: string };
   kategori: 'putra' | 'putri';
-  initialDetail?: Awaited<ReturnType<typeof getBracket>>;
-  initialHeatDetail?: Awaited<ReturnType<typeof getHeatBracket>>;
-  initialPrizes?: Awaited<ReturnType<typeof getPrizes>>;
+  initialDetail?: LivePageData['details'][string];
+  initialHeatDetail?: LivePageData['heatDetails'][string];
+  initialPrizes?: LivePageData['prizes'][string];
 }) {
-  const { data: detail } = useBracket(comp.id, kategori, initialDetail);
-  const { data: heatDetail } = useHeatBracket(comp.id, kategori, initialHeatDetail);
+  const {
+    data: detail,
+    isError: detailError,
+    refetch: refetchDetail,
+    isRefetching: detailRefetching,
+  } = useBracket(comp.id, kategori, initialDetail);
+  const {
+    data: heatDetail,
+    isError: heatError,
+    refetch: refetchHeat,
+    isRefetching: heatRefetching,
+  } = useHeatBracket(comp.id, kategori, initialHeatDetail);
   const prizes = initialPrizes ?? [];
   const isPutra = kategori === 'putra';
   const isHeat = !!heatDetail;
+  const hasError = detailError || heatError;
   // Publik tidak boleh melihat undian/struktur DRAFT — sembunyikan sampai panitia publish.
   const isDraftHeat = isHeat && heatDetail?.bracket.status === 'DRAFT';
   const isDraftSe = !isHeat && !!detail && detail.bracket.status === 'DRAFT';
+
+  const handleRetry = () => {
+    void refetchDetail();
+    void refetchHeat();
+  };
 
   return (
     <section className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden flex flex-col w-full">
@@ -412,36 +456,56 @@ function BracketCard({
           </div>
         </div>
 
-        <span className="rounded-full bg-card px-3 py-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground border border-border shadow-2xs">
-          {isHeat
-            ? `${heatDetail?.bracket.participantCount ?? 0} Tim`
-            : detail
-              ? `${detail.bracket.participantCount} Tim`
-              : 'Belum Ada Bagan'}
-        </span>
+        <div className="flex items-center gap-2">
+          {hasError && (
+            <button
+              type="button"
+              onClick={handleRetry}
+              disabled={detailRefetching || heatRefetching}
+              className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 border border-amber-500/30 cursor-pointer transition hover:bg-amber-500/25 disabled:opacity-50"
+            >
+              <i className="fa-solid fa-rotate-right text-[9px]" />
+              {detailRefetching || heatRefetching ? 'Memuat...' : 'Coba Lagi'}
+            </button>
+          )}
+          <span className="rounded-full bg-card px-3 py-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground border border-border shadow-2xs">
+            {isHeat
+              ? `${heatDetail?.bracket.participantCount ?? 0} Tim`
+              : detail
+                ? `${detail.bracket.participantCount} Tim`
+                : 'Belum Ada Bagan'}
+          </span>
+        </div>
       </header>
 
       {/* Konten Bagan — Pure Bagan Horizontal Fullwidth */}
       <div className="p-4 sm:p-5 min-w-0 max-w-full flex-1 overflow-x-auto">
-        {isDraftHeat || isDraftSe ? (
-          <BracketDraftOrEmptyState
-            categoryTitle={isPutra ? 'Putra' : 'Putri'}
-            isDraft={true}
-          />
+        {hasError ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+            <span className="text-2xl">⚠️</span>
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-sm leading-relaxed">
+              Gagal memuat data bagan (kemungkinan koneksi database padat). Silakan coba lagi.
+            </p>
+            <button
+              type="button"
+              onClick={handleRetry}
+              disabled={detailRefetching || heatRefetching}
+              className="inline-flex items-center gap-2 rounded-full bg-brand-red px-5 py-2.5 text-xs font-bold text-white transition hover:bg-red-700 cursor-pointer disabled:opacity-50"
+            >
+              <i className="fa-solid fa-rotate-right" />
+              {detailRefetching || heatRefetching ? 'Memuat...' : 'Muat Ulang'}
+            </button>
+          </div>
+        ) : isDraftHeat || isDraftSe ? (
+          <BracketDraftOrEmptyState categoryTitle={isPutra ? 'Putra' : 'Putri'} isDraft={true} />
         ) : isHeat ? (
           heatDetail ? (
             <HeatPipelineTree detail={heatDetail} teams={heatDetail.teams} prizes={prizes} />
           ) : (
-            <BracketDraftOrEmptyState
-              categoryTitle={isPutra ? 'Putra' : 'Putri'}
-              isDraft={false}
-            />
+            <BracketDraftOrEmptyState categoryTitle={isPutra ? 'Putra' : 'Putri'} isDraft={false} />
           )
         ) : !detail ? (
-          <BracketDraftOrEmptyState
-            categoryTitle={isPutra ? 'Putra' : 'Putri'}
-            isDraft={false}
-          />
+          <BracketDraftOrEmptyState categoryTitle={isPutra ? 'Putra' : 'Putri'} isDraft={false} />
         ) : (
           <BracketTree detail={detail} prizes={prizes} />
         )}
