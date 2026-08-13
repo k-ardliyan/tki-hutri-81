@@ -46,25 +46,34 @@ export const getLivePageData = createServerFn({ method: 'GET' }).handler(async (
   const forms = fiveRForms;
   const rooms = fiveRRooms;
 
-  // ── 2. Query dasar (3 query saja — paralel aman) ──
-  const [submissionRows, settingsRow, compRows] = await Promise.all([
-    database.select().from(fiveRSubmissions).orderBy(fiveRSubmissions.createdAt),
-    loadSettingsRow(database),
-    database
-      .select({
-        id: competitions.id,
-        slug: competitions.slug,
-        short: competitions.short,
-        title: competitions.title,
-      })
-      .from(competitions)
-      .where(inArray(competitions.slug, ['balon', 'air']))
-      .orderBy(competitions.sortOrder),
-  ]);
-
+  // Sesi tidak butuh DB (cookie HMAC) — aman dipanggil duluan.
   const session = await getSession();
   // Publik (tanpa login): /live scoreboard — sembunyikan field privat.
   const isPrivate = session.role !== null;
+
+  // ── 2. Query dasar (3 query) — fallback empty saat DB timeout/quota ──
+  let submissionRows: (typeof fiveRSubmissions.$inferSelect)[] = [];
+  let settingsRow: { startDate: Date | null; endDate: Date | null } | null = null;
+  let compRows: Array<{ id: number; slug: string; short: string; title: string }> = [];
+  try {
+    [submissionRows, settingsRow, compRows] = await Promise.all([
+      database.select().from(fiveRSubmissions).orderBy(fiveRSubmissions.createdAt),
+      loadSettingsRow(database),
+      database
+        .select({
+          id: competitions.id,
+          slug: competitions.slug,
+          short: competitions.short,
+          title: competitions.title,
+        })
+        .from(competitions)
+        .where(inArray(competitions.slug, ['balon', 'air']))
+        .orderBy(competitions.sortOrder),
+    ]);
+  } catch {
+    // ponytail: DB timeout → scoreboard kosong, rooms/forms statis tetap render.
+  }
+
   const submissions = submissionRows.map((r) => ({
     id: r.id,
     roomId: r.roomId,
