@@ -1,5 +1,7 @@
 import { useLoaderData } from '@tanstack/react-router';
+import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
+import { motionTransition } from '~/lib/motion';
 
 interface KelompokGroup {
   id: string;
@@ -47,15 +49,16 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
   }, [termLower, group.nama, group.anggota]);
 
   return (
-    <article
-      className={`surface-card overflow-hidden transition ${
+    <motion.article
+      layout
+      className={`surface-card overflow-hidden transition-shadow ${
         open && termLower ? 'ring-2 ring-amber-300/60' : ''
       }`}
     >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left cursor-pointer active:scale-[0.99] transition-transform"
       >
         <div className="min-w-0">
           <span
@@ -70,40 +73,50 @@ function TeamCard({ group, term }: { group: KelompokGroup; term: string }) {
           </h3>
           <p className="text-xs text-slate-500">{group.anggota.length} anggota</p>
         </div>
-        <i
-          className={`fa-solid fa-chevron-down text-slate-500 transition ${
-            open ? 'rotate-180' : ''
-          }`}
+        <motion.i
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={motionTransition.fast}
+          className="fa-solid fa-chevron-down text-slate-500"
         />
       </button>
 
-      {open && (
-        <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-3">
-          <ul className="space-y-1.5">
-            {group.anggota.map((nama: string) => {
-              const isMatch = termLower && nama.toLowerCase().includes(termLower);
-              return (
-                <li
-                  key={`${group.id}-${nama}`}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${
-                    isMatch
-                      ? 'bg-amber-50 text-slate-900 ring-amber-200'
-                      : 'bg-white text-slate-700 ring-slate-100'
-                  }`}
-                >
-                  <span className="min-w-0 flex-1">{highlightParts(nama, term)}</span>
-                  {isMatch && (
-                    <span className="shrink-0 rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-bold text-amber-900">
-                      cocok
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-    </article>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={motionTransition.fast}
+            className="overflow-hidden border-t border-slate-100 bg-slate-50/70"
+          >
+            <div className="px-4 py-3">
+              <ul className="space-y-1.5">
+                {group.anggota.map((nama: string) => {
+                  const isMatch = termLower && nama.toLowerCase().includes(termLower);
+                  return (
+                    <li
+                      key={`${group.id}-${nama}`}
+                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${
+                        isMatch
+                          ? 'bg-amber-50 text-slate-900 ring-amber-200'
+                          : 'bg-white text-slate-700 ring-slate-100'
+                      }`}
+                    >
+                      <span className="min-w-0 flex-1">{highlightParts(nama, term)}</span>
+                      {isMatch && (
+                        <span className="shrink-0 rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-bold text-amber-900">
+                          cocok
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.article>
   );
 }
 
@@ -223,20 +236,28 @@ export default function TimPage() {
             { id: 'all', label: `Semua (${summary.total})` },
             { id: 'putra', label: `Putra (${summary.putra})` },
             { id: 'putri', label: `Putri (${summary.putri})` },
-          ].map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFilter(f.id)}
-              className={`rounded-full px-4 py-2 text-xs font-bold transition ${
-                filter === f.id
-                  ? 'bg-brand-red text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          ].map((f) => {
+            const isSelected = filter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFilter(f.id)}
+                className={`relative rounded-full px-4 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                  isSelected ? 'text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {isSelected && (
+                  <motion.div
+                    layoutId="tim-filter-active-pill"
+                    transition={motionTransition.springSmooth}
+                    className="absolute inset-0 rounded-full bg-brand-red shadow-sm"
+                  />
+                )}
+                <span className="relative z-10">{f.label}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 

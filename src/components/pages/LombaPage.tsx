@@ -6,8 +6,8 @@ import { useAudience, useAudienceNavigate } from '../../context/AudienceContext'
 
 const lombaAssets: Record<string, string> = assets.lomba as Record<string, string>;
 
+import { AnimatePresence, motion } from 'motion/react';
 import { LazyImage } from '~/components/common/LazyImage';
-import gsap, { shouldReduceMotion } from '../../lib/gsap';
 
 const tone = {
   red: {
@@ -58,7 +58,7 @@ function BranchChips({
             key={c.id}
             type="button"
             onClick={() => onSelect(c.id)}
-            className={`flex cursor-pointer items-center gap-2 rounded-2xl border text-left transition active:scale-[0.98] ${
+            className={`relative flex cursor-pointer items-center gap-2 rounded-2xl border text-left transition active:scale-[0.98] ${
               compact
                 ? 'min-w-0 flex-1 px-2 py-1.5 sm:px-2.5'
                 : 'min-w-[148px] shrink-0 px-2.5 py-2 sm:min-w-0 sm:flex-1'
@@ -261,174 +261,110 @@ function StickyBranchBar({
   activeId: string;
   onSelect: (id: string) => void;
 }) {
-  const [mounted, setMounted] = useState<boolean>(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const closingRef = useRef<boolean>(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Mount when open becomes true
   useEffect(() => {
-    if (open) {
-      closingRef.current = false;
-      setMounted(true);
-    }
-  }, [open]);
-
-  // Animate in
-  useEffect(() => {
-    if (!mounted || !open || !panelRef.current) return undefined;
-    if (shouldReduceMotion()) {
-      gsap.set(panelRef.current, { clearProps: 'all', y: 0, opacity: 1 });
-      return undefined;
-    }
-    gsap.killTweensOf(panelRef.current);
-    gsap.fromTo(
-      panelRef.current,
-      { y: -28, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.38, ease: 'power3.out' }
-    );
-    return undefined;
-  }, [mounted, open]);
-
-  // Animate out when open=false
-  useEffect(() => {
-    if (!mounted) return undefined;
-    if (open || closingRef.current) return undefined;
-
-    if (!panelRef.current || shouldReduceMotion()) {
-      setMounted(false);
-      return undefined;
-    }
-
-    closingRef.current = true;
-    gsap.killTweensOf(panelRef.current);
-    const tw = gsap.to(panelRef.current, {
-      y: -22,
-      opacity: 0,
-      duration: 0.28,
-      ease: 'power2.in',
-      onComplete: () => {
-        closingRef.current = false;
-        setMounted(false);
-      },
-    });
-    return () => {
-      tw.kill();
-    };
-  }, [open, mounted]);
-
-  // Dropdown menu animation
-  useEffect(() => {
-    if (!menuRef.current) return undefined;
-    if (shouldReduceMotion()) return undefined;
-    if (menuOpen) {
-      gsap.fromTo(
-        menuRef.current,
-        { y: -8, opacity: 0, scale: 0.97 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.28, ease: 'power3.out' }
-      );
-      const chips = menuRef.current.querySelectorAll('[data-branch-chip]');
-      if (chips.length) {
-        gsap.fromTo(
-          chips,
-          { y: 6, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.22,
-            stagger: 0.04,
-            ease: 'power2.out',
-            delay: 0.05,
-          }
-        );
-      }
-    }
-    return undefined;
-  }, [menuOpen]);
+    setMounted(true);
+  }, []);
 
   if (!mounted) return null;
 
-  const ui = (
-    <div
-      ref={rootRef}
-      className="pointer-events-none fixed inset-x-0 top-[max(0.75rem,env(safe-area-inset-top,0px))] z-[60] px-4 sm:top-6 sm:px-6"
-    >
-      <div
-        ref={panelRef}
-        className="pointer-events-auto mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-2xl shadow-slate-900/15 backdrop-blur-xl sm:max-w-2xl"
-        style={{ opacity: 0 }}
-      >
-        <div className="h-0.5 w-full bg-gradient-to-r from-brand-deep via-brand-red to-brand-gold" />
-        <div className="px-2.5 py-2 sm:px-3">
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v: boolean) => !v)}
-            className="flex w-full min-w-0 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/90 px-2.5 py-2 text-left transition hover:bg-slate-50"
-            aria-expanded={menuOpen}
-          >
-            <img
-              src={lombaAssets[active.imageKey]}
-              alt=""
-              className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                Ganti cabang · {active.number}
-              </p>
-              <p className="truncate text-sm font-bold text-slate-900">{active.short}</p>
-            </div>
-            <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200 transition ${
-                menuOpen ? 'rotate-180 text-brand-red' : ''
-              }`}
-            >
-              <i className="fa-solid fa-chevron-down text-xs" />
-            </span>
-          </button>
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="sticky-branch-bar"
+          initial={{ opacity: 0, y: -24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -18 }}
+          transition={{ duration: 0.32, ease: [0.2, 0, 0, 1] }}
+          className="pointer-events-none fixed inset-x-0 top-[max(0.75rem,env(safe-area-inset-top,0px))] z-[60] px-4 sm:top-6 sm:px-6"
+        >
+          <div className="pointer-events-auto mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-2xl shadow-slate-900/15 backdrop-blur-xl sm:max-w-2xl">
+            <div className="h-0.5 w-full bg-gradient-to-r from-brand-deep via-brand-red to-brand-gold" />
+            <div className="px-2.5 py-2 sm:px-3">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v: boolean) => !v)}
+                className="flex w-full min-w-0 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/90 px-2.5 py-2 text-left transition hover:bg-slate-50 cursor-pointer active:scale-[0.99]"
+                aria-expanded={menuOpen}
+              >
+                <img
+                  src={lombaAssets[active.imageKey]}
+                  alt=""
+                  className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    Ganti cabang · {active.number}
+                  </p>
+                  <p className="truncate text-sm font-bold text-slate-900">{active.short}</p>
+                </div>
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200 transition ${
+                    menuOpen ? 'rotate-180 text-brand-red' : ''
+                  }`}
+                >
+                  <i className="fa-solid fa-chevron-down text-xs" />
+                </span>
+              </button>
 
-          {menuOpen && (
-            <div
-              ref={menuRef}
-              className="mt-2 rounded-xl border border-slate-200 bg-white p-2 shadow-inner"
-            >
-              <div className="flex gap-2">
-                {competitions.map((c) => {
-                  const selected = activeId === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      data-branch-chip
-                      onClick={() => onSelect(c.id)}
-                      className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition sm:px-2.5 ${
-                        selected
-                          ? 'border-brand-red bg-brand-soft shadow-sm ring-1 ring-brand-red/25'
-                          : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
-                      }`}
-                    >
-                      <img
-                        src={lombaAssets[c.imageKey]}
-                        alt=""
-                        className="h-8 w-8 shrink-0 rounded-lg object-cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-slate-900 sm:text-sm">
-                          {c.short}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              <AnimatePresence>
+                {menuOpen && (
+                  <motion.div
+                    key="branch-menu"
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+                    className="mt-2 rounded-xl border border-slate-200 bg-white p-2 shadow-inner"
+                  >
+                    <div className="flex gap-2">
+                      {competitions.map((c, cIdx) => {
+                        const selected = activeId === c.id;
+                        return (
+                          <motion.button
+                            key={c.id}
+                            type="button"
+                            data-branch-chip
+                            onClick={() => onSelect(c.id)}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              duration: 0.18,
+                              delay: 0.03 + cIdx * 0.03,
+                              ease: 'easeOut',
+                            }}
+                            className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition sm:px-2.5 cursor-pointer active:scale-95 ${
+                              selected
+                                ? 'border-brand-red bg-brand-soft shadow-sm ring-1 ring-brand-red/25'
+                                : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
+                            }`}
+                          >
+                            <img
+                              src={lombaAssets[c.imageKey]}
+                              alt=""
+                              className="h-8 w-8 shrink-0 rounded-lg object-cover"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-bold text-slate-900 sm:text-sm">
+                                {c.short}
+                              </p>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
   );
-
-  return createPortal(ui, document.body);
 }
 
 export default function LombaPage() {
@@ -437,7 +373,7 @@ export default function LombaPage() {
   const navigate = useAudienceNavigate();
   const { isPanitia } = useAudience();
   // Kalau bukan panitia, audience selalu dikunci ke "peserta"
-  const [audience, setAudience] = useState(isPanitia ? 'peserta' : 'peserta');
+  const [audience, setAudience] = useState<'peserta' | 'panitia'>('peserta');
   const effectiveAudience = isPanitia ? audience : 'peserta';
   const [activeId, setActiveId] = useState(() => {
     return paramId && competitions.some((c) => c.id === paramId) ? paramId : competitions[0].id;
@@ -606,22 +542,24 @@ export default function LombaPage() {
               </p>
               <div className="rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
                 <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    {
-                      id: 'peserta',
-                      label: 'Peserta',
-                      sub: 'Aturan bermain',
-                      icon: 'fa-user',
-                      activeClass: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25',
-                    },
-                    {
-                      id: 'panitia',
-                      label: 'Panitia',
-                      sub: 'Peralatan & sesi',
-                      icon: 'fa-clipboard-list',
-                      activeClass: 'bg-sky-600 text-white shadow-md shadow-sky-600/25',
-                    },
-                  ].map((opt) => {
+                  {(
+                    [
+                      {
+                        id: 'peserta',
+                        label: 'Peserta',
+                        sub: 'Aturan bermain',
+                        icon: 'fa-user',
+                        activeClass: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25',
+                      },
+                      {
+                        id: 'panitia',
+                        label: 'Panitia',
+                        sub: 'Peralatan & sesi',
+                        icon: 'fa-clipboard-list',
+                        activeClass: 'bg-sky-600 text-white shadow-md shadow-sky-600/25',
+                      },
+                    ] as const
+                  ).map((opt) => {
                     const on = audience === opt.id;
                     return (
                       <button

@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SearchInput } from '~/components/common/SearchInput';
 import { RoomListSkeleton } from '~/components/loading/skeletons';
 import {
   type FiveRForm,
@@ -43,7 +44,6 @@ import {
 } from '../ui/breadcrumb';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Input } from '../ui/input';
 import { InteractiveCard } from '../ui/interactive-card';
 import { PageHeader } from '../ui/page-header';
 import { ResponsiveDialog } from '../ui/responsive-dialog';
@@ -227,27 +227,15 @@ export default function RoomFormFlow({
         {/* Search & Quick Filter Pills */}
         <div className="space-y-2.5">
           <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <Search
-                size={14}
-                className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60"
-              />
-              <Input
-                type="text"
+            <div className="flex-1">
+              <SearchInput
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onClear={() => setSearchQuery('')}
+                loading={searchQuery !== debouncedSearch}
                 placeholder="Cari nama ruangan atau PIC..."
-                className="h-9.5 pl-9 pr-9 text-xs sm:text-sm bg-card"
+                className="h-9.5 text-xs sm:text-sm bg-card"
               />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  <X size={14} />
-                </button>
-              )}
             </div>
 
             {/* Quick Status Filter Chips */}

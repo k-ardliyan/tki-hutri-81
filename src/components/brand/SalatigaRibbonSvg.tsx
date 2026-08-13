@@ -1,87 +1,14 @@
-import { useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { assets } from '../../assets';
-import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
+/**
+ * Salatiga Tugu Jam decorative vector — infinite loops via CSS keyframes (zero JS).
+ * Replaces GSAP: tugu float (animate-float-y), clock glow (animate-clock-pulse),
+ * ribbons wave (animate-ribbon-red/white), particles (particleFloat w/ CSS vars).
+ */
 export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
-  const containerRef = useRef(null);
-  const tuguRef = useRef(null);
-  const clockGlowRef = useRef(null);
-  const ribbonRedRef = useRef(null);
-  const ribbonWhiteRef = useRef(null);
-  const particlesRef = useRef<SVGGElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current || shouldReduceMotion()) return undefined;
-
-    const ctx = gsap.context(() => {
-      // 1. Zoomed Tugu Jam Vector Gentle Float
-      if (tuguRef.current) {
-        gsap.to(tuguRef.current, {
-          y: -8,
-          duration: 3.2,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-        });
-      }
-
-      // 2. Glowing Clock Pulse Overlay
-      if (clockGlowRef.current) {
-        gsap.to(clockGlowRef.current, {
-          scale: 1.25,
-          opacity: 0.85,
-          duration: 1.8,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-          transformOrigin: 'center center',
-        });
-      }
-
-      // 3. Waving Red and White Silk Ribbons
-      if (ribbonRedRef.current && ribbonWhiteRef.current) {
-        gsap.to(ribbonRedRef.current, {
-          y: -12,
-          skewX: 2,
-          duration: 3.4,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-        });
-        gsap.to(ribbonWhiteRef.current, {
-          y: 10,
-          skewX: -2,
-          duration: 3.0,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-          delay: 0.2,
-        });
-      }
-
-      // 4. Golden sparkle particles float
-      if (particlesRef.current) {
-        const dots = particlesRef.current.querySelectorAll('.particle-dot');
-        dots.forEach((dot: Element, i: number) => {
-          gsap.to(dot, {
-            y: `-=${14 + (i % 3) * 8}`,
-            x: `+=${(i % 2 === 0 ? 1 : -1) * (8 + (i % 4) * 4)}`,
-            opacity: 0.2 + ((i * 3) % 7) * 0.1,
-            duration: 2.5 + (i % 3) * 0.7,
-            repeat: -1,
-            yoyo: true,
-            ease: 'sine.inOut',
-            delay: i * 0.15,
-          });
-        });
-      }
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <div ref={containerRef} className={`pointer-events-none ${className}`}>
+    <div className={`pointer-events-none ${className}`}>
       <svg
         viewBox="0 0 800 600"
         fill="none"
@@ -104,12 +31,13 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
         {/* LAYER 1 (BEHIND): Waving Red-and-White Silk Ribbons */}
         <g id="ribbons-group">
           <path
-            ref={ribbonRedRef}
+            className="animate-ribbon-red"
             d="M -50 90 Q 220 170 480 70 T 850 150 L 850 210 Q 550 130 200 230 T -50 150 Z"
             fill="url(#salatigaRibbonRed)"
           />
           <path
-            ref={ribbonWhiteRef}
+            className="animate-ribbon-white"
+            style={{ animationDelay: '0.2s' }}
             d="M -50 150 Q 220 230 580 130 T 850 210 L 850 255 Q 520 175 160 275 T -50 195 Z"
             fill="#FFFFFF"
             opacity="0.35"
@@ -117,7 +45,7 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
         </g>
 
         {/* LAYER 2 (FOREGROUND): Responsive Tugu Jam Group */}
-        <g id="tugu-jam-salatiga-vector" ref={tuguRef}>
+        <g className="animate-float-y" style={{ animationDuration: '3.2s' }}>
           {/* Mobile & Tablet Layout (< 1024px) — Zoomed in, cropped bottom, matching hero aesthetic */}
           <g className="lg:hidden">
             {assets.tuguJamSalatigaSvg && (
@@ -151,18 +79,103 @@ export default function SalatigaRibbonSvg({ className = 'h-full w-full' }) {
                 className="drop-shadow-2xl"
               />
             )}
-            <circle ref={clockGlowRef} cx="805" cy="225" r="75" fill="url(#clockGlow)" />
+            <circle
+              className="animate-clock-pulse"
+              cx="805"
+              cy="225"
+              r="75"
+              fill="url(#clockGlow)"
+            />
           </g>
         </g>
 
         {/* LAYER 3: Floating Confetti / Sparkles */}
-        <g ref={particlesRef} id="particles-group">
-          <circle className="particle-dot" cx="160" cy="110" r="3" fill="#FCD34D" />
-          <circle className="particle-dot" cx="290" cy="75" r="2.5" fill="#FFFFFF" />
-          <circle className="particle-dot" cx="430" cy="150" r="4" fill="#F59E0B" />
-          <circle className="particle-dot" cx="550" cy="85" r="3" fill="#FCD34D" />
-          <circle className="particle-dot" cx="690" cy="130" r="2" fill="#FFFFFF" />
-          <circle className="particle-dot" cx="370" cy="210" r="3.5" fill="#F59E0B" />
+        <g id="particles-group">
+          <circle
+            className="particle-dot"
+            style={
+              { '--dx': '8px', '--dy': '-14px', '--dur': '2.5s', '--delay': '0s' } as CSSProperties
+            }
+            cx="160"
+            cy="110"
+            r="3"
+            fill="#FCD34D"
+          />
+          <circle
+            className="particle-dot"
+            style={
+              {
+                '--dx': '-12px',
+                '--dy': '-22px',
+                '--dur': '3.2s',
+                '--delay': '0.15s',
+              } as CSSProperties
+            }
+            cx="290"
+            cy="75"
+            r="2.5"
+            fill="#FFFFFF"
+          />
+          <circle
+            className="particle-dot"
+            style={
+              {
+                '--dx': '12px',
+                '--dy': '-14px',
+                '--dur': '2.5s',
+                '--delay': '0.3s',
+              } as CSSProperties
+            }
+            cx="430"
+            cy="150"
+            r="4"
+            fill="#F59E0B"
+          />
+          <circle
+            className="particle-dot"
+            style={
+              {
+                '--dx': '-16px',
+                '--dy': '-22px',
+                '--dur': '3.2s',
+                '--delay': '0.45s',
+              } as CSSProperties
+            }
+            cx="550"
+            cy="85"
+            r="3"
+            fill="#FCD34D"
+          />
+          <circle
+            className="particle-dot"
+            style={
+              {
+                '--dx': '8px',
+                '--dy': '-30px',
+                '--dur': '3.9s',
+                '--delay': '0.6s',
+              } as CSSProperties
+            }
+            cx="690"
+            cy="130"
+            r="2"
+            fill="#FFFFFF"
+          />
+          <circle
+            className="particle-dot"
+            style={
+              {
+                '--dx': '-8px',
+                '--dy': '-22px',
+                '--dur': '3.2s',
+                '--delay': '0.75s',
+              } as CSSProperties
+            }
+            cx="370"
+            cy="210"
+            r="3.5"
+            fill="#F59E0B"
+          />
         </g>
       </svg>
     </div>

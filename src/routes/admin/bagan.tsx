@@ -11,6 +11,7 @@ import {
   MinusCircle,
   Pencil,
   Plus,
+  Printer,
   RefreshCw,
   Trash2,
   Trophy,
@@ -22,7 +23,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AdminBaganSkeleton } from '~/components/loading/skeletons';
 import type { HeatDetailView } from '~/lib/tournament/heat-elimination';
+import { cn } from '~/lib/utils';
 import { BaganGuide } from '../../components/bagan/BaganGuide';
+import { BaganPrintModal } from '../../components/bagan/BaganPrintModal';
 import {
   type BracketDetailView,
   BracketTree,
@@ -384,6 +387,7 @@ function AdminBagan() {
           winnerId: correctWinner,
           reason: correctReason || null,
           invalidateDownstream: correctInvalidate,
+          expectedVersion: correctTarget.version,
         },
       });
       toast.success(
@@ -836,7 +840,8 @@ function AdminBagan() {
                       size="sm"
                       className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                       onClick={() => void run('publish', doPublish)}
-                      disabled={busy !== null}
+                      loading={busy === 'publish'}
+                      disabled={busy !== null && busy !== 'publish'}
                     >
                       <CheckCircle2 size={14} className="mr-1.5" />
                       Publish Bagan
@@ -854,9 +859,13 @@ function AdminBagan() {
                           await reloadActive();
                         })
                       }
-                      disabled={busy !== null}
+                      loading={busy === 'regenerate'}
+                      disabled={busy !== null && busy !== 'regenerate'}
                     >
-                      <RefreshCw size={14} className="mr-1.5" />
+                      <RefreshCw
+                        size={14}
+                        className={cn('mr-1.5', busy === 'regenerate' && 'animate-spin')}
+                      />
                       Acak Ulang
                     </Button>
                   )}
@@ -877,11 +886,31 @@ function AdminBagan() {
                           },
                         })
                       }
-                      disabled={busy !== null}
+                      loading={busy === 'reset'}
+                      disabled={busy !== null && busy !== 'reset'}
                     >
                       Reset Hasil
                     </Button>
                   )}
+                  <BaganPrintModal
+                    title={comp.title}
+                    kategori={kategori}
+                    format="SINGLE_ELIMINATION"
+                    status={STATUS_LABEL[detail.bracket.status] ?? detail.bracket.status}
+                    singleBracket={detail}
+                    prizes={prizes}
+                    trigger={
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl font-bold shadow-2xs"
+                      >
+                        <Printer size={14} className="mr-1.5" />
+                        Cetak / PDF
+                      </Button>
+                    }
+                  />
+
                   <Button
                     size="sm"
                     variant="destructive"
@@ -898,7 +927,8 @@ function AdminBagan() {
                         },
                       })
                     }
-                    disabled={busy !== null}
+                    loading={busy === 'delete'}
+                    disabled={busy !== null && busy !== 'delete'}
                   >
                     <Trash2 size={14} className="mr-1.5" />
                     Hapus Bagan

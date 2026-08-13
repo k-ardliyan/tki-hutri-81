@@ -72,6 +72,7 @@ export interface CorrectResultInput {
   winnerId: number;
   reason?: string | null;
   invalidateDownstream: boolean;
+  expectedVersion: number;
   enteredBy?: number | null;
 }
 
@@ -225,7 +226,7 @@ async function computeBracketStatus(
     : false;
   const thirdPlaceCompleted = thirdPlaceMatch
     ? thirdPlaceMatch.status === 'COMPLETED' || thirdPlaceMatch.status === 'AUTO_ADVANCED'
-    : false;
+    : !thirdRound;
   return nextBracketStatus(current, {
     published: false,
     hasAnyResult,
@@ -287,6 +288,20 @@ async function recomputeAll(database: Database, bracketId: number, onlyIds?: Set
       status = 'AUTO_ADVANCED';
       winnerId = s1 ?? s2;
       loserId = null;
+      // BYE result row hilang setelah reset (results di-delete) — re-insert supaya
+      // audit trail utuh. Guard: row lama (kalau ada) jangan didobel.
+      if (winnerId !== null) {
+        const [existingResult] = await database
+          .select({ id: bracketMatchResults.id })
+          .from(bracketMatchResults)
+          .where(eq(bracketMatchResults.matchId, m.id))
+          .limit(1);
+        if (!existingResult) {
+          await database
+            .insert(bracketMatchResults)
+            .values({ matchId: m.id, winnerId, resultType: 'BYE' });
+        }
+      }
     } else if (s1 !== null && s2 !== null) {
       status = 'READY';
     } else {
@@ -313,6 +328,17 @@ export const tournamentService = {
 
     const bracketSize = calculateBracketSize(input.teamIds.length);
     const structure = generateBracketStructure(input.teamIds.length, input.thirdPlaceEnabled);
+    // Clamp: third-place hanya masuk kalau struktur punya round-nya (min 4 peserta).
+    // 2 peserta + thirdPlaceEnabled=true dulu membuat bracket stuck IN_PROGRESS
+    // (third place di-skip generator tapi flag tetap true → bracket tak pernah COMPLETED).
+    const thirdPlaceEnabled =
+      input.thirdPlaceEnabled && structure.rounds.some((r) => r.roundType === 'THIRD_PLACE');
+    if (input.manualPositions) {
+      const idSet = new Set(input.teamIds);
+      for (const teamId of input.manualPositions.keys()) {
+        if (!idSet.has(teamId)) throw new Error('Posisi seed berisi tim di luar peserta bagan ini');
+      }
+    }
     const participants = input.teamIds.map((teamId) => ({ teamId, nama: String(teamId) }));
     const seedOrder = generateSeedOrder(input.seedingMethod, participants, input.manualPositions);
 
@@ -329,7 +355,7 @@ export const tournamentService = {
           format: 'SINGLE_ELIMINATION',
           status: 'DRAFT',
           seedingMethod: input.seedingMethod,
-          thirdPlaceEnabled: input.thirdPlaceEnabled,
+          thirdPlaceEnabled,
           participantCount: input.teamIds.length,
           bracketSize,
         })
@@ -528,15 +554,29 @@ export const tournamentService = {
 
       const loserId =
         match.participant1Id === input.winnerId ? match.participant2Id : match.participant1Id;
-      await tx.insert(bracketMatchResults).values({
-        matchId: match.id,
+      // Upsert result row (bracket_match_results tak punya unique match_id — race
+      // submit ganda bisa insert dobel; guard via select lalu update/insert).
+      const resultValues = {
         participant1Score: input.score1 ?? null,
         participant2Score: input.score2 ?? null,
         winnerId: input.winnerId,
         resultType: input.resultType ?? 'NORMAL',
         notes: input.notes ?? null,
         enteredBy: input.enteredBy ?? null,
-      });
+      };
+      const [existingResult] = await tx
+        .select({ id: bracketMatchResults.id })
+        .from(bracketMatchResults)
+        .where(eq(bracketMatchResults.matchId, match.id))
+        .limit(1);
+      if (existingResult) {
+        await tx
+          .update(bracketMatchResults)
+          .set(resultValues)
+          .where(eq(bracketMatchResults.id, existingResult.id));
+      } else {
+        await tx.insert(bracketMatchResults).values({ matchId: match.id, ...resultValues });
+      }
       await tx
         .update(bracketMatches)
         .set({ winnerId: input.winnerId, loserId, status: 'COMPLETED', version: match.version + 1 })
@@ -574,6 +614,8 @@ export const tournamentService = {
       if (match.status === 'AUTO_ADVANCED') throw new Error('Match BYE tidak bisa dikoreksi');
       if (!winnerBelongsToMatch(match, input.winnerId))
         throw new Error('Pemenang harus peserta match ini');
+      if (input.expectedVersion !== match.version)
+        throw new Error('Data pertandingan sudah diubah admin lain. Silakan refresh.');
       const [bracket] = await tx
         .select()
         .from(brackets)
@@ -725,6 +767,8 @@ export const tournamentService = {
   ): Promise<BracketDetailView | null> {
     const b = await loadBracket(database, competitionId, kategori);
     if (!b) return null;
+    // Guard simetris dgn heat: jangan render bracket format lain sebagai SE.
+    if (b.format !== 'SINGLE_ELIMINATION') return null;
     const rounds = await database
       .select()
       .from(bracketRounds)
@@ -861,6 +905,13 @@ export const tournamentService = {
 };
 
 async function resetResultsFn(database: Database, bracketId: number) {
+  const [b] = await database
+    .select({ status: brackets.status })
+    .from(brackets)
+    .where(eq(brackets.id, bracketId))
+    .limit(1);
+  if (!b) throw new Error('Bracket tidak ditemukan');
+  if (b.status === 'DRAFT') throw new Error('Bracket DRAFT belum punya hasil untuk direset');
   await database
     .delete(bracketMatchHistory)
     .where(sql`match_id in (select id from bracket_matches where bracket_id = ${bracketId})`);

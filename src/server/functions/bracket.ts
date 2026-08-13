@@ -11,6 +11,7 @@ import type { SeedingMethod } from '../../lib/tournament/types';
 import { assertDb, db } from '../db';
 import { isUniqueViolation } from '../db/errors';
 import { competitions, lombaPrizes, teams } from '../db/schema';
+import { adminOnly } from '../middleware/auth';
 import { type TournamentDb, tournamentService } from '../services/tournament';
 
 type Kategori = 'putra' | 'putri';
@@ -61,6 +62,7 @@ export const getBracket = createServerFn({ method: 'GET' })
 // ─── Admin: lifecycle ───
 
 export const generateBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       competitionId: number;
@@ -92,12 +94,14 @@ export const generateBracket = createServerFn({ method: 'POST' })
   });
 
 export const publishBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { bracketId: number }) => d)
   .handler(async ({ data }) => {
     return tournamentService.publish(td(), data.bracketId);
   });
 
 export const submitMatchResult = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       matchId: number;
@@ -124,12 +128,14 @@ export const submitMatchResult = createServerFn({ method: 'POST' })
   });
 
 export const correctMatchResult = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       matchId: number;
       winnerId: number;
       reason?: string | null;
       invalidateDownstream: boolean;
+      expectedVersion: number;
     }) => d
   )
   .handler(async ({ data }) => {
@@ -138,22 +144,26 @@ export const correctMatchResult = createServerFn({ method: 'POST' })
       winnerId: data.winnerId,
       reason: data.reason ?? null,
       invalidateDownstream: data.invalidateDownstream,
+      expectedVersion: data.expectedVersion,
     });
   });
 
 export const resetBracketResults = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { bracketId: number }) => d)
   .handler(async ({ data }) => {
     return tournamentService.resetResults(td(), data.bracketId);
   });
 
 export const regenerateBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { competitionId: number; kategori: Kategori }) => d)
   .handler(async ({ data }) => {
     return tournamentService.regenerate(td(), data.competitionId, data.kategori);
   });
 
 export const deleteBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { bracketId: number }) => d)
   .handler(async ({ data }) => {
     return tournamentService.remove(td(), data.bracketId);
@@ -162,6 +172,7 @@ export const deleteBracket = createServerFn({ method: 'POST' })
 // ─── Admin: juara & hadiah (podium derived → prize by rank) ───
 
 export const upsertPrize = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { competitionId: number; kategori: Kategori; place: number; hadiah: string }) => d)
   .handler(async ({ data }) => {
     const database = assertDb();
@@ -202,6 +213,7 @@ export const upsertPrize = createServerFn({ method: 'POST' })
   });
 
 export const deletePrize = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { competitionId: number; kategori: Kategori; place: number }) => d)
   .handler(async ({ data }) => {
     const database = assertDb();

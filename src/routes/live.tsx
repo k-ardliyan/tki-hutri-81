@@ -7,17 +7,49 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { Layers, Radio, Sparkles, Trophy, Users, Workflow } from 'lucide-react';
+import {
+  CircleDot,
+  Clock,
+  Droplets,
+  Flame,
+  Layers,
+  Radio,
+  Sparkles,
+  Trophy,
+  Users,
+  Utensils,
+  Wind,
+  Workflow,
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { UnifiedLiveSkeleton } from '~/components/loading/skeletons';
+import { fadeVariants, motionTransition } from '~/lib/motion';
 import { ScoreBoard } from '../components/5r/ScoreBoard';
 import { BracketTree } from '../components/bagan/BracketTree';
-import { HeatPublicView } from '../components/bagan/HeatPublicView';
+import { HeatPipelineTree } from '../components/bagan/HeatPipelineTree';
 import { useBracket, useHeatBracket, useSubmissions } from '../lib/queries';
 import { getDeadline, getForms, getRooms, getSubmissions } from '../server/functions/5r';
-import { getBaganCompetitions, getBracket } from '../server/functions/bracket';
+import { getBaganCompetitions, getBracket, getPrizes } from '../server/functions/bracket';
 import { getHeatBracket } from '../server/functions/bracket-heat';
+
+function getCompIcon(title: string, slug?: string) {
+  const t = `${title} ${slug || ''}`.toLowerCase();
+  if (t.includes('air') || t.includes('gelas') || t.includes('bocor') || t.includes('water')) {
+    return Droplets;
+  }
+  if (t.includes('balon') || t.includes('balloon')) {
+    return CircleDot;
+  }
+  if (t.includes('makan') || t.includes('kerupuk')) {
+    return Utensils;
+  }
+  if (t.includes('tarik') || t.includes('tambang')) {
+    return Flame;
+  }
+  return Trophy;
+}
 
 const searchSchema = z.object({
   tab: z.enum(['5r', 'bagan']).optional(),
@@ -41,17 +73,20 @@ export const Route = createFileRoute('/live')({
           key: `${c.id}:${k}`,
           detail: await getBracket({ data: { competitionId: c.id, kategori: k } }),
           heatDetail: await getHeatBracket({ data: { competitionId: c.id, kategori: k } }),
+          prizes: await getPrizes({ data: { competitionId: c.id, kategori: k } }),
         }))
       )
     );
     const details: Record<string, Awaited<ReturnType<typeof getBracket>>> = {};
     const heatDetails: Record<string, Awaited<ReturnType<typeof getHeatBracket>>> = {};
+    const prizes: Record<string, Awaited<ReturnType<typeof getPrizes>>> = {};
     for (const e of entries) {
       details[e.key] = e.detail;
       heatDetails[e.key] = e.heatDetail;
+      prizes[e.key] = e.prizes;
     }
 
-    return { rooms, forms, submissions, deadline: dl.deadline, comps, details, heatDetails };
+    return { rooms, forms, submissions, deadline: dl.deadline, comps, details, heatDetails, prizes };
   },
   component: UnifiedLivePage,
   pendingComponent: UnifiedLiveSkeleton,
@@ -124,104 +159,205 @@ function UnifiedLivePage() {
       </section>
 
       {/* ─── Main Tab Switcher ─── */}
-      <div className="flex gap-1.5 rounded-2xl border border-border bg-muted/40 p-1.5 shadow-inner">
+      <div className="relative flex gap-1.5 rounded-2xl border border-border bg-muted/40 p-1.5 shadow-inner">
         <button
           type="button"
           onClick={() => handleTabChange('5r')}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+          className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-extrabold transition-colors cursor-pointer z-10 ${
             effectiveTab === '5r'
-              ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
-              : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Sparkles size={15} className="text-amber-500" />
-          <span>Dekorasi &amp; Budaya 5R</span>
+          {effectiveTab === '5r' && (
+            <motion.div
+              layoutId="live-tab-active-indicator"
+              transition={motionTransition.springSmooth}
+              className="absolute inset-0 rounded-xl bg-card shadow-sm ring-1 ring-border"
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
+            <Sparkles size={15} className="text-amber-500" />
+            <span>Dekorasi &amp; Budaya 5R</span>
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabChange('bagan')}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+          className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs sm:text-sm font-extrabold transition-colors cursor-pointer z-10 ${
             effectiveTab === 'bagan'
-              ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
-              : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Workflow size={15} className="text-brand-red" />
-          <span>Bagan Pertandingan</span>
+          {effectiveTab === 'bagan' && (
+            <motion.div
+              layoutId="live-tab-active-indicator"
+              transition={motionTransition.springSmooth}
+              className="absolute inset-0 rounded-xl bg-card shadow-sm ring-1 ring-border"
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
+            <Workflow size={15} className="text-brand-red" />
+            <span>Bagan Pertandingan</span>
+          </span>
         </button>
       </div>
 
-      {/* ─── Tab 1: Dekorasi & 5R ─── */}
-      {effectiveTab === '5r' && (
-        <div className="space-y-6">
-          <ScoreBoard
-            submissions={submissions}
-            rooms={loader.rooms}
-            forms={loader.forms}
-            deadline={loader.deadline}
-            mode="live"
-          />
-        </div>
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {/* ─── Tab 1: Dekorasi & 5R ─── */}
+        {effectiveTab === '5r' && (
+          <motion.div
+            key="tab-5r"
+            variants={fadeVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="space-y-6"
+          >
+            <ScoreBoard
+              submissions={submissions}
+              rooms={loader.rooms}
+              forms={loader.forms}
+              deadline={loader.deadline}
+              mode="live"
+            />
+          </motion.div>
+        )}
 
-      {/* ─── Tab 2: Bagan Pertandingan ─── */}
-      {effectiveTab === 'bagan' && (
-        <div className="space-y-6">
-          {!loader.comps.length ? (
-            <div className="rounded-3xl border border-dashed border-border p-12 text-center bg-card shadow-xs">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                <Trophy size={26} />
-              </div>
-              <h3 className="mt-4 font-heading text-lg font-black text-foreground">
-                Bagan Belum Tersedia
-              </h3>
-              <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
-                Panitia sedang menyusun bagan pertandingan. Silakan cek kembali saat perlombaan
-                dimulai.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {/* Competition Selector Pills */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar rounded-2xl border border-border bg-card p-2 shadow-2xs">
-                {loader.comps.map((c) => {
-                  const isSelected = selectedComp?.id === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setActiveCompId(c.id)}
-                      className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black transition cursor-pointer ${
-                        isSelected
-                          ? 'bg-brand-red text-white shadow-md shadow-red-600/25'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
-                    >
-                      <Layers size={13} />
-                      <span>{c.title}</span>
-                    </button>
-                  );
-                })}
-              </div>
+        {/* ─── Tab 2: Bagan Pertandingan ─── */}
+        {effectiveTab === 'bagan' && (
+          <motion.div
+            key="tab-bagan"
+            variants={fadeVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="space-y-6"
+          >
+            {!loader.comps.length ? (
+              <BracketDraftOrEmptyState />
+            ) : (
+              <div className="space-y-5">
+                {/* Competition Selector Pills (Fullwidth & Distinct Icons) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-2 shadow-2xs w-full">
+                  {loader.comps.map((c) => {
+                    const isSelected = selectedComp?.id === c.id;
+                    const CompIcon = getCompIcon(c.title, c.slug);
 
-              {/* Putra & Putri Bracket Cards */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {selectedComp &&
-                  (['putra', 'putri'] as const).map((k) => (
-                    <BracketCard
-                      key={`${selectedComp.id}:${k}`}
-                      comp={selectedComp}
-                      kategori={k}
-                      initialDetail={loader.details[`${selectedComp.id}:${k}`]}
-                      initialHeatDetail={loader.heatDetails[`${selectedComp.id}:${k}`]}
-                    />
-                  ))}
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setActiveCompId(c.id)}
+                        className={`relative flex flex-1 items-center justify-center gap-2.5 rounded-xl px-4 py-3 text-xs sm:text-sm font-black transition-colors cursor-pointer w-full text-center ${
+                          isSelected
+                            ? 'text-white'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        }`}
+                      >
+                        {isSelected && (
+                          <motion.div
+                            layoutId="live-comp-active-pill"
+                            transition={motionTransition.springSmooth}
+                            className="absolute inset-0 rounded-xl bg-brand-red shadow-md shadow-red-600/25"
+                          />
+                        )}
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          <CompIcon
+                            size={16}
+                            className={isSelected ? 'text-white' : 'text-brand-red'}
+                          />
+                          <span className="truncate">{c.title}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Putra & Putri Bracket Cards (Putra Atas, Putri Bawah - Fullwidth) */}
+                <div className="flex flex-col gap-8 w-full">
+                  {selectedComp &&
+                    (['putra', 'putri'] as const).map((k) => (
+                      <BracketCard
+                        key={`${selectedComp.id}:${k}`}
+                        comp={selectedComp}
+                        kategori={k}
+                        initialDetail={loader.details[`${selectedComp.id}:${k}`]}
+                        initialHeatDetail={loader.heatDetails[`${selectedComp.id}:${k}`]}
+                        initialPrizes={loader.prizes[`${selectedComp.id}:${k}`]}
+                      />
+                    ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function BracketDraftOrEmptyState({
+  categoryTitle,
+  isDraft = false,
+}: {
+  categoryTitle?: string;
+  isDraft?: boolean;
+}) {
+  if (isDraft) {
+    return (
+      <div className="relative overflow-hidden rounded-3xl border border-dashed border-amber-500/30 bg-amber-500/[0.03] dark:bg-amber-500/[0.05] p-8 sm:p-12 text-center my-2">
+        {/* Animated Status Icon */}
+        <div className="relative mx-auto mb-3.5 flex size-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/30 shadow-xs">
+          <Clock size={28} className="animate-pulse" />
+          <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] ring-2 ring-card shadow-xs">
+            <Sparkles size={11} />
+          </span>
         </div>
-      )}
+
+        {/* Status Badge */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[11px] font-black uppercase tracking-wider mb-2 border border-amber-500/30">
+          <span className="size-2 rounded-full bg-amber-500 animate-ping" />
+          <span>Sedang Disusun Panitia</span>
+        </div>
+
+        {/* Title & Description */}
+        <h4 className="text-base sm:text-lg font-black text-foreground mb-1.5 font-heading">
+          {categoryTitle
+            ? `Bagan Kategori ${categoryTitle} Sedang Disusun`
+            : 'Bagan Pertandingan Sedang Disusun'}
+        </h4>
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+          Panitia sedang melakukan pengundian sesi dan verifikasi peserta. Bagan resmi akan segera diumumkan.
+        </p>
+      </div>
+    );
+  }
+
+  // State: Belum Dibuat / Belum Ada Bagan
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-dashed border-border bg-muted/20 p-8 sm:p-12 text-center my-2">
+      {/* Status Icon */}
+      <div className="relative mx-auto mb-3.5 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground/80 ring-1 ring-border shadow-xs">
+        <Layers size={26} />
+      </div>
+
+      {/* Status Badge */}
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-[11px] font-black uppercase tracking-wider mb-2 border border-border">
+        <span>Belum Tersedia</span>
+      </div>
+
+      {/* Title & Description */}
+      <h4 className="text-base sm:text-lg font-black text-foreground mb-1.5 font-heading">
+        {categoryTitle
+          ? `Bagan Kategori ${categoryTitle} Belum Dibuat`
+          : 'Bagan Pertandingan Belum Tersedia'}
+      </h4>
+      <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+        Bagan pertandingan untuk kategori ini belum dijadwalkan oleh panitia.
+      </p>
     </div>
   );
 }
@@ -231,19 +367,25 @@ function BracketCard({
   kategori,
   initialDetail,
   initialHeatDetail,
+  initialPrizes,
 }: {
   comp: { id: number; title: string };
   kategori: 'putra' | 'putri';
   initialDetail?: Awaited<ReturnType<typeof getBracket>>;
   initialHeatDetail?: Awaited<ReturnType<typeof getHeatBracket>>;
+  initialPrizes?: Awaited<ReturnType<typeof getPrizes>>;
 }) {
   const { data: detail } = useBracket(comp.id, kategori, initialDetail);
   const { data: heatDetail } = useHeatBracket(comp.id, kategori, initialHeatDetail);
+  const prizes = initialPrizes ?? [];
   const isPutra = kategori === 'putra';
   const isHeat = !!heatDetail;
+  // Publik tidak boleh melihat undian/struktur DRAFT — sembunyikan sampai panitia publish.
+  const isDraftHeat = isHeat && heatDetail?.bracket.status === 'DRAFT';
+  const isDraftSe = !isHeat && !!detail && detail.bracket.status === 'DRAFT';
 
   return (
-    <section className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+    <section className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden flex flex-col w-full">
       {/* Header Kategori */}
       <header
         className={`flex items-center justify-between gap-2 border-b border-border px-5 py-4 ${
@@ -279,28 +421,29 @@ function BracketCard({
         </span>
       </header>
 
-      {/* Konten Bagan */}
-      <div className="p-4 sm:p-5 min-w-0 max-w-full flex-1 overflow-hidden">
-        {isHeat ? (
+      {/* Konten Bagan — Pure Bagan Horizontal Fullwidth */}
+      <div className="p-4 sm:p-5 min-w-0 max-w-full flex-1 overflow-x-auto">
+        {isDraftHeat || isDraftSe ? (
+          <BracketDraftOrEmptyState
+            categoryTitle={isPutra ? 'Putra' : 'Putri'}
+            isDraft={true}
+          />
+        ) : isHeat ? (
           heatDetail ? (
-            <HeatPublicView detail={heatDetail} />
+            <HeatPipelineTree detail={heatDetail} teams={heatDetail.teams} prizes={prizes} />
           ) : (
-            <div className="flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed border-border py-12 text-center">
-              <Users size={24} className="text-muted-foreground/50" />
-              <p className="text-xs font-bold text-muted-foreground">
-                Bagan pertandingan belum disusun untuk kategori ini.
-              </p>
-            </div>
+            <BracketDraftOrEmptyState
+              categoryTitle={isPutra ? 'Putra' : 'Putri'}
+              isDraft={false}
+            />
           )
         ) : !detail ? (
-          <div className="flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed border-border py-12 text-center">
-            <Users size={24} className="text-muted-foreground/50" />
-            <p className="text-xs font-bold text-muted-foreground">
-              Bagan pertandingan belum disusun untuk kategori ini.
-            </p>
-          </div>
+          <BracketDraftOrEmptyState
+            categoryTitle={isPutra ? 'Putra' : 'Putri'}
+            isDraft={false}
+          />
         ) : (
-          <BracketTree detail={detail} prizes={[]} />
+          <BracketTree detail={detail} prizes={prizes} />
         )}
       </div>
     </section>

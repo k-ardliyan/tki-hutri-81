@@ -15,6 +15,7 @@ import type {
 } from '../../lib/tournament/heat-elimination';
 import { assertDb, db } from '../db';
 import { teams } from '../db/schema';
+import { adminOnly } from '../middleware/auth';
 import { type TournamentDb, tournamentService } from '../services/tournament';
 import { heatService } from '../services/tournament/heat';
 
@@ -46,6 +47,7 @@ export const getHeatBracket = createServerFn({ method: 'GET' })
 // ─── Admin: lifecycle ───
 
 export const generateHeatBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       competitionId: number;
@@ -77,12 +79,14 @@ export const generateHeatBracket = createServerFn({ method: 'POST' })
   });
 
 export const publishHeatBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { bracketId: number }) => d)
   .handler(async ({ data }) => {
     return heatService.publish(th(), data.bracketId);
   });
 
 export const submitSessionResult = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: { sessionId: number; expectedVersion: number; results: SessionResultPayload[] }) => d
   )
@@ -95,17 +99,20 @@ export const submitSessionResult = createServerFn({ method: 'POST' })
   });
 
 export const finalizeStage = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { stageId: number }) => d)
   .handler(async ({ data }) => {
     return heatService.finalizeStage(th(), data.stageId);
   });
 
 export const correctSessionResult = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       sessionId: number;
       reason?: string | null;
       invalidateDownstream: boolean;
+      expectedVersion: number;
       results: SessionResultPayload[];
     }) => d
   )
@@ -114,17 +121,20 @@ export const correctSessionResult = createServerFn({ method: 'POST' })
       sessionId: data.sessionId,
       reason: data.reason ?? null,
       invalidateDownstream: data.invalidateDownstream,
+      expectedVersion: data.expectedVersion,
       results: data.results,
     });
   });
 
 export const resetStageResults = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { stageId: number }) => d)
   .handler(async ({ data }) => {
     return heatService.resetStageResults(th(), data.stageId);
   });
 
 export const regenerateHeatBracket = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { competitionId: number; kategori: Kategori }) => d)
   .handler(async ({ data }) => {
     return heatService.regenerate(th(), data.competitionId, data.kategori);

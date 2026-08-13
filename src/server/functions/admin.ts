@@ -8,30 +8,34 @@ import type { UserRole } from '../../lib/auth';
 import { hashPassword } from '../../lib/auth';
 import { assertDb } from '../db';
 import { employees, users } from '../db/schema';
+import { adminOnly } from '../middleware/auth';
 
 // ─── Users (superadmin only — guard di route) ───
 
-export const listUsers = createServerFn({ method: 'GET' }).handler(async () => {
-  const db = assertDb();
-  const rows = await db
-    .select({
-      id: users.id,
-      username: users.username,
-      role: users.role,
-      isActive: users.isActive,
-      employeeId: users.employeeId,
-      employeeNama: employees.nama,
-      employeeNip: employees.nip,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .leftJoin(employees, eq(users.employeeId, employees.id))
-    .orderBy(desc(users.id));
-  return rows;
-});
+export const listUsers = createServerFn({ method: 'GET' })
+  .middleware([adminOnly])
+  .handler(async () => {
+    const db = assertDb();
+    const rows = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        role: users.role,
+        isActive: users.isActive,
+        employeeId: users.employeeId,
+        employeeNama: employees.nama,
+        employeeNip: employees.nip,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .leftJoin(employees, eq(users.employeeId, employees.id))
+      .orderBy(desc(users.id));
+    return rows;
+  });
 
 /** Create user: dari employee existing ATAU user baru (tanpa employee). */
 export const createUser = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: { username: string; password: string; role: UserRole; employeeId?: number | null }) => d
   )
@@ -51,6 +55,7 @@ export const createUser = createServerFn({ method: 'POST' })
   });
 
 export const updateUser = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { id: number; username?: string; role?: UserRole; isActive?: boolean }) => d)
   .handler(async ({ data }) => {
     const db = assertDb();
@@ -63,6 +68,7 @@ export const updateUser = createServerFn({ method: 'POST' })
   });
 
 export const resetPassword = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { id: number; password: string }) => d)
   .handler(async ({ data }) => {
     const db = assertDb();
@@ -76,6 +82,7 @@ export const resetPassword = createServerFn({ method: 'POST' })
   });
 
 export const deleteUser = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { id: number }) => d)
   .handler(async ({ data }) => {
     const db = assertDb();
@@ -86,6 +93,7 @@ export const deleteUser = createServerFn({ method: 'POST' })
 // ─── Employees (admin + superadmin) ───
 
 export const listEmployees = createServerFn({ method: 'GET' })
+  .middleware([adminOnly])
   .validator((d: { q?: string; limit?: number }) => d)
   .handler(async ({ data }) => {
     const db = assertDb();
@@ -101,6 +109,7 @@ export const listEmployees = createServerFn({ method: 'GET' })
   });
 
 export const createEmployee = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: { nama: string; nip?: string | null; divisi?: string | null; isSnackEligible?: boolean }) =>
       d
@@ -120,6 +129,7 @@ export const createEmployee = createServerFn({ method: 'POST' })
   });
 
 export const updateEmployee = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator(
     (d: {
       id: number;
@@ -145,6 +155,7 @@ export const updateEmployee = createServerFn({ method: 'POST' })
   });
 
 export const deleteEmployee = createServerFn({ method: 'POST' })
+  .middleware([adminOnly])
   .validator((d: { id: number }) => d)
   .handler(async ({ data }) => {
     const db = assertDb();

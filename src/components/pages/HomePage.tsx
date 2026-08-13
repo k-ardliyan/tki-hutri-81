@@ -1,10 +1,11 @@
 import { useLoaderData } from '@tanstack/react-router';
+import { motion, useInView, type Variants } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { LazyImage } from '~/components/common/LazyImage';
+import { motionDuration, motionEase, motionTransition } from '~/lib/motion';
 import { assets } from '../../assets';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import { getEventPhase, PHASES } from '../../lib/eventPhase';
-import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 const makeStats = (teamSummary: { total: number; putra: number; putri: number }) => [
   {
@@ -73,105 +74,80 @@ const TIMELINE = [
   },
 ];
 
-/**
- * IntersectionObserver-based visibility hook for below-fold animations.
- * Returns { ref, isVisible }. GSAP fires only when isVisible becomes true.
- */
-function useSectionVisible(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isVisible = useRef(false);
-  const [trigger, setTrigger] = useState(false);
+const statVariants: Variants = {
+  hidden: { y: 20, opacity: 0, scale: 0.96 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: { duration: motionDuration.normal, ease: motionEase.backOut },
+  },
+};
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || shouldReduceMotion()) {
-      setTrigger(true); // no IO → animate immediately (reduced motion or SSR)
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isVisible.current) {
-          isVisible.current = true;
-          setTrigger(true);
-          io.disconnect();
-        }
-      },
-      { threshold, rootMargin: '100px' }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold]);
+const overviewVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: motionDuration.slow, ease: motionEase.standard },
+  },
+};
 
-  return { ref, trigger };
-}
+const cardContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.04 },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: motionDuration.normal, ease: motionEase.entrance },
+  },
+};
+
+const tlContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
+  },
+};
+
+const tlNodeVariants: Variants = {
+  hidden: { scale: 0.4, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: { duration: motionDuration.normal, ease: motionEase.backOut },
+  },
+};
 
 export default function HomePage() {
   const { competitions, teamSummary } = useLoaderData({ from: '/' });
   const navigate = useAudienceNavigate();
-  const rootRef = useRef(null);
-
-  // ── Below-fold visibility ──
-  const { ref: lombaSectionRef, trigger: lombaVisible } = useSectionVisible(0.1);
-  const { ref: timelineSectionRef, trigger: timelineVisible } = useSectionVisible(0.1);
-
-  // ── Above-fold: immediate GSAP (stats + overview) ──
+  const timelineSectionRef = useRef<HTMLDivElement>(null);
+  const timelineInView = useInView(timelineSectionRef, { once: true, margin: '100px' });
+  // Deterministic SSR/hydration phase; effect computes real Date.now()-based
+  // phase after mount — prevents server/client mismatch at phase boundaries.
+  const [phaseId, setPhaseId] = useState<string>(() => getEventPhase('2026-08-13T12:00:00').id);
   useEffect(() => {
-    if (!rootRef.current || shouldReduceMotion()) return undefined;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.stat-card',
-        { y: 20, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: 'back.out(1.7)',
-          clearProps: 'all',
-        }
-      );
-      gsap.fromTo(
-        '.overview-anim',
-        { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out', clearProps: 'all' }
-      );
-    }, rootRef);
-    return () => ctx.revert();
+    setPhaseId(getEventPhase().id);
   }, []);
-
-  // ── Below-fold: lomba cards (GSAP only when visible) ──
-  useEffect(() => {
-    if (!lombaVisible || shouldReduceMotion()) return;
-    gsap.fromTo(
-      '.lomba-card',
-      { y: 24, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.55, stagger: 0.1, ease: 'power2.out', clearProps: 'all' }
-    );
-  }, [lombaVisible]);
-
-  // ── Below-fold: timeline (GSAP only when visible) ──
-  useEffect(() => {
-    if (!timelineVisible || shouldReduceMotion()) return;
-    gsap.fromTo(
-      '.tl-node',
-      { scale: 0, opacity: 0 },
-      {
-        scale: 1,
-        opacity: 1,
-        duration: 0.5,
-        stagger: 0.12,
-        ease: 'back.out(1.8)',
-        clearProps: 'all',
-      }
-    );
-  }, [timelineVisible]);
+  const currentPhaseId = phaseId;
 
   return (
-    <div ref={rootRef} className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* 1. Key Stats Bar — Single Merged Card Connected to Hero */}
       <section className="-mt-10 sm:-mt-12 relative z-20">
-        <div className="stat-card isolate overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-950/10 [transform:translateZ(0)]">
+        <motion.div
+          variants={statVariants}
+          initial="hidden"
+          animate="visible"
+          className="stat-card isolate overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-950/10 [transform:translateZ(0)]"
+        >
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 lg:grid-cols-4 lg:divide-y-0 lg:divide-x lg:divide-slate-200/80">
             {makeStats(teamSummary).map((item) => (
               <div
@@ -197,11 +173,16 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* 2. Ringkasan Acara Section */}
-      <section className="overview-anim surface-card overflow-hidden">
+      <motion.section
+        variants={overviewVariants}
+        initial="hidden"
+        animate="visible"
+        className="overview-anim surface-card overflow-hidden"
+      >
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-4 p-6 sm:p-8">
             <div className="flex items-center gap-2">
@@ -283,10 +264,10 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 3. Cabang Lomba Section — IO-triggered entrance */}
-      <section ref={lombaSectionRef} className="space-y-4">
+      <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
             <h3 className="font-heading text-2xl font-black text-slate-900 sm:text-3xl">
@@ -304,17 +285,26 @@ export default function HomePage() {
         </div>
 
         {/* Guaranteed 3 Competition Cards Display Grid */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        <motion.div
+          variants={cardContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid gap-4 grid-cols-1 md:grid-cols-3"
+        >
           {competitions.map((c, index) => {
             const img =
               (assets.lomba as Record<string, string>)?.[c.imageKey] ||
               (assets.lomba as Record<string, string>)?.[c.id];
             const numBadge = String(index + 1).padStart(2, '0');
             return (
-              <div
+              <motion.div
                 key={c.id}
+                variants={cardVariants}
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => navigate('/lomba/' + c.id)}
-                className="lomba-card group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-1 hover:border-red-200 hover:shadow-md flex flex-col justify-between"
+                className="lomba-card group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:border-red-200 hover:shadow-md flex flex-col justify-between"
               >
                 {/* Image Header */}
                 <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-rose-50">
@@ -358,10 +348,10 @@ export default function HomePage() {
                     <i className="fa-solid fa-arrow-right ml-1.5 text-[10px] transition-transform group-hover:translate-x-1" />
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </section>
 
       {/* 4. Jadwal Penting Section (Horizontal Timeline) — IO-triggered */}
@@ -383,16 +373,21 @@ export default function HomePage() {
           <div className="hidden lg:block absolute top-[2.25rem] left-[10%] right-[10%] h-0.5">
             <div
               className={
-                timelineVisible
+                timelineInView
                   ? 'animate-line-grow h-full w-full border-t-2 border-dashed border-rose-300'
                   : 'h-full w-full border-t-2 border-dashed border-rose-300'
               }
             />
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <motion.div
+            variants={tlContainerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+          >
             {TIMELINE.map((step) => {
-              const currentPhaseId = getEventPhase().id;
               const isStepActive =
                 (step.id === 'sosialisasi' && currentPhaseId === PHASES.SOSIALISASI) ||
                 (step.id === 'dekor' && currentPhaseId === PHASES.DEKORASI) ||
@@ -402,8 +397,9 @@ export default function HomePage() {
                 (step.id === 'pengumuman' && currentPhaseId === PHASES.PENGUMUMAN_DAY);
 
               return (
-                <div
+                <motion.div
                   key={step.id}
+                  variants={tlNodeVariants}
                   className={`tl-node flex flex-col items-center text-center space-y-3 p-3 rounded-2xl transition ${
                     isStepActive ? 'bg-rose-50/70 border border-rose-200 shadow-sm' : ''
                   }`}
@@ -445,10 +441,10 @@ export default function HomePage() {
                     </p>
                     <p className="max-w-xs text-xs leading-relaxed text-slate-500">{step.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>

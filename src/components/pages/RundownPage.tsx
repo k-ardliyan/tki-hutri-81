@@ -1,7 +1,7 @@
 import { useLoaderData } from '@tanstack/react-router';
+import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { gsap, shouldReduceMotion } from '../../lib/gsap';
 
 const phaseColors: Record<string, PhaseColor> = {
   kickoff: {
@@ -251,160 +251,19 @@ function PeakDayModal({
   onClose: () => void;
   items: { time: string; title: string; note: string }[];
 }) {
-  const [mounted, setMounted] = useState<boolean>(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const backdropRef = useRef<HTMLButtonElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const closingRef = useRef<boolean>(false);
+  const [mounted, setMounted] = useState(false);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  const isMobile = () =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
-
-  const playOpen = () => {
-    if (!backdropRef.current || !sheetRef.current) return;
-    const mobile = isMobile();
-    const reduce = shouldReduceMotion();
-
-    gsap.killTweensOf([backdropRef.current, sheetRef.current]);
-
-    if (reduce) {
-      gsap.set(backdropRef.current, { opacity: 1 });
-      gsap.set(sheetRef.current, { clearProps: 'all', opacity: 1, y: 0, scale: 1 });
-      return;
-    }
-
-    gsap.set(backdropRef.current, { opacity: 0 });
-    if (mobile) {
-      gsap.set(sheetRef.current, { y: '100%', opacity: 1, scale: 1 });
-    } else {
-      gsap.set(sheetRef.current, { y: 28, opacity: 0, scale: 0.94 });
-    }
-
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.to(backdropRef.current, { opacity: 1, duration: 0.28 }, 0);
-    if (mobile) {
-      tl.to(sheetRef.current, { y: 0, duration: 0.42, ease: 'power4.out' }, 0.02);
-    } else {
-      tl.to(
-        sheetRef.current,
-        { y: 0, opacity: 1, scale: 1, duration: 0.36, ease: 'power3.out' },
-        0.04
-      );
-    }
-  };
-
-  const requestClose = () => {
-    if (closingRef.current || !mounted) return;
-    if (!backdropRef.current || !sheetRef.current) {
-      onCloseRef.current();
-      return;
-    }
-    if (shouldReduceMotion()) {
-      onCloseRef.current();
-      return;
-    }
-
-    closingRef.current = true;
-    const mobile = isMobile();
-    gsap.killTweensOf([backdropRef.current, sheetRef.current]);
-
-    const tl = gsap.timeline({
-      defaults: { ease: 'power2.in' },
-      onComplete: () => {
-        closingRef.current = false;
-        onCloseRef.current();
-      },
-    });
-    tl.to(backdropRef.current, { opacity: 0, duration: 0.22 }, 0);
-    if (mobile) {
-      tl.to(sheetRef.current, { y: '105%', duration: 0.3, ease: 'power3.in' }, 0);
-    } else {
-      tl.to(
-        sheetRef.current,
-        { y: 16, opacity: 0, scale: 0.96, duration: 0.24, ease: 'power2.in' },
-        0
-      );
-    }
-  };
-
-  // Mount / unmount with open prop
   useEffect(() => {
-    if (open) {
-      closingRef.current = false;
-      setMounted(true);
-    }
-  }, [open]);
+    setMounted(true);
+  }, []);
 
-  // Animate in after mount
+  // Escape close + body scroll lock while open
   useEffect(() => {
-    if (!mounted || !open) return undefined;
-    // next frame so refs exist
-    const id = requestAnimationFrame(() => playOpen());
-    return () => cancelAnimationFrame(id);
-  }, [mounted, open]);
-
-  // When parent sets open=false while still mounted, animate out
-  useEffect(() => {
-    if (!mounted) return undefined;
-    if (!open && !closingRef.current) {
-      // Parent closed without animation path — still animate if possible
-      if (backdropRef.current && sheetRef.current && !shouldReduceMotion()) {
-        closingRef.current = true;
-        const mobile = isMobile();
-        const tl = gsap.timeline({
-          onComplete: () => {
-            closingRef.current = false;
-            setMounted(false);
-          },
-        });
-        tl.to(backdropRef.current, { opacity: 0, duration: 0.2 }, 0);
-        if (mobile) {
-          tl.to(sheetRef.current, { y: '105%', duration: 0.28, ease: 'power3.in' }, 0);
-        } else {
-          tl.to(sheetRef.current, { opacity: 0, scale: 0.96, y: 12, duration: 0.2 }, 0);
-        }
-        return () => {
-          tl.kill();
-        };
-      }
-      setMounted(false);
-    }
-    return undefined;
-  }, [open, mounted]);
-
-  useEffect(() => {
-    if (!mounted) return undefined;
+    if (!open) return undefined;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // requestClose is stable via refs; call through current close path
-        if (closingRef.current) return;
-        if (!backdropRef.current || !sheetRef.current || shouldReduceMotion()) {
-          onCloseRef.current();
-          return;
-        }
-        closingRef.current = true;
-        const mobile = isMobile();
-        gsap.killTweensOf([backdropRef.current, sheetRef.current]);
-        const tl = gsap.timeline({
-          defaults: { ease: 'power2.in' },
-          onComplete: () => {
-            closingRef.current = false;
-            onCloseRef.current();
-          },
-        });
-        tl.to(backdropRef.current, { opacity: 0, duration: 0.22 }, 0);
-        if (mobile) {
-          tl.to(sheetRef.current, { y: '105%', duration: 0.3, ease: 'power3.in' }, 0);
-        } else {
-          tl.to(
-            sheetRef.current,
-            { y: 16, opacity: 0, scale: 0.96, duration: 0.24, ease: 'power2.in' },
-            0
-          );
-        }
-      }
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
@@ -413,89 +272,115 @@ function PeakDayModal({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [mounted]);
+  }, [open]);
 
   if (!mounted) return null;
 
-  const modal = (
-    <div
-      ref={rootRef}
-      className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center"
-    >
-      <button
-        ref={backdropRef}
-        type="button"
-        className="absolute inset-0 bg-slate-900/55"
-        aria-label="Tutup modal"
-        onClick={requestClose}
-        style={{ opacity: 0 }}
-      />
-      <div
-        ref={sheetRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="peak-modal-title"
-        className="relative z-10 flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl will-change-transform sm:mx-4 sm:rounded-3xl"
-        style={{ opacity: 0 }}
-      >
-        <div className="bg-gradient-to-r from-brand-deep to-brand-red px-5 pb-4 pt-2 text-white sm:px-6 sm:pb-5 sm:pt-5">
-          {/* Handle di atas header merah — tanpa strip putih */}
-          <div className="mb-3 flex justify-center sm:hidden" aria-hidden>
-            <span className="h-1 w-10 rounded-full bg-white/45" />
-          </div>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">
-                Kamis, 13 Agustus 2026
-              </p>
-              <h3 id="peak-modal-title" className="font-heading text-xl font-extrabold sm:text-2xl">
-                Rundown hari puncak
-              </h3>
-              <p className="mt-1 text-xs text-white/80">12.45-17.00 WIB · Halaman TKI</p>
-            </div>
-            <button
-              type="button"
-              onClick={requestClose}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white hover:bg-white/25"
-              aria-label="Tutup"
-            >
-              <i className="fa-solid fa-xmark" />
-            </button>
-          </div>
-        </div>
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <div
+          key="peak-modal"
+          className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center p-0 sm:p-4"
+          style={{ minHeight: '-webkit-fill-available' }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            key="peak-backdrop"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm cursor-pointer"
+            aria-label="Tutup modal"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.24, ease: 'easeOut' }}
+          />
 
-        <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
-          <ol className="relative space-y-0">
-            <div className="absolute bottom-3 left-[15px] top-3 w-0.5 bg-rose-200" />
-            {items.map((item: { time: string; title: string; note: string }, idx: number) => (
-              <li key={item.time} className="peak-step relative flex gap-3 pb-4 last:pb-0">
-                <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-red text-xs font-black text-white shadow-sm">
-                  {idx + 1}
-                </div>
-                <div className="min-w-0 flex-1 rounded-2xl border border-rose-100 bg-rose-50/50 px-3.5 py-3">
-                  <p className="text-xs font-bold text-brand-red">{item.time}</p>
-                  <p className="mt-0.5 text-sm font-bold text-slate-900">{item.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-600">{item.note}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="border-t border-slate-100 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-6">
-          <button
-            type="button"
-            onClick={requestClose}
-            className="w-full rounded-2xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+          {/* Dialog/Bottom Sheet with Mobile Drag-to-Dismiss */}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="peak-modal-title"
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 400) {
+                onClose();
+              }
+            }}
+            initial={{ y: '100%', opacity: 0.8 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: '100%', opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 30 }}
+            className="relative z-10 flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl will-change-transform sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            Tutup
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+            <div className="bg-gradient-to-r from-brand-deep to-brand-red px-5 pb-4 pt-2.5 text-white sm:px-6 sm:pb-5 sm:pt-5">
+              {/* Drag Handle on Mobile */}
+              <div
+                className="mb-3 flex justify-center sm:hidden cursor-grab active:cursor-grabbing"
+                aria-hidden
+              >
+                <span className="h-1.5 w-12 rounded-full bg-white/40" />
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                    Kamis, 13 Agustus 2026
+                  </p>
+                  <h3
+                    id="peak-modal-title"
+                    className="font-heading text-xl font-extrabold sm:text-2xl"
+                  >
+                    Rundown hari puncak
+                  </h3>
+                  <p className="mt-1 text-xs text-white/80">12.45-17.00 WIB · Halaman TKI</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white hover:bg-white/25 cursor-pointer transition active:scale-95"
+                  aria-label="Tutup"
+                >
+                  <i className="fa-solid fa-xmark" />
+                </button>
+              </div>
+            </div>
 
-  return createPortal(modal, document.body);
+            <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6 no-scrollbar">
+              <ol className="relative space-y-0">
+                <div className="absolute bottom-3 left-[15px] top-3 w-0.5 bg-rose-200" />
+                {items.map((item: { time: string; title: string; note: string }, idx: number) => (
+                  <li key={item.time} className="peak-step relative flex gap-3 pb-4 last:pb-0">
+                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-red text-xs font-black text-white shadow-sm">
+                      {idx + 1}
+                    </div>
+                    <div className="min-w-0 flex-1 rounded-2xl border border-rose-100 bg-rose-50/50 px-3.5 py-3">
+                      <p className="text-xs font-bold text-brand-red">{item.time}</p>
+                      <p className="mt-0.5 text-sm font-bold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{item.note}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="border-t border-slate-100 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full rounded-2xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 cursor-pointer active:scale-98"
+              >
+                Tutup
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
 }
 
 export default function RundownPage() {

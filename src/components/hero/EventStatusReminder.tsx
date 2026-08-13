@@ -1,5 +1,7 @@
+import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { backdropVariants, bottomSheetVariants, motionTransition } from '~/lib/motion';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import { useCountdown } from '../../hooks/useCountdown';
 import { getEventPhase, SIMULATED_DATES } from '../../lib/eventPhase';
@@ -62,22 +64,22 @@ export default function EventStatusReminder({
 }) {
   const navigate = useAudienceNavigate();
   const [selectedSimDate, setSelectedSimDate] = useState<string | null>(null);
-  const [phaseData, setPhaseData] = useState(() => getEventPhase(null));
+  // Deterministic SSR/hydration phase (fixed date); effect below computes the
+  // real Date.now()-based phase after mount — prevents server/client mismatch.
+  const [phaseData, setPhaseData] = useState(() => getEventPhase('2026-08-13T12:00:00'));
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
-
-  const handleCloseModal = useCallback(() => {
-    if (isClosing) return;
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsModalOpen(false);
-      setIsClosing(false);
-    }, 280);
-  }, [isClosing]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // getEventPhase JS accepts string | null but TS infers only null from default param
-    const data = getEventPhase(selectedSimDate as Parameters<typeof getEventPhase>[0]);
+    setMounted(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  useEffect(() => {
+    const data = getEventPhase(selectedSimDate);
     setPhaseData(data);
     if (onPhaseChange) {
       onPhaseChange(data);
@@ -199,138 +201,153 @@ export default function EventStatusReminder({
         </div>
       </div>
 
-      {/* Global Screen Portal Detail Pengingat Bottom Sheet (Matching iOS Glassmorphism & Slide Up / Down Animation) */}
-      {isModalOpen &&
-        typeof document !== 'undefined' &&
+      {/* Global Screen Portal Detail Pengingat Bottom Sheet (Motion Powered with Mobile Drag-to-Dismiss) */}
+      {mounted &&
         createPortal(
-          <>
-            {/* Backdrop */}
-            <div
-              className={`fixed inset-0 z-[99998] bg-slate-950/80 backdrop-blur-md ${
-                isClosing ? 'animate-fade-out' : 'animate-fade-in'
-              }`}
-              onClick={handleCloseModal}
-            />
-
-            {/* Bottom Sheet Modal Container */}
-            <div
-              className="fixed inset-x-0 bottom-0 z-[99999] flex flex-col justify-end p-0 sm:p-4 pointer-events-none"
-              style={{ minHeight: '-webkit-fill-available' }}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="modal-reminder-title"
-              aria-describedby="modal-reminder-subtitle"
-            >
+          <AnimatePresence>
+            {isModalOpen && (
               <div
-                className={`pointer-events-auto relative my-0 sm:my-auto mx-auto w-full max-w-lg max-h-[85dvh] flex flex-col rounded-t-3xl sm:rounded-3xl border-t sm:border border-white/40 bg-white/20 p-4 sm:p-6 text-white shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] overflow-hidden ${
-                  isClosing ? 'animate-sheet-slide-down' : 'animate-sheet-slide-up'
-                }`}
-                onClick={(e) => e.stopPropagation()}
+                className="fixed inset-0 z-[99999] flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4"
+                style={{ minHeight: '-webkit-fill-available' }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-reminder-title"
+                aria-describedby="modal-reminder-subtitle"
               >
-                {/* Decorative Ambient Radial Glow */}
-                <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-amber-400/15 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-rose-500/15 blur-3xl" />
+                {/* Backdrop */}
+                <motion.div
+                  key="reminder-backdrop"
+                  variants={backdropVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="fixed inset-0 bg-slate-950/80 backdrop-blur-md cursor-pointer"
+                  onClick={handleCloseModal}
+                />
 
-                {/* Fixed Drag Handle Bar for Mobile UX */}
-                <div className="mx-auto mb-2.5 h-1.5 w-12 shrink-0 rounded-full bg-white/40 sm:hidden" />
+                {/* Bottom Sheet Card with Mobile Drag Gesture */}
+                <motion.div
+                  key="reminder-sheet"
+                  variants={bottomSheetVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  drag="y"
+                  dragConstraints={{ top: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.y > 100 || info.velocity.y > 400) {
+                      handleCloseModal();
+                    }
+                  }}
+                  className="relative z-10 mx-auto w-full max-w-lg max-h-[85dvh] flex flex-col rounded-t-3xl sm:rounded-3xl border-t sm:border border-white/40 bg-white/20 p-4 sm:p-6 text-white shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Decorative Ambient Radial Glow */}
+                  <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-amber-400/15 blur-3xl" />
+                  <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-rose-500/15 blur-3xl" />
 
-                {/* Fixed Modal Header */}
-                <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/15 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/20 text-amber-300 shrink-0">
-                      <i className="fa-solid fa-bell text-xl" />
-                    </div>
-                    <div>
-                      <h4
-                        id="modal-reminder-title"
-                        className="font-heading text-lg sm:text-xl font-black text-white leading-tight drop-shadow-sm"
-                      >
-                        Pengingat Penting Acara
-                      </h4>
-                      <p id="modal-reminder-subtitle" className="text-[11px] text-white/70">
-                        Petunjuk & aturan khusus peserta hari ini
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    aria-label="Tutup pengingat modal"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 shrink-0 cursor-pointer"
-                  >
-                    <i className="fa-solid fa-xmark text-base" />
-                  </button>
-                </div>
+                  {/* Fixed Drag Handle Bar for Mobile UX */}
+                  <div className="mx-auto mb-2.5 h-1.5 w-12 shrink-0 rounded-full bg-white/40 sm:hidden cursor-grab active:cursor-grabbing" />
 
-                {/* Scrollable Inner Content (Only Checklist & Banner Scroll) */}
-                <div className="relative z-10 overflow-y-auto flex-1 my-3 pr-1 space-y-3 no-scrollbar max-h-[50dvh]">
-                  {/* Modal Active Status Banner */}
-                  <div className="rounded-2xl bg-white/10 p-3.5 sm:p-4 border border-white/15 backdrop-blur-md">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase border ${phaseData.badgeColor}`}
-                    >
-                      {phaseData.badgeLabel}
-                    </span>
-                    <h5 className="mt-2 font-heading text-base sm:text-lg font-extrabold text-white">
-                      {phaseData.title}
-                    </h5>
-                    <p className="text-xs text-white/85 mt-0.5 leading-relaxed">
-                      {phaseData.subtitle}
-                    </p>
-                  </div>
-
-                  {/* Modal Reminders Checklist */}
-                  <div className="space-y-2.5">
-                    <p className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                      <i className="fa-solid fa-list-check text-amber-400 text-xs" />
-                      <span>Catatan Wajib Peserta Hari Ini:</span>
-                    </p>
-                    <div className="grid gap-2.5">
-                      {phaseData.reminders.map((rem, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start gap-3 rounded-2xl bg-white/10 p-3.5 border border-white/15 backdrop-blur-md"
+                  {/* Fixed Modal Header */}
+                  <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/15 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/20 text-amber-300 shrink-0">
+                        <i className="fa-solid fa-bell text-xl" />
+                      </div>
+                      <div>
+                        <h4
+                          id="modal-reminder-title"
+                          className="font-heading text-lg sm:text-xl font-black text-white leading-tight drop-shadow-sm"
                         >
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-400/20 text-amber-300 border border-amber-300/30 text-sm">
-                            <i className={`fa-solid ${rem.icon}`} />
-                          </div>
-                          <div>
-                            <h6 className="text-xs font-extrabold text-white">{rem.title}</h6>
-                            <p className="text-xs text-white/80 leading-relaxed mt-0.5">
-                              {rem.text}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                          Pengingat Penting Acara
+                        </h4>
+                        <p id="modal-reminder-subtitle" className="text-[11px] text-white/70">
+                          Petunjuk & aturan khusus peserta hari ini
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Fixed Footer Actions */}
-                <div className="relative z-10 flex shrink-0 flex-wrap gap-2.5 border-t border-white/15 pt-3 mt-auto">
-                  {phaseData.action && (
                     <button
                       type="button"
-                      onClick={() => {
-                        handleCloseModal();
-                        setTimeout(() => navigate(phaseData.action.link), 280);
-                      }}
-                      className="flex-1 min-h-[44px] rounded-xl bg-brand-red px-4 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700 active:scale-95 text-center"
+                      onClick={handleCloseModal}
+                      aria-label="Tutup pengingat modal"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 shrink-0 cursor-pointer"
                     >
-                      {phaseData.action.label}
+                      <i className="fa-solid fa-xmark text-base" />
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="min-h-[44px] rounded-xl border border-white/30 bg-white/15 px-5 py-3 text-xs sm:text-sm font-bold text-white hover:bg-white/25 transition active:scale-95 text-center"
-                  >
-                    Tutup
-                  </button>
-                </div>
+                  </div>
+
+                  {/* Scrollable Inner Content */}
+                  <div className="relative z-10 overflow-y-auto flex-1 my-3 pr-1 space-y-3 no-scrollbar max-h-[50dvh]">
+                    {/* Modal Active Status Banner */}
+                    <div className="rounded-2xl bg-white/10 p-3.5 sm:p-4 border border-white/15 backdrop-blur-md">
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase border ${phaseData.badgeColor}`}
+                      >
+                        {phaseData.badgeLabel}
+                      </span>
+                      <h5 className="mt-2 font-heading text-base sm:text-lg font-extrabold text-white">
+                        {phaseData.title}
+                      </h5>
+                      <p className="text-xs text-white/85 mt-0.5 leading-relaxed">
+                        {phaseData.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Modal Reminders Checklist */}
+                    <div className="space-y-2.5">
+                      <p className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                        <i className="fa-solid fa-list-check text-amber-400 text-xs" />
+                        <span>Catatan Wajib Peserta Hari Ini:</span>
+                      </p>
+                      <div className="grid gap-2.5">
+                        {phaseData.reminders.map((rem, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-start gap-3 rounded-2xl bg-white/10 p-3.5 border border-white/15 backdrop-blur-md"
+                          >
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-400/20 text-amber-300 border border-amber-300/30 text-sm">
+                              <i className={`fa-solid ${rem.icon}`} />
+                            </div>
+                            <div>
+                              <h6 className="text-xs font-extrabold text-white">{rem.title}</h6>
+                              <p className="text-xs text-white/80 leading-relaxed mt-0.5">
+                                {rem.text}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fixed Footer Actions */}
+                  <div className="relative z-10 flex shrink-0 flex-wrap gap-2.5 border-t border-white/15 pt-3 mt-auto">
+                    {phaseData.action && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCloseModal();
+                          navigate(phaseData.action!.link);
+                        }}
+                        className="flex-1 min-h-[44px] rounded-xl bg-brand-red px-4 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700 active:scale-95 text-center"
+                      >
+                        {phaseData.action.label}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="min-h-[44px] rounded-xl border border-white/30 bg-white/15 px-5 py-3 text-xs sm:text-sm font-bold text-white hover:bg-white/25 transition active:scale-95 text-center"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                </motion.div>
               </div>
-            </div>
-          </>,
+            )}
+          </AnimatePresence>,
           document.body
         )}
     </>

@@ -4,7 +4,9 @@
  * Admin: tombol Input Hasil / Koreksi per match. Publik: read-only.
  */
 
-import { Award, ChevronRight, Crown, Gift, Medal, Trophy, Users } from 'lucide-react';
+import { Award, Check, ChevronRight, Crown, Gift, Medal, Trophy, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { motionTransition } from '~/lib/motion';
 import type { BracketDetailView, MatchView, RoundView } from '../../lib/tournament/types';
 import { Button } from '../ui/button';
 
@@ -112,7 +114,9 @@ function MatchCard({
               ? 'Winner Match'
               : 'BYE'
             : match.participant1Nama}
-          {match.participant1Id !== null && winner === match.participant1Id && ' ✓'}
+          {match.participant1Id !== null && winner === match.participant1Id && (
+            <Check size={12} className="text-emerald-600 shrink-0" />
+          )}
         </div>
         <div
           className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 ${
@@ -136,7 +140,9 @@ function MatchCard({
               ? 'Winner Match'
               : 'BYE'
             : match.participant2Nama}
-          {match.participant2Id !== null && winner === match.participant2Id && ' ✓'}
+          {match.participant2Id !== null && winner === match.participant2Id && (
+            <Check size={12} className="text-emerald-600 shrink-0" />
+          )}
         </div>
       </div>
 
@@ -255,7 +261,7 @@ export function PodiumPanel({
         </p>
       ) : (
         <div className="flex flex-col items-center gap-2.5">
-          {PODIUM_LEVELS.map((l) => {
+          {PODIUM_LEVELS.map((l, idx) => {
             const teamId =
               l.rank === 1
                 ? detail.podium.rank1
@@ -264,7 +270,16 @@ export function PodiumPanel({
                   : detail.podium.rank3;
             const prize = prizes.find((p) => p.place === l.rank);
             return (
-              <div key={l.rank} className="flex flex-col items-center gap-1 text-center">
+              <motion.div
+                key={l.rank}
+                initial={{ opacity: 0, scale: 0.85, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  ...motionTransition.springBouncy,
+                  delay: idx * 0.1,
+                }}
+                className="flex flex-col items-center gap-1 text-center"
+              >
                 <span
                   className={`flex items-center justify-center rounded-full ${l.size} ${l.ring} ring-2 shadow-md select-none`}
                 >
@@ -282,7 +297,7 @@ export function PodiumPanel({
                     <span>{prize.hadiah.trim()}</span>
                   </span>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>

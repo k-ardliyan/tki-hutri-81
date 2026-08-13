@@ -1,4 +1,6 @@
 import { useLocation } from '@tanstack/react-router';
+import { motion } from 'motion/react';
+import { motionTransition } from '~/lib/motion';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import { useAutoBottomNavHide } from '../../hooks/useAutoBottomNavHide';
 
@@ -40,14 +42,19 @@ export default function BottomNav() {
               onClick={() => {
                 navigate(item.path);
               }}
-              className={`flex w-full flex-col items-center justify-center gap-1 cursor-pointer rounded-xl py-2 px-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${
-                active
-                  ? 'bg-brand-soft text-brand-red font-bold shadow-xs'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+              className={`relative flex w-full flex-col items-center justify-center gap-1 cursor-pointer rounded-xl py-2 px-1 text-[10px] font-semibold transition-colors active:scale-95 ${
+                active ? 'text-brand-red font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <i className={`fa-solid ${item.icon} text-sm`} />
-              <span className="truncate leading-none">{item.label}</span>
+              {active && (
+                <motion.div
+                  layoutId="bottom-nav-active-pill"
+                  transition={motionTransition.springSmooth}
+                  className="absolute inset-0 rounded-xl bg-brand-soft shadow-xs ring-1 ring-brand-red/20"
+                />
+              )}
+              <i className={`relative z-10 fa-solid ${item.icon} text-sm`} />
+              <span className="relative z-10 truncate leading-none">{item.label}</span>
             </button>
           );
         })}

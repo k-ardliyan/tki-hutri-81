@@ -38,8 +38,11 @@ check('nextPowerOfTwo(5)=8', nextPowerOfTwo(5) === 8);
 check('nextPowerOfTwo(8)=8', nextPowerOfTwo(8) === 8);
 check('nextPowerOfTwo(10)=16', nextPowerOfTwo(10) === 16);
 check('bracketSize 5 = 8', calculateBracketSize(5) === 8);
+check('bracketSize 2 = 2', calculateBracketSize(2) === 2);
 check('roundCount 8 = 3', calculateRoundCount(8) === 3);
+check('roundCount 2 = 1', calculateRoundCount(2) === 1);
 check('bye 5 di 8 = 3', calculateByeCount(5, 8) === 3);
+check('bye 2 di 2 = 0', calculateByeCount(2, 2) === 0);
 let sizeThrew = false;
 try {
   calculateBracketSize(1);
@@ -47,6 +50,21 @@ try {
   sizeThrew = true;
 }
 check('1 peserta → throw', sizeThrew);
+check('nextPowerOfTwo(1) = 1', nextPowerOfTwo(1) === 1);
+let powThrew = false;
+try {
+  nextPowerOfTwo(0);
+} catch {
+  powThrew = true;
+}
+check('nextPowerOfTwo(0) → throw', powThrew);
+let roundThrew = false;
+try {
+  calculateRoundCount(3);
+} catch {
+  roundThrew = true;
+}
+check('calculateRoundCount(3) → throw', roundThrew);
 
 console.log('round names');
 check('round 3/3 = Final', getRoundName(3, 3) === 'Final');
@@ -130,6 +148,16 @@ check(
   'third place ada (2 SF)',
   g4.rounds.some((r) => r.roundType === 'THIRD_PLACE')
 );
+
+console.log('generate 2 peserta (tanpa third — roundCount 1)');
+const g2 = generateBracketStructure(2, true);
+check(
+  '2 peserta: 1 round, tanpa third place',
+  g2.rounds.filter((r) => r.roundType === 'MAIN').length === 1 &&
+    g2.rounds.every((r) => r.roundType === 'MAIN')
+);
+check('2 peserta: 1 match', g2.matches.length === 1);
+check('2 peserta: bracketSize 2', g2.bracketSize === 2);
 
 console.log('seeding');
 const parts = [1, 2, 3, 4, 5].map((teamId) => ({ teamId, nama: `Tim ${teamId}` }));
@@ -279,6 +307,16 @@ check(
 check(
   'final selesai (no third) → COMPLETED',
   nextBracketStatus('IN_PROGRESS', {
+    published: false,
+    hasAnyResult: true,
+    finalCompleted: true,
+    thirdPlaceEnabled: false,
+    thirdPlaceCompleted: false,
+  }) === 'COMPLETED'
+);
+check(
+  'PUBLISHED + final langsung selesai (2 tim) → COMPLETED, bukan IN_PROGRESS',
+  nextBracketStatus('PUBLISHED', {
     published: false,
     hasAnyResult: true,
     finalCompleted: true,
