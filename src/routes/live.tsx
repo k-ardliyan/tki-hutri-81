@@ -56,6 +56,10 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute('/live')({
   validateSearch: searchSchema,
+  // Cache loader bolak-balik: dalam 30s navigasi /live↔/tim render dari cache,
+  // 0 query DB. Freshness manual via tombol Segarkan (invalidateQueries).
+  staleTime: 30_000,
+  gcTime: 5 * 60_000,
   loader: async () => {
     const data = await getLivePageData();
     return {
