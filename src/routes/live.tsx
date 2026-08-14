@@ -9,11 +9,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import {
+  AlertTriangle,
   CircleDot,
   Clock,
   Droplets,
   Flame,
   Layers,
+  Radio,
+  RotateCw,
   Sparkles,
   Trophy,
   Utensils,
@@ -81,7 +84,9 @@ export const Route = createFileRoute('/live')({
 function LiveErrorFallback({ reset }: { reset: () => void }) {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 text-center">
-      <span className="text-3xl">📡</span>
+      <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-primary/10 text-primary border border-primary/20">
+        <Radio size={28} />
+      </div>
       <h2 className="font-heading text-lg font-black text-foreground">Gagal Memuat Data Live</h2>
       <p className="max-w-sm text-xs sm:text-sm text-muted-foreground leading-relaxed">
         Koneksi database sedang padat atau bermasalah. Silakan coba lagi — data lama tidak hilang.
@@ -91,8 +96,8 @@ function LiveErrorFallback({ reset }: { reset: () => void }) {
         onClick={reset}
         className="inline-flex items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 text-xs font-bold text-white transition hover:bg-red-700 cursor-pointer"
       >
-        <i className="fa-solid fa-rotate-right" />
-        Coba Lagi
+        <RotateCw size={13} />
+        <span>Coba Lagi</span>
       </button>
     </div>
   );
@@ -486,7 +491,9 @@ function BracketCard({
       <div className="p-4 sm:p-5 min-w-0 max-w-full flex-1 overflow-x-auto">
         {hasError ? (
           <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-            <span className="text-2xl">⚠️</span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <AlertTriangle size={24} />
+            </div>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-sm leading-relaxed">
               Gagal memuat data bagan (kemungkinan koneksi database padat). Silakan coba lagi.
             </p>
@@ -496,8 +503,11 @@ function BracketCard({
               disabled={detailRefetching || heatRefetching}
               className="inline-flex items-center gap-2 rounded-full bg-brand-red px-5 py-2.5 text-xs font-bold text-white transition hover:bg-red-700 cursor-pointer disabled:opacity-50"
             >
-              <i className="fa-solid fa-rotate-right" />
-              {detailRefetching || heatRefetching ? 'Memuat...' : 'Muat Ulang'}
+              <RotateCw
+                size={13}
+                className={detailRefetching || heatRefetching ? 'animate-spin' : ''}
+              />
+              <span>{detailRefetching || heatRefetching ? 'Memuat...' : 'Muat Ulang'}</span>
             </button>
           </div>
         ) : isDraftHeat || isDraftSe ? (

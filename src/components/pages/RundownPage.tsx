@@ -469,17 +469,78 @@ export default function RundownPage() {
     };
   }, [selectedDayKey, popoverPos]);
 
+  const today = useMemo(() => new Date(), []);
+  const todayKey = useMemo(() => toKey(today), [today]);
+  const todayEvents = useMemo(() => eventsOnDay(todayKey), [todayKey]);
+
+  const todayFormatted = useMemo(() => {
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const dayName = dayNames[today.getDay()];
+    const d = today.getDate();
+    const m = MONTHS[today.getMonth()];
+    const y = today.getFullYear();
+    return `${dayName}, ${d} ${m} ${y}`;
+  }, [today]);
+
+  const handleSelectToday = () => {
+    setSelectedDayKey(todayKey);
+    const evs = eventsOnDay(todayKey);
+    if (evs.length > 0) {
+      setHoverPhase(evs[0].phase);
+      setHoverEventId(evs[0].id);
+    }
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* ─── Hero Header & Today Indicator ─── */}
       <section className="surface-card px-4 py-5 sm:px-7 sm:py-7">
-        <p className="section-kicker">Jadwal Rangkaian Acara</p>
-        <h2 className="mt-2 font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
-          Kalender HUT RI ke-81
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Rangkaian kegiatan HUT RI ke-81 dari 3 hingga 28 Agustus 2026. Klik atau pilih tanggal
-          pada kalender untuk melihat rincian acara.
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p className="section-kicker">Jadwal Rangkaian Acara</p>
+            <h2 className="mt-2 font-heading text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+              Kalender HUT RI ke-81
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+              Rangkaian kegiatan HUT RI ke-81 dari 3 hingga 28 Agustus 2026. Klik atau pilih tanggal
+              pada kalender untuk melihat rincian acara.
+            </p>
+          </div>
+
+          {/* Today Date Pill / Card */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-rose-200/90 bg-gradient-to-br from-rose-500/10 via-rose-50/60 to-white p-3.5 sm:p-4 shadow-xs shrink-0">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-red text-white shadow-xs">
+              <i className="fa-solid fa-calendar-day text-base" />
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-brand-red ring-2 ring-white" />
+              </span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-md bg-brand-red/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-brand-red">
+                  Hari Ini
+                </span>
+                <p className="font-heading text-xs sm:text-sm font-extrabold text-slate-900">
+                  {todayFormatted}
+                </p>
+              </div>
+              <p className="mt-0.5 text-xs text-slate-600 max-w-xs truncate font-medium">
+                {todayEvents.length > 0
+                  ? `Agenda: ${todayEvents.map((e) => e.title).join(', ')}`
+                  : 'Tidak ada agenda lomba khusus hari ini'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSelectToday}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-red px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-red-700 active:scale-95 transition cursor-pointer shrink-0 mt-1 sm:mt-0"
+            >
+              <i className="fa-solid fa-location-crosshairs text-[11px]" />
+              <span>Fokus Hari Ini</span>
+            </button>
+          </div>
+        </div>
       </section>
 
       <div className="flex flex-wrap gap-2">
@@ -503,10 +564,20 @@ export default function RundownPage() {
 
       <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <section ref={calRef} className="surface-card relative flex flex-col overflow-visible">
-          <div className="flex items-center justify-center border-b border-slate-100 px-4 py-3 sm:px-5">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5">
             <p className="font-heading text-lg font-extrabold text-slate-900">
               {MONTHS[monthMeta.month]} {monthMeta.year}
             </p>
+            <button
+              type="button"
+              onClick={handleSelectToday}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+            >
+              <span className="h-2 w-2 rounded-full bg-brand-red animate-pulse" />
+              <span>
+                Hari ini: {today.getDate()} {MONTHS[today.getMonth()].slice(0, 3)}
+              </span>
+            </button>
           </div>
 
           <div className="relative flex flex-1 flex-col px-2 py-3 sm:px-3 sm:py-4">
@@ -531,6 +602,7 @@ export default function RundownPage() {
 
                 const phases = [...new Set(cell.events.map((e) => e.phase))];
                 const isSelected = selectedDayKey === cell.key;
+                const isToday = cell.key === todayKey;
                 const isHot =
                   isSelected ||
                   cell.events.some((e) => e.id === hoverEventId) ||
@@ -552,7 +624,9 @@ export default function RundownPage() {
                       else if (phases[0]) setHoverPhase(phases[0]);
                     }}
                     onMouseLeave={clearHover}
-                    className="relative z-0 min-h-[52px] px-0 py-0.5 text-left sm:min-h-[58px]"
+                    className={`relative z-0 min-h-[52px] px-0 py-0.5 text-left sm:min-h-[58px] rounded-xl transition ${
+                      isToday ? 'ring-2 ring-brand-red/80 ring-offset-1' : ''
+                    }`}
                   >
                     {primaryEv && primaryColor && (
                       <span
@@ -571,15 +645,23 @@ export default function RundownPage() {
                     )}
 
                     <span className="relative z-10 flex h-full flex-col items-center px-1 pt-1">
+                      {isToday && (
+                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-20 rounded-full bg-brand-red px-1 py-0.2 text-[8px] font-black uppercase tracking-wider text-white shadow-xs whitespace-nowrap">
+                          Hari ini
+                        </span>
+                      )}
+
                       <span
                         className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                           isSelected
                             ? 'bg-slate-900 text-white'
-                            : isHot && primaryColor
-                              ? primaryColor.text
-                              : cell.events.length
-                                ? 'text-slate-800'
-                                : 'text-slate-500'
+                            : isToday
+                              ? 'bg-brand-red text-white shadow-xs font-black'
+                              : isHot && primaryColor
+                                ? primaryColor.text
+                                : cell.events.length
+                                  ? 'text-slate-800'
+                                  : 'text-slate-500'
                         }`}
                       >
                         {cell.day}

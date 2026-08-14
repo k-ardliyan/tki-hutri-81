@@ -660,9 +660,12 @@ function SnackDistributionPage() {
                                   {r.nip ? ` · ${r.nip}` : ''}
                                 </p>
                                 {isClaimed && r.claimedAt && (
-                                  <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                    ✓ Sudah diambil {formatTime(r.claimedAt)}
-                                    {r.claimedBy ? ` · oleh ${r.claimedBy}` : ''}
+                                  <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1">
+                                    <Check size={11} className="shrink-0" />
+                                    <span>
+                                      Sudah diambil {formatTime(r.claimedAt)}
+                                      {r.claimedBy ? ` · oleh ${r.claimedBy}` : ''}
+                                    </span>
                                   </p>
                                 )}
                                 {notEntitled && (

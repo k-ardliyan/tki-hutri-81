@@ -11,11 +11,9 @@ import {
   Layers,
   Lock,
   Paintbrush,
-  Search,
   Sparkles,
   UserCheck,
   Users,
-  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SearchInput } from '~/components/common/SearchInput';
@@ -208,13 +206,13 @@ export default function RoomFormFlow({
         <DeadlineBanner startDate={startDate} endDate={endDate} />
 
         {/* Compact Progress Summary Strip */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-2xl border border-border/70 bg-card p-3 shadow-2xs text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-2xl border border-border bg-card p-3.5 shadow-2xs text-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-foreground">Progres Penilaianmu:</span>
-            <span className="rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 text-[11px] font-extrabold">
+            <span className="font-heading font-black text-foreground">Progres Penilaianmu:</span>
+            <span className="rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-extrabold">
               5R: {my5RRoomsPeriodCount}/{rooms.length} Ruangan
             </span>
-            <span className="rounded-full bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 text-[11px] font-extrabold">
+            <span className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-extrabold">
               Dekorasi: {myDekorasiCount}/{rooms.length} Ruangan
             </span>
           </div>
@@ -234,18 +232,18 @@ export default function RoomFormFlow({
                 onClear={() => setSearchQuery('')}
                 loading={searchQuery !== debouncedSearch}
                 placeholder="Cari nama ruangan atau PIC..."
-                className="h-9.5 text-xs sm:text-sm bg-card"
+                className="h-10 text-xs sm:text-sm bg-card rounded-2xl"
               />
             </div>
 
             {/* Quick Status Filter Chips */}
-            <div className="inline-flex rounded-xl border border-border/80 bg-muted/50 p-1 shrink-0">
+            <div className="inline-flex rounded-2xl border border-border bg-muted/60 p-1 shrink-0">
               <button
                 type="button"
                 onClick={() => setStatusFilter('all')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
                   statusFilter === 'all'
-                    ? 'bg-card text-foreground shadow-2xs'
+                    ? 'bg-card text-foreground shadow-xs font-extrabold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -254,9 +252,9 @@ export default function RoomFormFlow({
               <button
                 type="button"
                 onClick={() => setStatusFilter('unrated')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
                   statusFilter === 'unrated'
-                    ? 'bg-card text-foreground shadow-2xs'
+                    ? 'bg-card text-foreground shadow-xs font-extrabold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -265,13 +263,13 @@ export default function RoomFormFlow({
               <button
                 type="button"
                 onClick={() => setStatusFilter('done')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
                   statusFilter === 'done'
-                    ? 'bg-card text-foreground shadow-2xs'
+                    ? 'bg-card text-foreground shadow-xs font-extrabold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Sudah Kamu Isi ({roomStatusCounts.done}) ✓
+                Sudah Kamu Isi ({roomStatusCounts.done})
               </button>
             </div>
           </div>
@@ -281,7 +279,7 @@ export default function RoomFormFlow({
         {isLoading ? (
           <RoomListSkeleton count={6} />
         ) : filteredRooms.length === 0 ? (
-          <Card className="p-8 text-center border-dashed">
+          <Card className="p-8 text-center border-dashed rounded-3xl">
             <p className="text-sm font-semibold text-muted-foreground">
               Tidak ada ruangan yang cocok dengan filter yang dipilih.
             </p>
@@ -292,7 +290,7 @@ export default function RoomFormFlow({
                 setSearchQuery('');
                 setStatusFilter('all');
               }}
-              className="mt-3 text-xs font-bold"
+              className="mt-3 text-xs font-bold rounded-xl"
             >
               Reset Filter
             </Button>
@@ -329,108 +327,110 @@ export default function RoomFormFlow({
                 <InteractiveCard
                   key={r.id}
                   onClick={() => navigate({ to: basePath, search: { room: r.id } })}
-                  className={`group relative overflow-hidden transition-all border ${
+                  className={`group relative overflow-hidden transition-all border rounded-2xl ${
                     isDone
-                      ? 'border-emerald-500/40 bg-emerald-50/20 hover:border-emerald-500/60'
+                      ? 'border-emerald-500/40 bg-emerald-500/[0.03] hover:border-emerald-500/60'
                       : isWarning
-                        ? 'border-amber-400/50 bg-amber-50/15 hover:border-amber-400/70'
+                        ? 'border-amber-500/40 bg-amber-500/[0.03] hover:border-amber-500/60'
                         : 'border-border hover:border-primary/40 hover:shadow-xs'
                   }`}
                 >
-                  <CardContent className="p-3.5 space-y-3">
+                  <CardContent className="p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
                           isDone
-                            ? 'bg-emerald-100/80 border-emerald-300/80 text-emerald-800'
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                             : isWarning
-                              ? 'bg-amber-100/80 border-amber-300/80 text-amber-800'
-                              : 'bg-muted/60 border-border/60 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                              : 'bg-muted border-border text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
                         }`}
                       >
-                        <RoomIcon name={r.icon} size={19} />
+                        <RoomIcon name={r.icon} size={18} />
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="truncate font-bold text-foreground text-sm">{r.name}</h3>
+                          <h3 className="truncate font-heading font-black text-foreground text-sm group-hover:text-primary transition-colors">
+                            {r.name}
+                          </h3>
                           {isDone ? (
                             <Badge
                               variant="outline"
-                              className="bg-emerald-100 text-emerald-800 border-emerald-300 px-1.5 py-0 text-[9px] font-extrabold"
+                              className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 px-1.5 py-0 text-[9px] font-extrabold"
                             >
                               <Check size={9} className="mr-0.5 inline" />
-                              Lengkap ✓
+                              Lengkap
                             </Badge>
                           ) : isWarning ? (
                             <Badge
                               variant="outline"
-                              className="bg-amber-100 text-amber-900 border-amber-300 px-1.5 py-0 text-[9px] font-extrabold"
+                              className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 px-1.5 py-0 text-[9px] font-extrabold"
                             >
                               Belum Lengkap
                             </Badge>
                           ) : (
                             <Badge
                               variant="outline"
-                              className="bg-muted/80 text-muted-foreground px-1.5 py-0 text-[9px]"
+                              className="bg-muted text-muted-foreground px-1.5 py-0 text-[9px] font-bold"
                             >
                               Belum kamu isi
                             </Badge>
                           )}
                         </div>
 
-                        <p className="text-xs text-muted-foreground mt-0.5">PIC: {r.pic}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">PIC: {r.pic}</p>
                       </div>
 
                       <ChevronRight
-                        size={16}
+                        size={15}
                         className="shrink-0 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all mt-1"
                       />
                     </div>
 
-                    {/* Clear distinction between KAMU vs JURI LAIN */}
-                    <div className="space-y-1.5 pt-1 border-t border-border/40">
+                    {/* Status Blocks */}
+                    <div className="space-y-1.5 pt-1 border-t border-border/50">
                       {/* Block 1: Isian KAMU */}
                       {isDone ? (
-                        <div className="rounded-xl bg-emerald-100/70 p-2 text-[11px] text-emerald-950 border border-emerald-200/80">
-                          <div className="flex items-center gap-1 font-extrabold text-emerald-900">
-                            <UserCheck size={12} className="text-emerald-700 shrink-0" />
+                        <div className="rounded-xl bg-emerald-500/10 p-2 text-[11px] border border-emerald-500/20">
+                          <div className="flex items-center gap-1 font-extrabold text-emerald-700 dark:text-emerald-300">
+                            <UserCheck size={12} className="shrink-0" />
                             <span>Sudah Kamu Isi (Lengkap):</span>
                           </div>
-                          <p className="text-[11px] font-semibold text-emerald-800 mt-0.5 truncate pl-4">
+                          <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 truncate pl-4">
                             {myPeriodFormsList.join(', ')}
                           </p>
                         </div>
                       ) : isWarning ? (
-                        <div className="rounded-xl bg-amber-100/70 p-2 text-[11px] text-amber-950 border border-amber-200/80">
-                          <div className="flex items-center gap-1 font-extrabold text-amber-900">
-                            <UserCheck size={12} className="text-amber-700 shrink-0" />
+                        <div className="rounded-xl bg-amber-500/10 p-2 text-[11px] border border-amber-500/20">
+                          <div className="flex items-center gap-1 font-extrabold text-amber-700 dark:text-amber-300">
+                            <UserCheck size={12} className="shrink-0" />
                             <span>Sudah Kamu Isi (Sebagian):</span>
                           </div>
-                          <p className="text-[11px] font-semibold text-amber-900 mt-0.5 truncate pl-4">
+                          <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 mt-0.5 truncate pl-4">
                             {myPeriodFormsList.join(', ')}
                           </p>
-                          <p className="text-[10px] text-amber-800 pl-4 mt-0.5 font-medium italic">
+                          <p className="text-[10px] text-amber-700 dark:text-amber-300 pl-4 mt-0.5 font-medium">
                             Belum lengkap (Perlu {!hasMy5R ? '5R' : 'Dekorasi'})
                           </p>
                         </div>
                       ) : (
-                        <div className="rounded-xl bg-muted/40 p-2 text-[11px] text-muted-foreground border border-border/40 flex items-center justify-between">
+                        <div className="rounded-xl bg-muted/50 p-2 text-[11px] text-muted-foreground border border-border/60 flex items-center justify-between">
                           <span>Belum kamu isi minggu ini</span>
-                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                          <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400">
                             Perlu dinilai
                           </span>
                         </div>
                       )}
 
-                      {/* Block 2: Isian AUDITOR LAIN (Global) */}
+                      {/* Block 2: Isian AUDITOR LAIN */}
                       {hasOtherActivityPeriod ? (
-                        <div className="rounded-xl bg-blue-50/80 px-2.5 py-1.5 text-[11px] text-blue-900 border border-blue-200/60 flex items-center justify-between">
-                          <span className="font-medium text-blue-800 flex items-center gap-1">
-                            <Users size={12} className="text-blue-600 shrink-0" />
+                        <div className="rounded-xl bg-sky-500/10 px-2.5 py-1.5 text-[11px] border border-sky-500/20 flex items-center justify-between text-sky-700 dark:text-sky-300">
+                          <span className="font-semibold flex items-center gap-1">
+                            <Users size={12} className="shrink-0" />
                             <span>Auditor lain minggu ini:</span>
                           </span>
-                          <span className="font-extrabold text-blue-900 bg-white/80 px-1.5 py-0.5 rounded-md border border-blue-200/60 text-[10px]">
+                          <span className="font-black bg-card px-1.5 py-0.2 rounded-md border border-sky-500/25 text-[10px]">
                             {otherPeriodSubs.length} form
                           </span>
                         </div>

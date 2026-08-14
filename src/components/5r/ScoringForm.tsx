@@ -160,7 +160,7 @@ export default function ScoringForm({
       },
       {
         threshold: [0],
-        rootMargin: '-56px 0px 0px 0px',
+        rootMargin: '0px 0px 0px 0px',
       }
     );
 
@@ -293,10 +293,10 @@ export default function ScoringForm({
 
       {/* Morphing Sticky Progress Header — Full-width edge-to-edge when stuck, contained card when not stuck */}
       <div
-        className={`sticky top-14 lg:top-0 z-30 transition-all duration-300 space-y-2.5 ${
+        className={`sticky top-0 z-30 transition-all duration-200 space-y-2.5 ${
           isStuck
             ? '-mx-4 sm:-mx-6 lg:-mx-6 px-4 sm:px-6 lg:px-6 py-3 rounded-none border-b border-x-0 border-border/80 bg-background/95 shadow-md backdrop-blur-md'
-            : 'rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs'
+            : 'rounded-2xl border border-border/80 bg-card p-3.5 shadow-2xs'
         }`}
       >
         <div className="flex items-center justify-between gap-2">
