@@ -1,5 +1,4 @@
 import { ChevronsUpDown, LogOut, Moon, Sun } from 'lucide-react';
-import * as React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import {

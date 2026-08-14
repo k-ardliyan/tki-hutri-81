@@ -393,12 +393,9 @@ export default function RundownPage() {
   const calRef = useRef<HTMLDivElement>(null);
 
   const monthMeta = MONTH_VIEWS[0];
-  const grid = useMemo(
-    () => buildMonthGrid(monthMeta.year, monthMeta.month),
-    [monthMeta.year, monthMeta.month]
-  );
+  const grid = useMemo(() => buildMonthGrid(monthMeta.year, monthMeta.month), []);
 
-  const peakPhase = useMemo(() => rundown.find((p) => p.id === 'phase-peak'), []);
+  const peakPhase = useMemo(() => rundown.find((p) => p.id === 'phase-peak'), [rundown.find]);
   const peakItems = peakPhase?.items || [];
 
   const selectedDayEvents = selectedDayKey ? eventsOnDay(selectedDayKey) : [];
@@ -467,7 +464,7 @@ export default function RundownPage() {
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('mousedown', onDown);
     };
-  }, [selectedDayKey, popoverPos]);
+  }, [selectedDayKey, popoverPos, closePopover]);
 
   const today = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => toKey(today), [today]);

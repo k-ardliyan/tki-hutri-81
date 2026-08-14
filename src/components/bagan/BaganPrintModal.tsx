@@ -3,20 +3,7 @@
  * Memungkinkan panitia dan publik mengkustomisasi opsi cetak sebelum mencetak langsung atau simpan ke PDF.
  */
 
-import {
-  Award,
-  Check,
-  FileCheck2,
-  FileSpreadsheet,
-  FileText,
-  Layers,
-  LayoutGrid,
-  Maximize2,
-  Printer,
-  Sparkles,
-  Trophy,
-  X,
-} from 'lucide-react';
+import { Check, FileCheck2, FileSpreadsheet, Maximize2, Printer, Trophy } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import {
@@ -24,15 +11,6 @@ import {
   type BaganPrintDocumentProps,
 } from '~/components/bagan/BaganPrintDocument';
 import { Button } from '~/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '~/components/ui/dialog';
 import { ResponsiveDialog } from '~/components/ui/responsive-dialog';
 import { cn } from '~/lib/utils';
 

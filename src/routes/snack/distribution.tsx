@@ -19,7 +19,6 @@ import {
   Search,
   TriangleAlert,
   Users,
-  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -399,15 +398,15 @@ function SnackDistributionPage() {
       {/* Session Indicator Card — Mobile-First Compact & Informative */}
       <Card className="border border-border/80 bg-gradient-to-br from-card to-muted/20 shadow-xs rounded-2xl overflow-hidden">
         <CardContent className="p-3.5 sm:p-4 space-y-3">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
                 <ScanLine size={22} />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className={cn('size-2.5 rounded-full shrink-0', statusCfg.dotClass)} />
-                  <p className="truncate text-base sm:text-lg font-extrabold tracking-tight text-foreground">
+                  <p className="text-base sm:text-lg font-heading font-black tracking-tight text-foreground">
                     {session ? session.name : 'Belum Ada Pembagian Snack'}
                   </p>
                 </div>
@@ -433,7 +432,7 @@ function SnackDistributionPage() {
 
             {/* Quick Session Switcher (Admin/Petugas) */}
             {sessions.length > 1 && (
-              <div className="shrink-0">
+              <div className="w-full sm:w-auto sm:shrink-0">
                 <SessionPicker
                   sessions={sessions}
                   value={session?.id ?? null}
@@ -531,27 +530,31 @@ function SnackDistributionPage() {
                   type="button"
                   onClick={() => setInputMode('qr')}
                   className={cn(
-                    'flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all select-none',
+                    'flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all select-none cursor-pointer',
                     inputMode === 'qr'
                       ? 'bg-card text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  <QrCode size={16} />
-                  <span>Scan QR Kelompok</span>
+                  <QrCode size={15} />
+                  <span>
+                    Scan QR <span className="hidden sm:inline">Kelompok</span>
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setInputMode('search')}
                   className={cn(
-                    'flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all select-none',
+                    'flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all select-none cursor-pointer',
                     inputMode === 'search'
                       ? 'bg-card text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  <Search size={16} />
-                  <span>Cari Nama / NIP</span>
+                  <Search size={15} />
+                  <span>
+                    Cari Nama<span className="hidden sm:inline"> / NIP</span>
+                  </span>
                   {results.length > 0 && <span className="size-2 rounded-full bg-primary" />}
                 </button>
               </div>

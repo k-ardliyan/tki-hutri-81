@@ -3,7 +3,7 @@
  * Redesigned for high-end UI/UX with rich gradient cards and clear status badges.
  */
 
-import { CalendarClock, Clock, Lock, ShieldCheck, Sparkles } from 'lucide-react';
+import { CalendarClock, Clock, Lock } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
 function formatDate(iso: string): string {

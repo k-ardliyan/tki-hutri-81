@@ -761,7 +761,7 @@ export const heatService = {
       .from(brackets)
       .where(and(eq(brackets.competitionId, competitionId), eq(brackets.kategori, kategori)))
       .limit(1);
-    if (!b || b.format !== 'HEAT_ELIMINATION') return null;
+    if (b?.format !== 'HEAT_ELIMINATION') return null;
 
     const stages = await loadStages(database, b.id);
 

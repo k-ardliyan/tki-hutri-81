@@ -9,7 +9,6 @@
 import {
   AlertCircle,
   Award,
-  Check,
   CheckCircle2,
   ChevronRight,
   Clock,
@@ -17,7 +16,6 @@ import {
   Dices,
   Flame,
   GitMerge,
-  HelpCircle,
   Info,
   Layers,
   LayoutList,
@@ -33,7 +31,6 @@ import {
   Timer,
   Trash2,
   Trophy,
-  Users,
   UserX,
   X,
 } from 'lucide-react';
@@ -1015,7 +1012,7 @@ export function HeatTournamentView({ comp, kategori, teams, detail, loading, onR
                 ).length;
                 const totalSessions = s.sessions.length;
                 const isStageCompleted = s.status === 'COMPLETED';
-                const isStageActive = s.status === 'ACTIVE';
+                const _isStageActive = s.status === 'ACTIVE';
 
                 return (
                   <button

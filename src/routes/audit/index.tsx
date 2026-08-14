@@ -23,7 +23,6 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { InteractiveCard } from '../../components/ui/interactive-card';
 import { PageHeader } from '../../components/ui/page-header';
-import { Progress } from '../../components/ui/progress';
 import type { FiveRForm } from '../../data/5r';
 import { currentWeekNumber } from '../../lib/dateUtils';
 import { useSubmissions } from '../../lib/queries';

@@ -291,7 +291,7 @@ export function PodiumPanel({
                 <span className={`max-w-40 truncate text-xs font-extrabold ${l.nameCls}`}>
                   {teamId !== null ? namaOf(detail, teamId) : '-'}
                 </span>
-                {prize && prize.hadiah.trim() && (
+                {prize?.hadiah.trim() && (
                   <span className="rounded-md bg-background/80 px-2 py-0.5 text-[9px] font-bold text-muted-foreground border border-border/60 flex items-center gap-1">
                     <Gift size={10} className="text-amber-600" />
                     <span>{prize.hadiah.trim()}</span>

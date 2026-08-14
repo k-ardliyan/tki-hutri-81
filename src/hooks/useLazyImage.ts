@@ -51,7 +51,7 @@ export function useLazyImage(opts: { rootMargin?: string; threshold?: number } =
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry && entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setShouldLoad(true);
           observer.disconnect();
         }

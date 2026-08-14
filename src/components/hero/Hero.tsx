@@ -1,6 +1,5 @@
 import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
 import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 'react';
-import { motionDuration, motionEase } from '~/lib/motion';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import LogoFtp from '../brand/LogoFtp';
 import LogoHutRi81 from '../brand/LogoHutRi81';

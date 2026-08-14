@@ -329,12 +329,15 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
           {/* Viewfinder Target Visual Overlay */}
           {!starting && !camError && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="relative size-48 sm:size-56 rounded-2xl border-2 border-dashed border-white/40 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]">
+              <div className="relative size-48 sm:size-56 rounded-2xl border-2 border-dashed border-white/40 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] overflow-hidden">
                 {/* Corner accents */}
                 <div className="absolute -top-0.5 -left-0.5 size-5 border-t-3 border-l-3 border-primary rounded-tl-lg" />
                 <div className="absolute -top-0.5 -right-0.5 size-5 border-t-3 border-r-3 border-primary rounded-tr-lg" />
                 <div className="absolute -bottom-0.5 -left-0.5 size-5 border-b-3 border-l-3 border-primary rounded-bl-lg" />
                 <div className="absolute -bottom-0.5 -right-0.5 size-5 border-b-3 border-r-3 border-primary rounded-br-lg" />
+
+                {/* Scanning Laser Line Animation */}
+                <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_8px_var(--primary)] animate-scan" />
               </div>
             </div>
           )}
@@ -400,7 +403,7 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({ onSca
                 }}
                 showSearch={false}
                 size="sm"
-                triggerClassName="flex-1 text-xs h-8.5 rounded-lg"
+                triggerClassName="w-full min-w-0 flex-1 text-xs h-8.5 rounded-lg"
               />
             </div>
           ) : (

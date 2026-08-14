@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
+import { Edit2, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { DataTableSkeleton } from '~/components/loading/skeletons';
@@ -83,7 +83,7 @@ function AdminEmployees() {
 
   useEffect(() => {
     void load(debouncedQ || undefined);
-  }, [debouncedQ]);
+  }, [debouncedQ, load]);
 
   const openCreate = () => {
     setEditId(null);

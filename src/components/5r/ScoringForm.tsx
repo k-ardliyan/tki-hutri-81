@@ -8,7 +8,7 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, Loader2, UserCheck } from 'lucide-react';
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, UserCheck } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { FiveRSubmission } from '../../data/5r';
@@ -145,7 +145,7 @@ export default function ScoringForm({
       init[cat.id] = false;
     });
     setCollapsed(init);
-  }, [form]);
+  }, [form, collapsed]);
 
   const [isStuck, setIsStuck] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);

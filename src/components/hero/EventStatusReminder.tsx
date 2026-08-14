@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { backdropVariants, bottomSheetVariants, motionTransition } from '~/lib/motion';
+import { backdropVariants, bottomSheetVariants } from '~/lib/motion';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import { useCountdown } from '../../hooks/useCountdown';
 import { getEventPhase, SIMULATED_DATES } from '../../lib/eventPhase';
@@ -329,7 +329,7 @@ export default function EventStatusReminder({
                         type="button"
                         onClick={() => {
                           handleCloseModal();
-                          navigate(phaseData.action!.link);
+                          navigate(phaseData.action?.link);
                         }}
                         className="flex-1 min-h-[44px] rounded-xl bg-brand-red px-4 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700 active:scale-95 text-center"
                       >

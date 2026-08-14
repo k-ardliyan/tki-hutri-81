@@ -14,8 +14,6 @@ import {
   Printer,
   RefreshCw,
   Trash2,
-  Trophy,
-  Users,
   UserX,
   Workflow,
 } from 'lucide-react';
@@ -197,33 +195,36 @@ function AdminBagan() {
 
   const keyOf = (compId: number, kategori: Kategori) => `${compId}:${kategori}`;
 
-  const loadTab = useCallback(async (compId: number, kategori: Kategori) => {
-    const key = keyOf(compId, kategori);
-    setTabData((prev) => ({
-      ...prev,
-      [key]: {
-        ...(prev[key] ?? { detail: null, heatDetail: null, prizes: [], loading: true }),
-        loading: true,
-      },
-    }));
-    try {
-      const [detail, heatDetail, prizes] = await Promise.all([
-        getBracket({ data: { competitionId: compId, kategori } }),
-        getHeatBracket({ data: { competitionId: compId, kategori } }),
-        getPrizes({ data: { competitionId: compId, kategori } }),
-      ]);
-      setTabData((prev) => ({ ...prev, [key]: { detail, heatDetail, prizes, loading: false } }));
-    } catch (e) {
-      toast.error(errMsg(e, 'Gagal memuat bagan'));
+  const loadTab = useCallback(
+    async (compId: number, kategori: Kategori) => {
+      const key = keyOf(compId, kategori);
       setTabData((prev) => ({
         ...prev,
         [key]: {
-          ...(prev[key] ?? { detail: null, heatDetail: null, prizes: [], loading: false }),
-          loading: false,
+          ...(prev[key] ?? { detail: null, heatDetail: null, prizes: [], loading: true }),
+          loading: true,
         },
       }));
-    }
-  }, []);
+      try {
+        const [detail, heatDetail, prizes] = await Promise.all([
+          getBracket({ data: { competitionId: compId, kategori } }),
+          getHeatBracket({ data: { competitionId: compId, kategori } }),
+          getPrizes({ data: { competitionId: compId, kategori } }),
+        ]);
+        setTabData((prev) => ({ ...prev, [key]: { detail, heatDetail, prizes, loading: false } }));
+      } catch (e) {
+        toast.error(errMsg(e, 'Gagal memuat bagan'));
+        setTabData((prev) => ({
+          ...prev,
+          [key]: {
+            ...(prev[key] ?? { detail: null, heatDetail: null, prizes: [], loading: false }),
+            loading: false,
+          },
+        }));
+      }
+    },
+    [keyOf]
+  );
 
   useEffect(() => {
     let alive = true;
@@ -254,7 +255,7 @@ function AdminBagan() {
     return () => {
       alive = false;
     };
-  }, [loadTab]);
+  }, [loadTab, keyOf]);
 
   const active = useMemo(() => {
     const [compIdStr, kategori] = activeKey.split(':');
@@ -268,7 +269,7 @@ function AdminBagan() {
       kategori: k,
       data: data ?? { detail: null, heatDetail: null, prizes: [], loading: true },
     };
-  }, [activeKey, comps, tabData]);
+  }, [activeKey, comps, tabData, keyOf]);
 
   const reloadActive = useCallback(async () => {
     if (!active) return;

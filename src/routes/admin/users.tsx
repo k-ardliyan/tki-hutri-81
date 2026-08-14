@@ -1,15 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
-import {
-  EllipsisVertical,
-  KeyRound,
-  Plus,
-  Power,
-  PowerOff,
-  Search,
-  Trash2,
-  UserPen,
-} from 'lucide-react';
+import { EllipsisVertical, KeyRound, Plus, Power, PowerOff, Trash2, UserPen } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { SearchInput } from '~/components/common/SearchInput';
@@ -120,7 +111,7 @@ function SuperadminUsers() {
   };
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   useEffect(() => {
     const fetchEmps = async () => {

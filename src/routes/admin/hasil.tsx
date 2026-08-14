@@ -80,7 +80,7 @@ function AdminHasilPage() {
   const [startInput, setStartInput] = useState(toLocalInput(startDate));
   const [endInput, setEndInput] = useState(toLocalInput(endDate));
   const [periodBusy, setPeriodBusy] = useState(false);
-  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [_deleteBusy, _setDeleteBusy] = useState(false);
 
   const savePeriod = async (rawStart: string, rawEnd: string) => {
     setPeriodBusy(true);
@@ -278,12 +278,12 @@ function AdminHasilPage() {
       />
 
       {/* Modern Main Tab Bar */}
-      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 flex-wrap">
-        <div className="inline-flex items-center gap-1 rounded-2xl border border-border bg-muted/60 p-1 flex-wrap">
+      <div className="w-full overflow-x-auto pb-3 border-b border-border/60">
+        <div className="inline-flex items-center gap-1 rounded-2xl border border-border bg-muted/60 p-1 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('peringkat')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'peringkat'
                 ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
@@ -299,7 +299,7 @@ function AdminHasilPage() {
           <button
             type="button"
             onClick={() => setActiveTab('log')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'log'
                 ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
@@ -309,7 +309,7 @@ function AdminHasilPage() {
               size={14}
               className={activeTab === 'log' ? 'text-primary' : 'text-muted-foreground'}
             />
-            <span>Log Seluruh Penilaian</span>
+            <span>Log Penilaian</span>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 activeTab === 'log'
@@ -324,7 +324,7 @@ function AdminHasilPage() {
           <button
             type="button"
             onClick={() => setActiveTab('tenggat')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'tenggat'
                 ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
