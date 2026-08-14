@@ -205,13 +205,13 @@ function AuditHasilPage() {
 
       {/* Modern Main Tab Bar */}
       <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 flex-wrap">
-        <div className="inline-flex items-center gap-1 rounded-2xl border border-border/80 bg-muted/60 p-1">
+        <div className="inline-flex items-center gap-1 rounded-2xl border border-border bg-muted/60 p-1">
           <button
             type="button"
             onClick={() => setTab('peringkat')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
               tab === 'peringkat'
-                ? 'bg-card text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -227,7 +227,7 @@ function AuditHasilPage() {
             onClick={() => setTab('log')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
               tab === 'log'
-                ? 'bg-card text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -237,7 +237,7 @@ function AuditHasilPage() {
             />
             <span>Log Seluruh Penilaian</span>
             <span
-              className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${
+              className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 tab === 'log' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
               }`}
             >
@@ -272,21 +272,21 @@ function AuditHasilPage() {
       {tab === 'log' && (
         <div className="space-y-4 pt-1">
           {/* Date filter & Search */}
-          <Card>
-            <CardContent className="p-4">
+          <Card className="rounded-2xl border-border bg-card shadow-2xs">
+            <CardContent className="p-3.5 sm:p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-1 items-center gap-2">
-                  <div className="relative flex-1 max-w-xs">
+                  <div className="relative flex-1 max-w-sm">
                     <Search
                       size={14}
-                      className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60"
+                      className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60 pointer-events-none"
                     />
                     <Input
                       type="text"
                       value={qLog}
                       onChange={(e) => setQLog(e.target.value)}
                       placeholder="Cari ruangan / auditor..."
-                      className="h-9 pl-9"
+                      className="h-10 pl-9 rounded-xl text-xs bg-muted/40"
                     />
                   </div>
                   {qLog && (
@@ -294,7 +294,7 @@ function AuditHasilPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setQLog('')}
-                      className="h-9 px-2 text-xs font-bold text-primary"
+                      className="h-9 px-2 text-xs font-bold text-primary rounded-xl"
                     >
                       <X size={12} className="mr-1" />
                       Clear
@@ -308,14 +308,14 @@ function AuditHasilPage() {
                     type="date"
                     value={dateFilter}
                     onChange={(e) => setDateFilter(e.target.value)}
-                    className="h-9 w-40"
+                    className="h-10 w-40 rounded-xl text-xs bg-muted/40"
                   />
                   {dateFilter && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setDateFilter('')}
-                      className="h-9 px-2 text-xs font-bold text-primary"
+                      className="h-9 px-2 text-xs font-bold text-primary rounded-xl"
                     >
                       Semua
                     </Button>
@@ -331,15 +331,15 @@ function AuditHasilPage() {
             getRowId={(s) => s.id}
             pageSize={15}
             toolbar={
-              <span className="text-sm font-medium text-muted-foreground">
-                {dailyLog.length} log penilaian
+              <span className="text-xs font-bold text-muted-foreground">
+                Menampilkan {dailyLog.length} riwayat penilaian
               </span>
             }
           />
         </div>
       )}
 
-      {/* Detail Responsive Modal (Mobile BottomSheet / Desktop Dialog) */}
+      {/* Detail Responsive Modal */}
       <ResponsiveDialog
         open={!!detailTarget}
         onOpenChange={(o) => {
@@ -356,7 +356,7 @@ function AuditHasilPage() {
                 if (detailTarget) setDeleteTarget(detailTarget);
                 setDetailTarget(null);
               }}
-              className="flex-1 sm:flex-initial text-xs font-bold"
+              className="flex-1 sm:flex-initial text-xs font-bold rounded-xl"
             >
               <Trash2 size={13} className="mr-1.5" />
               Hapus Submission
@@ -365,7 +365,7 @@ function AuditHasilPage() {
               variant="outline"
               size="sm"
               onClick={() => setDetailTarget(null)}
-              className="flex-1 sm:flex-initial text-xs font-bold"
+              className="flex-1 sm:flex-initial text-xs font-bold rounded-xl"
             >
               <X size={13} className="mr-1.5" />
               Tutup
@@ -374,12 +374,14 @@ function AuditHasilPage() {
         }
       >
         {detailTarget && detailForm && (
-          <div className="space-y-4">
+          <div className="space-y-4 text-xs">
             {detailScore && (
-              <div className="flex items-center justify-between rounded-lg bg-muted/40 p-3 border border-border">
+              <div className="flex items-center justify-between rounded-2xl bg-muted/50 p-4 border border-border">
                 <div>
-                  <p className="text-xs text-muted-foreground">Skor Akhir</p>
-                  <p className="text-[11px] font-mono text-muted-foreground/80">
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                    Skor Akhir Form
+                  </p>
+                  <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
                     {formatDate(detailTarget.createdAt)}
                   </p>
                 </div>
@@ -389,22 +391,25 @@ function AuditHasilPage() {
 
             <div className="space-y-3">
               {detailForm.categories.map((cat) => (
-                <div key={cat.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
-                  <p className="text-xs font-bold text-foreground">{cat.label}</p>
-                  <div className="space-y-1.5 divide-y divide-border/40">
+                <div
+                  key={cat.id}
+                  className="rounded-2xl border border-border bg-card p-3.5 space-y-2.5 shadow-2xs"
+                >
+                  <p className="text-xs font-heading font-black text-foreground">{cat.label}</p>
+                  <div className="space-y-2 divide-y divide-border/40">
                     {cat.criteria.map((c) => {
                       const val = detailTarget.answers[c.id];
                       const note = detailTarget.notes[c.id];
                       return (
                         <div
                           key={c.id}
-                          className="flex items-start justify-between gap-2 pt-1.5 text-xs"
+                          className="flex items-start justify-between gap-3 pt-2 text-xs"
                         >
                           <div className="min-w-0 flex-1">
-                            <span className="font-semibold text-foreground/90">{c.order}. </span>
+                            <span className="font-bold text-foreground">{c.order}. </span>
                             <span className="text-muted-foreground">{c.text}</span>
                             {note && (
-                              <p className="text-[10px] text-muted-foreground italic mt-0.5">
+                              <p className="text-[11px] text-muted-foreground/90 italic mt-1 bg-muted/40 rounded-lg p-1.5">
                                 "{note}"
                               </p>
                             )}

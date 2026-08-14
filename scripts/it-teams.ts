@@ -117,16 +117,26 @@ const [e3] = await db!
   .insert(employees)
   .values({ nama: 'IT Test Karyawan 3', nip: 'IT-NIP-083' })
   .returning();
-await db!.insert(teamMembers).values({ teamId: teamBId, employeeId: e2.id, sortOrder: 1, isLeader: true });
+await db!
+  .insert(teamMembers)
+  .values({ teamId: teamBId, employeeId: e2.id, sortOrder: 1, isLeader: true });
 let dupLeader = false;
 try {
-  await db!.insert(teamMembers).values({ teamId: teamBId, employeeId: e3.id, sortOrder: 2, isLeader: true });
+  await db!
+    .insert(teamMembers)
+    .values({ teamId: teamBId, employeeId: e3.id, sortOrder: 2, isLeader: true });
 } catch (e) {
   dupLeader = isUniqueViolation(e);
 }
 check('ketua kedua di tim sama → 23505', dupLeader);
-await db!.delete(employees).where(eq(employees.id, e2.id)).catch(() => {});
-await db!.delete(employees).where(eq(employees.id, e3.id)).catch(() => {});
+await db!
+  .delete(employees)
+  .where(eq(employees.id, e2.id))
+  .catch(() => {});
+await db!
+  .delete(employees)
+  .where(eq(employees.id, e3.id))
+  .catch(() => {});
 
 await cleanup();
 console.log(failed > 0 ? `✗ ${failed} check gagal` : '✓ Semua check lulus');

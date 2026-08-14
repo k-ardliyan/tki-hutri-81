@@ -33,7 +33,7 @@ function GelangPage() {
 
   const teamOptions = useMemo<ComboboxOption[]>(
     () => [
-      { value: '__all__', label: `📄 Semua Kelompok (${teams.length} Tim - Sheet A4)` },
+      { value: '__all__', label: `Semua Kelompok (${teams.length} Tim - Sheet A4)` },
       ...teams.map((t) => ({
         value: t.kode,
         label: `${t.nama} (${t.members.length} org)`,

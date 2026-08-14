@@ -1,7 +1,17 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
-import { CalendarClock, Clock3, Eye, HelpCircle, Search, Trash2, Trophy, X } from 'lucide-react';
+import {
+  CalendarClock,
+  Clock3,
+  Eye,
+  HelpCircle,
+  Info,
+  Search,
+  Trash2,
+  Trophy,
+  X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { HasilPageSkeleton } from '~/components/loading/skeletons';
@@ -269,13 +279,13 @@ function AdminHasilPage() {
 
       {/* Modern Main Tab Bar */}
       <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 flex-wrap">
-        <div className="inline-flex items-center gap-1 rounded-2xl border border-border/80 bg-muted/60 p-1 flex-wrap">
+        <div className="inline-flex items-center gap-1 rounded-2xl border border-border bg-muted/60 p-1 flex-wrap">
           <button
             type="button"
             onClick={() => setActiveTab('peringkat')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
               activeTab === 'peringkat'
-                ? 'bg-card text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -291,7 +301,7 @@ function AdminHasilPage() {
             onClick={() => setActiveTab('log')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
               activeTab === 'log'
-                ? 'bg-card text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -301,7 +311,7 @@ function AdminHasilPage() {
             />
             <span>Log Seluruh Penilaian</span>
             <span
-              className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${
+              className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 activeTab === 'log'
                   ? 'bg-primary/15 text-primary'
                   : 'bg-muted text-muted-foreground'
@@ -316,7 +326,7 @@ function AdminHasilPage() {
             onClick={() => setActiveTab('tenggat')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
               activeTab === 'tenggat'
-                ? 'bg-card text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs font-extrabold'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -348,8 +358,8 @@ function AdminHasilPage() {
       {activeTab === 'log' && (
         <div className="space-y-4 pt-1">
           {/* Filter Card */}
-          <Card>
-            <CardContent className="p-4">
+          <Card className="rounded-2xl border-border bg-card shadow-2xs">
+            <CardContent className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 items-end">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-muted-foreground">Ruangan</Label>
@@ -359,7 +369,7 @@ function AdminHasilPage() {
                     onValueChange={setFilterRoom}
                     placeholder="Semua Ruangan"
                     searchPlaceholder="Cari ruangan..."
-                    triggerClassName="w-full h-9"
+                    triggerClassName="w-full h-10 rounded-xl"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -370,7 +380,7 @@ function AdminHasilPage() {
                     onValueChange={setFilterForm}
                     placeholder="Semua Form"
                     searchPlaceholder="Cari form..."
-                    triggerClassName="w-full h-9"
+                    triggerClassName="w-full h-10 rounded-xl"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -380,14 +390,14 @@ function AdminHasilPage() {
                   <div className="relative">
                     <Search
                       size={14}
-                      className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60"
+                      className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/60 pointer-events-none"
                     />
                     <Input
                       type="text"
                       value={filterAuditor}
                       onChange={(e) => setFilterAuditor(e.target.value)}
                       placeholder="Cari nama..."
-                      className="h-9 pl-9"
+                      className="h-10 pl-9 rounded-xl text-xs bg-muted/40"
                     />
                   </div>
                 </div>
@@ -397,7 +407,7 @@ function AdminHasilPage() {
                     type="date"
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="h-9"
+                    className="h-10 rounded-xl text-xs bg-muted/40"
                   />
                 </div>
               </div>
@@ -406,7 +416,7 @@ function AdminHasilPage() {
                   variant="ghost"
                   size="sm"
                   onClick={resetFilters}
-                  className="mt-3 h-7 text-xs font-bold text-primary"
+                  className="h-8 px-2 text-xs font-bold text-primary rounded-xl"
                 >
                   <X size={12} className="mr-1" />
                   Reset Filter
@@ -422,7 +432,7 @@ function AdminHasilPage() {
             getRowId={(s) => s.id}
             pageSize={15}
             toolbar={
-              <span className="text-sm font-medium text-muted-foreground">
+              <span className="text-xs font-bold text-muted-foreground">
                 {sorted.length} data{' '}
                 {hasFilter ? `(dari total ${submissions.length})` : 'ditampilkan'}
               </span>
@@ -434,14 +444,14 @@ function AdminHasilPage() {
       {/* Tab 3: Periode Penilaian */}
       {activeTab === 'tenggat' && (
         <div className="space-y-4 pt-1">
-          <Card>
-            <CardContent className="p-5 space-y-4">
+          <Card className="rounded-3xl border-border bg-card shadow-xs">
+            <CardContent className="p-5 sm:p-6 space-y-4">
               <div className="flex items-start gap-3.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <CalendarClock size={20} />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20">
+                  <CalendarClock size={22} />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1">
-                  <h2 className="text-sm font-extrabold text-foreground">
+                  <h2 className="text-base font-heading font-black text-foreground">
                     Pengaturan Periode Penilaian
                   </h2>
                   <p className="text-xs text-muted-foreground leading-relaxed">
@@ -452,32 +462,34 @@ function AdminHasilPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border/80 bg-muted/30 p-4 space-y-3">
-                <Label className="text-xs font-bold text-foreground">
-                  Tanggal Mulai & Selesai Penilaian
+              <div className="rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 space-y-3.5">
+                <Label className="text-xs font-black text-foreground">
+                  Tanggal Mulai &amp; Selesai Penilaian
                 </Label>
-                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-                  <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <Input
                       type="datetime-local"
                       value={startInput}
                       onChange={(e) => setStartInput(e.target.value)}
-                      className="h-10 w-full sm:w-64 bg-card"
+                      className="h-10 w-full sm:w-64 bg-card rounded-xl text-xs font-mono"
                       aria-label="Tanggal mulai periode"
                     />
-                    <span className="text-xs text-muted-foreground text-center">sampai</span>
+                    <span className="text-xs text-muted-foreground text-center font-bold">
+                      sampai
+                    </span>
                     <Input
                       type="datetime-local"
                       value={endInput}
                       onChange={(e) => setEndInput(e.target.value)}
-                      className="h-10 w-full sm:w-64 bg-card"
+                      className="h-10 w-full sm:w-64 bg-card rounded-xl text-xs font-mono"
                       aria-label="Tanggal selesai periode"
                     />
                   </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      className="h-10 text-xs font-bold"
+                      className="h-10 text-xs font-black rounded-xl bg-gradient-to-r from-brand-red to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white"
                       loading={periodBusy}
                       onClick={() => void savePeriod(startInput, endInput)}
                     >
@@ -487,7 +499,7 @@ function AdminHasilPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-10 text-xs font-bold text-destructive hover:bg-destructive/10"
+                        className="h-10 text-xs font-bold rounded-xl text-destructive hover:bg-destructive/10"
                         loading={periodBusy}
                         onClick={() => {
                           setStartInput('');
@@ -500,9 +512,12 @@ function AdminHasilPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Setiap 7 hari dari tanggal mulai = 1 minggu penilaian. Auditor boleh mengisi tiap
-                  form maksimal 1x per minggu per ruangan.
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                  <Info size={13} className="text-primary shrink-0" />
+                  <span>
+                    Setiap 7 hari dari tanggal mulai = 1 minggu penilaian. Auditor boleh mengisi
+                    tiap form maksimal 1x per minggu per ruangan.
+                  </span>
                 </p>
               </div>
             </CardContent>
@@ -527,7 +542,7 @@ function AdminHasilPage() {
                 if (detailTarget) setDeleteTarget(detailTarget);
                 setDetailTarget(null);
               }}
-              className="flex-1 sm:flex-initial text-xs font-bold"
+              className="flex-1 sm:flex-initial text-xs font-bold rounded-xl"
             >
               <Trash2 size={13} className="mr-1.5" />
               Hapus Submission
@@ -536,7 +551,7 @@ function AdminHasilPage() {
               variant="outline"
               size="sm"
               onClick={() => setDetailTarget(null)}
-              className="flex-1 sm:flex-initial text-xs font-bold"
+              className="flex-1 sm:flex-initial text-xs font-bold rounded-xl"
             >
               <X size={13} className="mr-1.5" />
               Tutup
@@ -545,12 +560,14 @@ function AdminHasilPage() {
         }
       >
         {detailTarget && detailForm && (
-          <div className="space-y-4">
+          <div className="space-y-4 text-xs">
             {detailScore && (
-              <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3 border border-border">
+              <div className="flex items-center justify-between rounded-2xl bg-muted/50 p-4 border border-border">
                 <div>
-                  <p className="text-xs text-muted-foreground">Skor Akhir</p>
-                  <p className="text-xs font-medium text-muted-foreground/70">
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                    Skor Akhir Form
+                  </p>
+                  <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
                     {formatDate(detailTarget.createdAt)}
                   </p>
                 </div>
@@ -560,22 +577,25 @@ function AdminHasilPage() {
 
             <div className="space-y-3">
               {detailForm.categories.map((cat) => (
-                <div key={cat.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
-                  <p className="text-xs font-bold text-foreground">{cat.label}</p>
-                  <div className="space-y-1.5 divide-y divide-border/40">
+                <div
+                  key={cat.id}
+                  className="rounded-2xl border border-border bg-card p-3.5 space-y-2.5 shadow-2xs"
+                >
+                  <p className="text-xs font-heading font-black text-foreground">{cat.label}</p>
+                  <div className="space-y-2 divide-y divide-border/40">
                     {cat.criteria.map((c) => {
                       const val = detailTarget.answers[c.id];
                       const note = detailTarget.notes[c.id];
                       return (
                         <div
                           key={c.id}
-                          className="flex items-start justify-between gap-2 pt-1.5 text-xs"
+                          className="flex items-start justify-between gap-3 pt-2 text-xs"
                         >
                           <div className="min-w-0 flex-1">
-                            <span className="font-semibold text-foreground/90">{c.order}. </span>
+                            <span className="font-bold text-foreground">{c.order}. </span>
                             <span className="text-muted-foreground">{c.text}</span>
                             {note && (
-                              <p className="text-[10px] text-muted-foreground italic mt-0.5">
+                              <p className="text-[11px] text-muted-foreground/90 italic mt-1 bg-muted/40 rounded-lg p-1.5">
                                 "{note}"
                               </p>
                             )}
