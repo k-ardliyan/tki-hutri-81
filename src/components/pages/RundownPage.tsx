@@ -622,7 +622,11 @@ export default function RundownPage() {
                     }}
                     onMouseLeave={clearHover}
                     className={`relative z-0 min-h-[52px] px-0 py-0.5 text-left sm:min-h-[58px] rounded-xl transition ${
-                      isToday ? 'ring-2 ring-brand-red/80 ring-offset-1' : ''
+                      isToday
+                        ? 'ring-1.5 ring-brand-red bg-rose-50/40'
+                        : isSelected
+                          ? 'ring-1.5 ring-slate-900 bg-slate-100/50'
+                          : ''
                     }`}
                   >
                     {primaryEv && primaryColor && (
@@ -641,17 +645,11 @@ export default function RundownPage() {
                       <span className="pointer-events-none absolute inset-0.5 rounded-xl bg-slate-50/50" />
                     )}
 
-                    <span className="relative z-10 flex h-full flex-col items-center px-1 pt-1">
-                      {isToday && (
-                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-20 rounded-full bg-brand-red px-1 py-0.2 text-[8px] font-black uppercase tracking-wider text-white shadow-xs whitespace-nowrap">
-                          Hari ini
-                        </span>
-                      )}
-
+                    <span className="relative z-10 flex h-full flex-col items-center px-1 pt-1.5">
                       <span
-                        className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                        className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all ${
                           isSelected
-                            ? 'bg-slate-900 text-white'
+                            ? 'bg-slate-900 text-white shadow-xs'
                             : isToday
                               ? 'bg-brand-red text-white shadow-xs font-black'
                               : isHot && primaryColor

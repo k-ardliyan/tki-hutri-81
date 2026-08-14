@@ -71,9 +71,6 @@ export const Route = createFileRoute('/live')({
       submissions: data.submissions,
       deadline: data.deadline,
       comps: data.comps,
-      details: data.details,
-      heatDetails: data.heatDetails,
-      prizes: data.prizes,
     };
   },
   component: UnifiedLivePage,
@@ -247,7 +244,7 @@ function UnifiedLivePage() {
           <motion.div
             key="tab-5r"
             variants={fadeVariants}
-            initial="hidden"
+            initial={false}
             animate="visible"
             exit="exit"
             className="space-y-6"
@@ -267,7 +264,7 @@ function UnifiedLivePage() {
           <motion.div
             key="tab-bagan"
             variants={fadeVariants}
-            initial="hidden"
+            initial={false}
             animate="visible"
             exit="exit"
             className="space-y-6"
@@ -320,9 +317,6 @@ function UnifiedLivePage() {
                         key={`${selectedComp.id}:${k}`}
                         comp={selectedComp}
                         kategori={k}
-                        initialDetail={loader.details[`${selectedComp.id}:${k}`]}
-                        initialHeatDetail={loader.heatDetails[`${selectedComp.id}:${k}`]}
-                        initialPrizes={loader.prizes[`${selectedComp.id}:${k}`]}
                       />
                     ))}
                 </div>
@@ -402,29 +396,23 @@ function BracketDraftOrEmptyState({
 function BracketCard({
   comp,
   kategori,
-  initialDetail,
-  initialHeatDetail,
-  initialPrizes,
 }: {
   comp: { id: number; title: string };
   kategori: 'putra' | 'putri';
-  initialDetail?: LivePageData['details'][string];
-  initialHeatDetail?: LivePageData['heatDetails'][string];
-  initialPrizes?: LivePageData['prizes'][string];
 }) {
   const {
     data: detail,
     isError: detailError,
     refetch: refetchDetail,
     isRefetching: detailRefetching,
-  } = useBracket(comp.id, kategori, initialDetail);
+  } = useBracket(comp.id, kategori);
   const {
     data: heatDetail,
     isError: heatError,
     refetch: refetchHeat,
     isRefetching: heatRefetching,
-  } = useHeatBracket(comp.id, kategori, initialHeatDetail);
-  const prizes = initialPrizes ?? [];
+  } = useHeatBracket(comp.id, kategori);
+  const prizes: Array<{ place: number; hadiah: string }> = [];
   const isPutra = kategori === 'putra';
   const isHeat = !!heatDetail;
   const hasError = detailError || heatError;

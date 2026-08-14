@@ -154,12 +154,8 @@ function RootComponent() {
 
 function AppLayout() {
   const routerPath = useRouterState({
-    select: (s) =>
-      s.status === 'pending' || s.isLoading
-        ? s.location.pathname
-        : (s.resolvedLocation?.pathname ?? s.location.pathname),
+    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
   });
-  const didMountRef = useRef(false);
 
   const isHome = routerPath === '/';
   const isAdminArea =
@@ -170,12 +166,8 @@ function AppLayout() {
 
   // Scroll to top instantly on route change
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
     window.scrollTo(0, 0);
-  }, []);
+  }, [routerPath]);
 
   return (
     <div
@@ -190,22 +182,12 @@ function AppLayout() {
           <Outlet />
         </Suspense>
       ) : (
-        <main className={`mb-auto ${'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
+        <main className="mb-auto pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
           {isHome && <Hero />}
           <div className="shell py-6 sm:py-8">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={routerPath}
-                variants={pageTransitionVariants}
-                initial="initial"
-                animate="enter"
-                exit="exit"
-              >
-                <Suspense fallback={<PageFallback />}>
-                  <Outlet />
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
+            <Suspense fallback={<PageFallback />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       )}

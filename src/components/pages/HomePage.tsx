@@ -288,8 +288,7 @@ export default function HomePage() {
         <motion.div
           variants={cardContainerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          animate="visible"
           className="grid gap-4 grid-cols-1 md:grid-cols-3"
         >
           {competitions.map((c, index) => {
@@ -383,8 +382,7 @@ export default function HomePage() {
           <motion.div
             variants={tlContainerVariants}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
+            animate="visible"
             className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
           >
             {TIMELINE.map((step) => {

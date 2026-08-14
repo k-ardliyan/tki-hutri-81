@@ -9,10 +9,19 @@ import { getTeamSummary } from '../server/functions/teams';
 const HomePage = lazyRouteComponent(() => import('../components/pages/HomePage'));
 
 export const Route = createFileRoute('/')({
-  loader: async () => ({
-    competitions: await getCompetitions(),
-    teamSummary: await getTeamSummary(),
-  }),
+  loader: async () => {
+    const [competitionsResult, teamSummaryResult] = await Promise.allSettled([
+      getCompetitions(),
+      getTeamSummary(),
+    ]);
+    return {
+      competitions: competitionsResult.status === 'fulfilled' ? competitionsResult.value : [],
+      teamSummary:
+        teamSummaryResult.status === 'fulfilled'
+          ? teamSummaryResult.value
+          : { total: 0, putra: 0, putri: 0 },
+    };
+  },
   component: HomePage,
   pendingComponent: HomePageSkeleton,
   errorComponent: HomeErrorFallback,
