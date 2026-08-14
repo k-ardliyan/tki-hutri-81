@@ -3,7 +3,7 @@
  * Di-render sebagai Action Button / Card yang membuka ResponsiveDialog (Drawer di mobile, Dialog di desktop).
  */
 
-import { Clock3, ExternalLink, History, Search, UserCheck, X } from 'lucide-react';
+import { Clock3, History, Search, UserCheck, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { currentWeekNumber } from '../../lib/dateUtils';
 import { useForms, useRooms, useSubmissions } from '../../lib/queries';

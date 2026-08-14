@@ -8,7 +8,7 @@ export function calculatePodium(
   finalMatch: TournamentMatch | null,
   thirdPlaceMatch: TournamentMatch | null
 ): TournamentPodium {
-  if (!finalMatch || finalMatch.status !== 'COMPLETED' || finalMatch.winnerId === null) {
+  if (finalMatch?.status !== 'COMPLETED' || finalMatch.winnerId === null) {
     return { rank1: null, rank2: null, rank3: null };
   }
   const rank3 =

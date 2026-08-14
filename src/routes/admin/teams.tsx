@@ -8,7 +8,6 @@ import {
   Mars,
   Plus,
   QrCode,
-  Search,
   ShieldAlert,
   Table as TableIcon,
   Trash2,
@@ -165,7 +164,7 @@ function AdminTeams() {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   // Metrics KPI
   const metrics = useMemo(() => {
@@ -188,7 +187,7 @@ function AdminTeams() {
       const matchName = r.nama.toLowerCase().includes(q);
       const matchCode = r.kode?.toLowerCase().includes(q) ?? false;
       const matchMember = r.members.some(
-        (m) => m.nama.toLowerCase().includes(q) || (m.nip && m.nip.includes(q))
+        (m) => m.nama.toLowerCase().includes(q) || m.nip?.includes(q)
       );
 
       return matchCat && (matchName || matchCode || matchMember);

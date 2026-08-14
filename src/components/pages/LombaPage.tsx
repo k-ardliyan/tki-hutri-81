@@ -388,11 +388,11 @@ export default function LombaPage() {
     if (paramId && competitions.some((c) => c.id === paramId)) {
       setActiveId(paramId);
     }
-  }, [paramId]);
+  }, [paramId, competitions.some]);
 
   const active = useMemo(
     () => competitions.find((c) => c.id === activeId) || competitions[0],
-    [activeId]
+    [activeId, competitions[0]]
   );
   const t = (tone as Record<string, typeof tone.red>)[active.tone] || tone.red;
   const role: any = effectiveAudience === 'peserta' ? active.forPeserta : active.forPanitia;
@@ -418,7 +418,7 @@ export default function LombaPage() {
     setActiveId(id);
     setMenuOpen(false);
     // Update URL to /lomba/:id for shareability
-    navigate('/lomba/' + id, { replace: true });
+    navigate(`/lomba/${id}`, { replace: true });
     requestAnimationFrame(() => {
       detailTopRef.current?.scrollIntoView({
         behavior: 'smooth',

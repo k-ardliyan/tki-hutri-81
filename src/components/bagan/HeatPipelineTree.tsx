@@ -12,31 +12,22 @@
 import {
   Award,
   Check,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Crown,
-  Flame,
   Gift,
-  Layers,
   Medal,
-  MoveRight,
   Pencil,
   Sparkles,
   Trophy,
-  Users,
-  UserX,
   X,
 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
-import { Card, CardContent } from '~/components/ui/card';
 import { distributeSessions } from '~/lib/tournament/heat-elimination/session-distribution';
 import type {
   HeatDetailView,
-  HeatParticipantView,
   HeatSessionView,
   HeatStageView,
 } from '~/lib/tournament/heat-elimination/types';
@@ -117,7 +108,7 @@ function getTeamName(teams: Array<{ id: number; nama: string }>, id: number | nu
  * di semua sesi.
  */
 export function getStagePlaceholderDistribution(
-  currentStage: HeatStageView,
+  _currentStage: HeatStageView,
   prevStage: HeatStageView | null,
   sessionCount: number
 ): QualifierSlotOrigin[][] {
@@ -216,7 +207,7 @@ export function getSessionsForStage(
 
   // Jika babak belum memiliki sesi yang terbentuk (mis. Semifinal / Final di awal)
   // Tanpa prevStage (babak pertama) tidak ada qualifier → tak ada placeholder.
-  if (!prevStage || !prevStage.sessions.length) {
+  if (!prevStage?.sessions.length) {
     return [];
   }
 

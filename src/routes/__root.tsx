@@ -4,7 +4,6 @@ import {
   HeadContent,
   Outlet,
   Scripts,
-  useLocation,
   useRouterState,
 } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
@@ -176,7 +175,7 @@ function AppLayout() {
       return;
     }
     window.scrollTo(0, 0);
-  }, [routerPath]);
+  }, []);
 
   return (
     <div

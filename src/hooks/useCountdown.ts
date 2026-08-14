@@ -14,7 +14,7 @@ export function useCountdown(targetDate = '2026-08-13T12:45:00') {
     const target = new Date(targetDate).getTime();
 
     const update = () => {
-      const now = new Date().getTime();
+      const now = Date.now();
       const diff = target - now;
 
       if (diff <= 0) {

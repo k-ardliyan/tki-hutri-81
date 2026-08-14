@@ -3,14 +3,7 @@
  * CardHeader: label + value besar + action badge; CardFooter: hint.
  */
 import type * as React from 'react';
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
+import { Card } from '~/components/ui/card';
 
 export interface SectionCardData {
   label: string;
@@ -29,20 +22,33 @@ export function SectionCards({
   gridClass?: string;
 }) {
   return (
-    <div className={`grid gap-3 ${gridClass}`}>
+    <div className={`grid gap-2.5 sm:gap-3 ${gridClass}`}>
       {stats.map((s) => (
         <Card
           key={s.label}
-          className="bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card"
+          className="bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card overflow-hidden rounded-2xl border border-border/80"
         >
-          <CardHeader>
-            <CardDescription>{s.label}</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">{s.value}</CardTitle>
-            {s.action && <CardAction>{s.action}</CardAction>}
-          </CardHeader>
-          {s.footer && (
-            <CardFooter className="flex-col items-start gap-1.5 text-sm">{s.footer}</CardFooter>
-          )}
+          <div className="p-3.5 sm:p-4 space-y-1.5">
+            {/* Label — Full Width to ensure text is never truncated */}
+            <p className="text-xs sm:text-sm font-bold text-muted-foreground leading-snug">
+              {s.label}
+            </p>
+
+            {/* Value & Action Badge side-by-side */}
+            <div className="flex items-center justify-between gap-2 pt-0.5">
+              <span className="text-xl sm:text-2xl font-black font-heading tracking-tight tabular-nums text-foreground">
+                {s.value}
+              </span>
+              {s.action && <div className="shrink-0">{s.action}</div>}
+            </div>
+
+            {/* Footer */}
+            {s.footer && (
+              <div className="pt-1 text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+                {s.footer}
+              </div>
+            )}
+          </div>
         </Card>
       ))}
     </div>

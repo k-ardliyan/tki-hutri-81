@@ -48,7 +48,7 @@ export const login = createServerFn({ method: 'POST' })
       const { username, password } = data;
       const db = assertDb();
       const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
-      if (!user || !user.isActive) return { ok: false, error: 'Username atau password salah' };
+      if (!user?.isActive) return { ok: false, error: 'Username atau password salah' };
       const ok = await verifyPassword(password, user.passwordHash);
       if (!ok) return { ok: false, error: 'Username atau password salah' };
       // Cookie ditandatangani HMAC — payload tidak bisa dipalsukan tanpa SESSION_SECRET.

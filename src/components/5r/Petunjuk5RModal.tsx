@@ -4,15 +4,12 @@ import {
   CheckCircle2,
   Cigarette,
   CigaretteOff,
-  HelpCircle,
   Layers,
   Lock,
   Paintbrush,
   Scale,
   ShieldCheck,
-  Sparkles,
   Trophy,
-  Users,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ResponsiveDialog } from '../ui/responsive-dialog';

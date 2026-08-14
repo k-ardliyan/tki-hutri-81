@@ -12,7 +12,7 @@
  */
 
 import { Award, Crown, Flame, Gift, Layers, Medal, Trophy, Users } from 'lucide-react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import type { BracketDetailView } from '~/components/bagan/BracketTree';
 import { getStagePlaceholderDistribution } from '~/components/bagan/HeatPipelineTree';
 import type {

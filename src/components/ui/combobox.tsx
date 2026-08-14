@@ -71,14 +71,14 @@ export function Combobox({
             triggerClassName
           )}
         >
-          <span className="truncate flex items-center gap-1.5 min-w-0">
+          <span className="flex items-center gap-1.5 min-w-0 w-full text-left">
             {selectedOption ? (
               <>
                 {selectedOption.icon}
-                <span>{selectedOption.label}</span>
+                <span className="truncate">{selectedOption.label}</span>
               </>
             ) : (
-              placeholder
+              <span className="truncate">{placeholder}</span>
             )}
           </span>
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />

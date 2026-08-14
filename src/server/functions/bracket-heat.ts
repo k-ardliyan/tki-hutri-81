@@ -16,7 +16,7 @@ import type {
 import { assertDb, db } from '../db';
 import { teams } from '../db/schema';
 import { adminOnly } from '../middleware/auth';
-import { type TournamentDb, tournamentService } from '../services/tournament';
+import type { TournamentDb } from '../services/tournament';
 import { heatService } from '../services/tournament/heat';
 
 type Kategori = 'putra' | 'putri';

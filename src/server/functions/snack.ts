@@ -10,9 +10,8 @@
  * - claimed_by/voided_by = username dari cookie session (server-side, anti-spoof).
  */
 import { createServerFn } from '@tanstack/react-start';
-import { and, count, desc, eq, gt, inArray, lt, ne, not, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gt, inArray, lt, ne, sql } from 'drizzle-orm';
 import { assertDb } from '../db';
-import { isUniqueViolation } from '../db/errors';
 import {
   employees,
   redemptions,

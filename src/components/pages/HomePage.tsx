@@ -2,7 +2,7 @@ import { useLoaderData } from '@tanstack/react-router';
 import { motion, useInView, type Variants } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { LazyImage } from '~/components/common/LazyImage';
-import { motionDuration, motionEase, motionTransition } from '~/lib/motion';
+import { motionDuration, motionEase } from '~/lib/motion';
 import { assets } from '../../assets';
 import { useAudienceNavigate } from '../../context/AudienceContext';
 import { getEventPhase, PHASES } from '../../lib/eventPhase';
@@ -303,7 +303,7 @@ export default function HomePage() {
                 variants={cardVariants}
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/lomba/' + c.id)}
+                onClick={() => navigate(`/lomba/${c.id}`)}
                 className="lomba-card group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:border-red-200 hover:shadow-md flex flex-col justify-between"
               >
                 {/* Image Header */}
