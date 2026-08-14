@@ -5,9 +5,9 @@ import { routeTree } from './routeTree.gen';
 export function getRouter() {
   return createRouter({
     routeTree,
-    defaultPreload: false,
+    defaultPreload: 'intent',
     scrollRestoration: true,
-    defaultPendingMs: 0,
+    defaultPendingMs: 200,
     defaultPendingMinMs: 150,
     defaultPendingComponent: PageFallback,
   });

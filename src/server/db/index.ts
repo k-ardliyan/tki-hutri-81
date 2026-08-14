@@ -27,7 +27,7 @@ const client = connectionString
       ssl: 'require',
       max: 2,
       idle_timeout: 30,
-      connect_timeout: 10,
+      connect_timeout: 5,
     })
   : null;
 
